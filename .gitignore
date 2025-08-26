@@ -259,3 +259,6 @@ temp/
 
 # Nul files
 nul*
+
+# No executables
+*.exe

@@ -1,0 +1,448 @@
+{
+  "version": "5.0",
+  "metadata": {
+    "created": "2025-01-21",
+    "description": "Data-driven governance configuration for flexible AI orchestration",
+    "portable": true,
+    "ui_editable": true
+  },
+  "defaults": {
+    "governance_level": "strict",
+    "enable_prompt_interceptor": false,
+    "enable_business_auditor": true,
+    "parallel_execution": true,
+    "max_retry_attempts": 3,
+    "timeout_seconds": 30,
+    "cache_results": true
+  },
+  "agents": {
+    "primary": {
+      "id": "main_agent",
+      "name": "Primary Orchestrator",
+      "enabled": true,
+      "personas_enabled": [
+        "sarah_chen",
+        "marcus_rodriguez",
+        "emily_watson"
+      ],
+      "execution_order": 1,
+      "can_parallelize": true
+    },
+    "prompt_interceptor": {
+      "id": "prompt_optimizer",
+      "name": "Prompt Optimization Agent",
+      "enabled": true,
+      "intercepts": true,
+      "rewrites_prompts": true,
+      "best_practices": [
+        "clarity_enhancement",
+        "context_enrichment",
+        "ambiguity_removal",
+        "technical_precision"
+      ],
+      "execution_order": 0
+    },
+    "business_auditor": {
+      "id": "rachel_torres",
+      "name": "Business Feature Auditor",
+      "enabled": true,
+      "runs_after": [
+        "primary"
+      ],
+      "mandatory": true,
+      "aggressive_mode": true,
+      "execution_order": 999
+    },
+    "custom_agents": []
+  },
+  "personas": {
+    "sarah_chen": {
+      "id": "sarah_chen",
+      "name": "Dr. Sarah Chen",
+      "role": "AI Integration & Claude Optimization",
+      "enabled": false,
+      "weight": 1.0,
+      "keywords": [
+        "claude",
+        "api",
+        "ai",
+        "integration",
+        "optimization",
+        "prompt"
+      ],
+      "validations": {
+        "token_optimization": true,
+        "api_efficiency": true,
+        "prompt_quality": true
+      },
+      "rules": {
+        "max_tokens": 4000,
+        "require_evidence": true,
+        "validate_assumptions": true
+      }
+    },
+    "marcus_rodriguez": {
+      "id": "marcus_rodriguez",
+      "name": "Marcus Rodriguez",
+      "role": "Systems Performance & Architecture",
+      "enabled": true,
+      "weight": 1.0,
+      "keywords": [
+        "performance",
+        "cache",
+        "database",
+        "architecture",
+        "system"
+      ],
+      "validations": {
+        "performance_metrics": true,
+        "cache_efficiency": true,
+        "database_optimization": true
+      },
+      "rules": {
+        "min_cache_hit_rate": 0.9,
+        "max_response_time_ms": 500,
+        "require_benchmarks": true
+      }
+    },
+    "emily_watson": {
+      "id": "emily_watson",
+      "name": "Emily Watson",
+      "role": "UX/Frontend & User Experience",
+      "enabled": true,
+      "weight": 1.0,
+      "keywords": [
+        "ui",
+        "ux",
+        "frontend",
+        "user",
+        "interface",
+        "experience"
+      ],
+      "validations": {
+        "accessibility_check": true,
+        "user_flow_validation": true,
+        "interface_consistency": true
+      },
+      "rules": {
+        "require_user_testing": false,
+        "validate_workflows": true,
+        "check_accessibility": true
+      }
+    },
+    "rachel_torres": {
+      "id": "rachel_torres",
+      "name": "Dr. Rachel Torres",
+      "role": "Business Feature Auditor & Assumption Destroyer",
+      "enabled": true,
+      "weight": 1.5,
+      "keywords": [
+        "business",
+        "feature",
+        "requirement",
+        "assumption",
+        "validation"
+      ],
+      "validations": {
+        "business_feature_audit": true,
+        "assumption_destruction": true,
+        "requirement_validation": true,
+        "gap_analysis": true
+      },
+      "rules": {
+        "reject_unvalidated_assumptions": true,
+        "require_business_evidence": true,
+        "aggressive_challenging": true,
+        "mandatory_execution": true
+      }
+    }
+  },
+  "validation_rules": {
+    "global": {
+      "no_magic_variables": {
+        "enabled": true,
+        "severity": "error",
+        "patterns": [
+          "localhost",
+          "127.0.0.1",
+          "hardcoded",
+          "secret"
+        ],
+        "exceptions": [
+          "test_*.py"
+        ],
+        "auto_fix": true
+      },
+      "no_boilerplate": {
+        "enabled": true,
+        "severity": "warning",
+        "patterns": [
+          "TODO",
+          "FIXME",
+          "pass$",
+          "NotImplemented"
+        ],
+        "exceptions": [
+          "base_patterns.py",
+          "test_*.py"
+        ],
+        "auto_fix": false
+      },
+      "require_documentation": {
+        "enabled": true,
+        "severity": "error",
+        "min_coverage": 80,
+        "check_docstrings": true,
+        "check_comments": true
+      },
+      "require_tests": {
+        "enabled": true,
+        "severity": "error",
+        "min_coverage": 70,
+        "require_unit_tests": true,
+        "require_integration_tests": false
+      },
+      "no_unicode_characters": {
+        "enabled": true,
+        "severity": "error",
+        "patterns": [
+          "[\\u2600-\\u27BF]",
+          "[\\U0001F300-\\U0001F9FF]",
+          "[\\u2700-\\u27BF]"
+        ],
+        "exceptions": [
+          "*.md",
+          "*.txt",
+          "docs/*"
+        ],
+        "auto_fix": true,
+        "replacement_patterns": {
+          "emoji_to_text": true,
+          "unicode_to_ascii": true
+        },
+        "description": "Windows console compatibility - no unicode/emoji characters"
+      },
+      "folder_structure": {
+        "enabled": true,
+        "severity": "warning",
+        "max_files_per_folder": 20,
+        "required_folders": {
+          "tests": "All test files should be in a tests/ folder",
+          "config": "Configuration files should be in a config/ folder",
+          "api": "API endpoints should be in an api/ folder",
+          "governance": "Governance modules should be in a governance/ folder",
+          "personas": "Persona modules should be in a personas/ folder",
+          "cache": "Cache modules should be in a cache/ folder",
+          "database": "Database modules should be in a database/ folder"
+        },
+        "naming_conventions": {
+          "test_files": "test_*.py",
+          "config_files": "*_config.json or config_*.json",
+          "api_files": "*_api.py or api_*.py",
+          "governance_files": "*_governance.py or governance_*.py"
+        },
+        "forbidden_locations": {
+          "root_py_files": "Python files should not be in project root",
+          "mixed_content": "Don't mix test files with implementation files"
+        }
+      }
+    },
+    "per_persona": {
+      "sarah_chen": {
+        "validate_ai_integration": true,
+        "check_token_usage": true,
+        "require_prompt_optimization": true
+      },
+      "marcus_rodriguez": {
+        "validate_performance": true,
+        "check_database_queries": true,
+        "require_caching_strategy": true
+      },
+      "emily_watson": {
+        "validate_user_experience": true,
+        "check_accessibility": true,
+        "require_user_flows": true
+      },
+      "rachel_torres": {
+        "validate_business_features": true,
+        "destroy_assumptions": true,
+        "require_business_evidence": true
+      }
+    }
+  },
+  "execution_modes": {
+    "single_agent": {
+      "enabled": true,
+      "agent": "primary",
+      "personas": [
+        "sarah_chen"
+      ]
+    },
+    "multi_agent_single_persona": {
+      "enabled": true,
+      "agents": [
+        "primary",
+        "business_auditor"
+      ],
+      "personas_per_agent": {
+        "primary": [
+          "sarah_chen"
+        ],
+        "business_auditor": [
+          "rachel_torres"
+        ]
+      }
+    },
+    "multi_agent_multi_persona": {
+      "enabled": true,
+      "agents": [
+        "prompt_interceptor",
+        "primary",
+        "business_auditor"
+      ],
+      "personas_per_agent": {
+        "prompt_interceptor": [],
+        "primary": [
+          "sarah_chen",
+          "marcus_rodriguez",
+          "emily_watson"
+        ],
+        "business_auditor": [
+          "rachel_torres"
+        ]
+      }
+    },
+    "full_orchestration": {
+      "enabled": true,
+      "agents": [
+        "prompt_interceptor",
+        "primary",
+        "business_auditor"
+      ],
+      "all_personas": true,
+      "parallel": true,
+      "consensus_required": false
+    }
+  },
+  "prompt_interception": {
+    "enabled": true,
+    "rewriting_rules": {
+      "enhance_clarity": {
+        "enabled": true,
+        "patterns": {
+          "vague_terms": [
+            "thing",
+            "stuff",
+            "something"
+          ],
+          "replacements": {
+            "thing": "specific component",
+            "stuff": "relevant items",
+            "something": "the specified element"
+          }
+        }
+      },
+      "add_context": {
+        "enabled": true,
+        "auto_add": [
+          "project_context",
+          "current_file",
+          "recent_changes"
+        ]
+      },
+      "technical_precision": {
+        "enabled": true,
+        "require_specifics": true,
+        "disambiguate": true
+      },
+      "best_practices": {
+        "enabled": true,
+        "templates": {
+          "code_review": "Review the following code for [quality/performance/security]...",
+          "bug_fix": "Identify and fix the issue where [specific behavior]...",
+          "feature_implementation": "Implement [feature] that [specific requirement]..."
+        }
+      }
+    },
+    "distribution": {
+      "send_to_all_agents": true,
+      "send_to_all_personas": true,
+      "preserve_original": true,
+      "log_transformations": true
+    }
+  },
+  "ui_integration": {
+    "config_endpoint": "/api/governance/config",
+    "update_endpoint": "/api/governance/update",
+    "reset_endpoint": "/api/governance/reset",
+    "validation_endpoint": "/api/governance/validate",
+    "features": {
+      "live_editing": true,
+      "instant_preview": true,
+      "rollback_support": true,
+      "export_import": true,
+      "version_control": true
+    },
+    "ui_components": {
+      "agent_manager": {
+        "add_agent": true,
+        "remove_agent": true,
+        "configure_agent": true,
+        "test_agent": true
+      },
+      "persona_manager": {
+        "enable_disable": true,
+        "adjust_weights": true,
+        "configure_rules": true,
+        "view_metrics": true
+      },
+      "rule_editor": {
+        "add_rule": true,
+        "edit_rule": true,
+        "delete_rule": true,
+        "test_rule": true
+      },
+      "execution_monitor": {
+        "real_time_status": true,
+        "performance_metrics": true,
+        "violation_alerts": true,
+        "audit_trail": true
+      }
+    }
+  },
+  "portability": {
+    "standalone_module": true,
+    "no_external_dependencies": false,
+    "required_packages": [
+      "asyncio",
+      "json",
+      "typing",
+      "dataclasses"
+    ],
+    "export_formats": [
+      "json",
+      "yaml",
+      "python"
+    ],
+    "import_validators": true,
+    "migration_tools": true
+  },
+  "persistence": {
+    "save_config_changes": true,
+    "config_history": true,
+    "max_history_items": 100,
+    "auto_backup": true,
+    "backup_interval_minutes": 30
+  },
+  "overrides": {
+    "allow_runtime_overrides": true,
+    "override_priority": [
+      "ui",
+      "api",
+      "config_file",
+      "defaults"
+    ],
+    "validate_overrides": true,
+    "log_overrides": true
+  }
+}

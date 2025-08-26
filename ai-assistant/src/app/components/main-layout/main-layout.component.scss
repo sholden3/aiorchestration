@@ -1,0 +1,624 @@
+// Import design tokens and mixins
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+// Top Navigation
+.top-nav {
+  @include gradient-primary;
+  height: $header-height;
+  position: fixed;
+  top: 0;
+  z-index: $z-sticky;
+  box-shadow: $shadow-md;
+
+  .nav-left {
+    @include flex-center;
+    gap: $space-4;
+    flex: 1;
+  }
+
+  .menu-toggle {
+    color: $toolbar-icon;
+  }
+
+  .app-title {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-medium;
+    margin: 0;
+    color: $toolbar-text;
+  }
+
+  .nav-right {
+    @include flex-center;
+    gap: $space-4;
+  }
+
+  .nav-icon-btn {
+    color: $toolbar-icon;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    cursor: pointer;
+
+    .user-name {
+      @media (max-width: #{$breakpoint-md}) {
+        display: none;
+      }
+    }
+
+    .user-avatar {
+      width: $avatar-size;
+      height: $avatar-size;
+      border-radius: 50%;
+      background: linear-gradient(45deg, $color-secondary, $color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: $toolbar-text;
+      font-weight: $font-weight-medium;
+    }
+
+    .user-menu-icon {
+      color: $toolbar-icon;
+    }
+  }
+}
+
+// Main Container
+.main-container {
+  height: calc(100vh - #{$header-height});
+  margin-top: $header-height;
+}
+
+// Sidebar - Now uses sidenav component
+.sidebar {
+  @include ensure-contrast($color-surface);
+  border-right: $border-width solid $color-border;
+
+  // Sidebar content is now handled by sidenav component
+}
+
+// Content Wrapper
+.content-wrapper {
+  position: relative;
+  background: $color-background;
+}
+
+// AI Assistant
+.ai-assistant {
+  position: fixed;
+  right: 0;
+  top: $header-height;
+  width: $ai-panel-width;
+  height: calc(100vh - #{$header-height} - #{$terminal-height});
+  background: $color-surface;
+  border-left: $border-width solid $color-border;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 997;
+  display: flex;
+  flex-direction: column;
+
+  &.open {
+    transform: translateX(0);
+  }
+
+  .ai-header {
+    padding: $space-4 $space-5;
+    border-bottom: $border-width solid $color-border;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: $color-background;
+
+    .ai-title {
+      font-weight: 500;
+      color: $color-text-primary;
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+
+      mat-icon {
+        color: $color-primary;
+      }
+    }
+    
+    .close-ai {
+      color: $color-text-secondary;
+      
+      &:hover {
+        color: $color-text-primary;
+        background: $color-hover;
+      }
+    }
+  }
+
+  .chat-messages {
+    flex: 1;
+    padding: $space-4;
+    overflow-y: auto;
+    background: $color-background;
+
+    .message {
+      margin-bottom: $space-4;
+      display: flex;
+      gap: $space-3;
+
+      &.user {
+        flex-direction: row-reverse;
+
+        .message-avatar {
+          background: lighten($color-primary, 40%);
+          color: $color-primary;
+        }
+
+        .message-content {
+          background: $color-primary;
+          color: $color-dark-text-primary;
+        }
+      }
+
+      &.ai {
+        .message-avatar {
+          background: $toolbar-gradient;
+          color: white;
+        }
+
+        .message-content {
+          background: $color-surface;
+          color: $color-text-primary;
+        }
+      }
+
+      .message-avatar {
+        width: $button-height;
+        height: $button-height;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: $font-size-xs;
+        font-weight: 500;
+        flex-shrink: 0;
+      }
+
+      .message-content {
+        padding: $space-3 $space-4;
+        border-radius: $radius-lg;
+        max-width: $message-max-width;
+        box-shadow: $shadow-sm;
+        font-size: $font-size-sm;
+        line-height: 1.4;
+      }
+    }
+  }
+
+  .chat-input {
+    padding: $space-4;
+    border-top: $border-width solid $color-border;
+    background: $color-surface;
+
+    .chat-input-field {
+      width: 100%;
+
+      ::ng-deep .mat-form-field-wrapper {
+        padding: 0;
+      }
+
+      ::ng-deep .mat-form-field-infix {
+        border-top: 0;
+      }
+
+      ::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline {
+        border-radius: $radius-full;
+      }
+    }
+  }
+}
+
+// AI Toggle Button
+.ai-toggle {
+  position: fixed;
+  right: $space-4;
+  top: 50%;
+  transform: translateY(-50%);
+  background: $color-primary;
+  z-index: 996;
+
+  &.hidden {
+    display: none;
+  }
+}
+
+// Main Content
+.main-content {
+  padding: $space-6;
+  margin-bottom: $terminal-height;
+  transition: margin 0.3s ease;
+
+  &.sidebar-collapsed {
+    margin-left: 0;
+  }
+
+  &.ai-open {
+    margin-right: $ai-panel-width;
+  }
+
+  &.terminal-expanded {
+    display: none;
+  }
+
+  .page-header {
+    margin-bottom: $space-8;
+
+    .page-title {
+      font-size: $font-size-3xl;
+      font-weight: 300;
+      color: $color-text-primary;
+      margin-bottom: $space-2;
+    }
+
+    .page-subtitle {
+      color: $color-text-secondary;
+      font-size: $font-size-base;
+    }
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-6;
+
+    @media (max-width: #{$breakpoint-md}) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .card {
+    background: $color-surface;
+    border-radius: $radius-md;
+    box-shadow: $shadow-sm;
+
+    mat-card-header {
+      border-bottom: $border-width solid $color-border;
+      padding-bottom: $space-4;
+      margin-bottom: 0;
+    }
+
+    mat-card-title {
+      font-size: $font-size-lg;
+      font-weight: 500;
+      color: $color-text-primary;
+    }
+
+    .update-item {
+      display: flex;
+      align-items: flex-start;
+      padding: $space-4 0;
+      border-bottom: $border-width solid $color-border;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .update-icon {
+        width: $avatar-size;
+        height: $avatar-size;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: $space-4;
+        flex-shrink: 0;
+        color: $color-dark-text-primary;
+
+        mat-icon {
+          color: $color-dark-text-primary;
+          font-size: $icon-size-lg;
+        }
+      }
+
+      .update-content {
+        flex: 1;
+
+        .update-title {
+          font-weight: 500;
+          margin-bottom: $space-1;
+          color: $color-text-primary;
+        }
+
+        .update-description {
+          color: $color-text-secondary;
+          font-size: $font-size-sm;
+          line-height: 1.5;
+        }
+
+        .update-time {
+          color: $color-text-muted;
+          font-size: $font-size-xs;
+          margin-top: $space-2;
+        }
+      }
+    }
+
+    .project-item {
+      padding: $space-5 0;
+      border-bottom: $border-width solid $color-border;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .project-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: $space-3;
+
+        .project-name {
+          font-weight: 500;
+          font-size: $font-size-base;
+          color: $color-text-primary;
+        }
+
+        .project-percentage {
+          color: $color-primary;
+          font-weight: 500;
+        }
+      }
+
+      .progress-bar {
+        margin-bottom: $space-2;
+
+        ::ng-deep .mat-progress-bar-fill::after {
+          background: linear-gradient(45deg, $color-secondary, $color-secondary-dark);
+        }
+      }
+
+      .project-status {
+        color: $color-text-secondary;
+        font-size: $font-size-sm;
+      }
+    }
+  }
+}
+
+// Floating Controls
+.floating-controls {
+  position: fixed;
+  bottom: $floating-controls-bottom;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: $space-3;
+  z-index: $z-fixed;
+
+  &.hidden {
+    display: none;
+  }
+
+  .floating-item {
+    background: $color-surface;
+    border: $border-width solid $color-border;
+    color: $color-text-primary;
+    border-radius: $radius-full;
+    padding: $space-2 $space-4;
+    box-shadow: $shadow-lg;
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      transform: translateY(calc(-1 * #{$space-0-5}));
+      box-shadow: $shadow-xl;
+    }
+
+    .status-dot {
+      width: $space-2;
+      height: $space-2;
+      border-radius: 50%;
+    }
+
+    &.stopped {
+      color: $color-error;
+      border-color: lighten($color-error, 30%);
+
+      .status-dot {
+        background: $color-error;
+      }
+    }
+
+    &.running {
+      color: $color-success;
+      border-color: lighten($color-success, 30%);
+
+      .status-dot {
+        background: $color-success;
+      }
+    }
+
+    &.governance {
+      color: $color-primary;
+      border-color: lighten($color-primary, 30%);
+
+      .status-dot {
+        background: $color-primary;
+      }
+    }
+
+    &.personas {
+      color: $color-success;
+      border-color: lighten($color-success, 30%);
+
+      .status-dot {
+        background: $color-success;
+      }
+    }
+  }
+}
+
+// Terminal Section
+.terminal-section {
+  position: fixed;
+  bottom: 0;
+  left: $sidebar-width;
+  right: 0;
+  height: $terminal-height;
+  background: $terminal-background;
+  border-top: $border-width solid $color-dark-border;
+  display: flex;
+  flex-direction: column;
+  transition: all $transition-slow;
+  z-index: $z-fixed;
+
+  &.sidebar-collapsed {
+    left: 0;
+  }
+
+  &.ai-open {
+    right: $ai-panel-width;
+  }
+
+  &.expanded {
+    height: $terminal-expanded-height;
+    top: $header-height;
+    z-index: 1001;
+  }
+
+  .terminal-header {
+    background: darken($terminal-background, 5%);
+    padding: $space-2 $space-4;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: $border-width solid $color-dark-border;
+
+    .terminal-tabs {
+      display: flex;
+      gap: $space-1;
+      align-items: center;
+
+      .terminal-tab {
+        background: $terminal-background;
+        color: $terminal-text;
+        padding: $space-1-5 $space-3;
+        border: none;
+        border-radius: $radius-sm $radius-sm 0 0;
+        cursor: pointer;
+        font-size: $font-size-xs;
+        display: flex;
+        align-items: center;
+        gap: $space-1-5;
+        transition: all 0.2s;
+
+        &.active {
+          background: $terminal-background;
+          color: $terminal-prompt;
+        }
+
+        &:hover:not(.active) {
+          background: lighten($terminal-background, 10%);
+        }
+
+        .tab-close {
+          font-size: $font-size-sm;
+          cursor: pointer;
+
+          &:hover {
+            color: $color-error;
+          }
+        }
+      }
+
+      .terminal-btn {
+        color: $terminal-text;
+
+        &:hover {
+          background: lighten($terminal-background, 10%);
+        }
+      }
+    }
+
+    .terminal-controls {
+      display: flex;
+      gap: $space-2;
+
+      .terminal-btn {
+        color: $terminal-text;
+        font-size: $font-size-xs;
+
+        mat-icon {
+          font-size: $font-size-base;
+          margin-right: $space-1;
+        }
+
+        &:hover {
+          background: lighten($terminal-background, 10%);
+        }
+      }
+    }
+  }
+
+  .terminal-content {
+    flex: 1;
+    background: $terminal-background;
+    color: $terminal-text;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    padding: $space-3;
+    overflow-y: auto;
+
+    .terminal-line {
+      margin-bottom: 4px;
+      display: flex;
+
+      &.terminal-input-line {
+        .terminal-prompt {
+          color: $terminal-prompt;
+          margin-right: $space-2;
+        }
+
+        .terminal-input {
+          background: transparent;
+          border: none;
+          color: $terminal-text;
+          font-family: inherit;
+          font-size: inherit;
+          flex: 1;
+          outline: none;
+        }
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: #{$breakpoint-md}) {
+  .ai-assistant {
+    width: 100%;
+  }
+
+  .main-content {
+    &.ai-open {
+      margin-right: 0;
+    }
+  }
+
+  .terminal-section {
+    &.ai-open {
+      right: 0;
+      height: calc(#{$terminal-height} - 50px);
+    }
+  }
+
+  .floating-controls {
+    bottom: calc(#{$floating-controls-bottom} - 50px);
+  }
+}

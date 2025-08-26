@@ -1,0 +1,45 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.module-container {
+  padding: $space-5;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.under-construction-card {
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+}
+
+.construction-content {
+  padding: $space-5 0;
+}
+
+.construction-icon {
+  font-size: $space-12;
+  width: $space-12;
+  height: $space-12;
+  color: $color-warning;
+  margin-bottom: $space-4;
+}
+
+mat-card-header {
+  justify-content: center;
+  text-align: center;
+}
+
+mat-icon[mat-card-avatar] {
+  font-size: $space-10;
+  width: $space-10;
+  height: $space-10;
+  color: $color-primary;
+}
+
+p {
+  margin: $space-2 0;
+  color: $color-text-secondary;
+}

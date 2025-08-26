@@ -1,0 +1,55 @@
+[
+  {
+    "id": "TODO_ed69eb6b",
+    "title": "Optimize TSP algorithm",
+    "description": "Implement 2-opt improvement for better performance",
+    "category": "vro_optimization",
+    "priority": "high",
+    "status": "analyzed",
+    "required_personas": [
+      "vro_optimization_expert",
+      "alexandra_vro_expert",
+      "defensive_ai_architect"
+    ],
+    "persona_analysis": {
+      "analysis_prompt": "\ud83d\udd25 PERSONA ORCHESTRATION SYSTEM ACTIVATED \ud83d\udd25\n\n\ud83d\ude80 VRO OPTIMIZATION EXPERT HAS TOP PRIORITY FOR THIS REQUEST!\n\n\ud83c\udfaf REQUIRED PERSONAS FOR THIS REQUEST:\n\u2705 \ud83d\ude80 VRO Optimization Expert\n\u2705 \ud83c\udfaf Dr. Alexandra (VRO Expert)\n\u2705 \ud83c\udfd7\ufe0f Marcus (.NET Expert)\n\n\ud83d\udee1\ufe0f VALIDATION LEVEL: MAXIMUM\n\n\ud83d\udcdd REQUIRED RESPONSE FORMAT:\n\n\ud83d\ude80 VRO Optimization Expert ANALYSIS:\n[Performance metrics, algorithmic analysis, optimization opportunities, metaheuristic recommendations]\n\n\ud83c\udfaf Dr. Alexandra (VRO Expert) ANALYSIS:\n[VRO domain expertise, constraint analysis, routing optimization, time window considerations]\n\n\ud83c\udfd7\ufe0f Marcus (.NET Expert) ANALYSIS:\n[.NET performance, SOLID principles, memory optimization, async patterns]\n\n\ud83d\ude80 SYNTHESIZED RECOMMENDATION:\n[Combined insights with VRO optimization expert guidance prioritized]\n\n\u2705 VALIDATION CHECKPOINTS COMPLETED:\n[List the validation checks you performed]",
+      "required_personas": [
+        "vro_optimization_expert",
+        "alexandra_vro_expert",
+        "marcus_dotnet_architect"
+      ],
+      "validation_level": "maximum",
+      "has_vro_priority": true
+    },
+    "persona_recommendations": [
+      "Consider algorithmic complexity implications",
+      "Benchmark performance before and after changes",
+      "Validate time window constraints",
+      "Document optimization rationale",
+      "Implement comprehensive input validation",
+      "Add proper error handling and logging",
+      "Consider security implications",
+      "Follow defensive programming patterns"
+    ],
+    "file_path": null,
+    "line_number": null,
+    "created_by": "claude_code",
+    "created_at": "2025-08-15T05:33:07.852006",
+    "updated_at": "2025-08-15T05:33:07.860962",
+    "dependencies": [],
+    "verification_criteria": [
+      "Code compiles without errors",
+      "All existing unit tests pass",
+      "No new security vulnerabilities introduced",
+      "Performance impact assessed and documented",
+      "Algorithm complexity analysis completed",
+      "Performance benchmarks show improvement",
+      "Time window constraints validated",
+      "Route optimization metrics measured"
+    ],
+    "completion_evidence": [],
+    "estimated_effort": null,
+    "deadline": null,
+    "tags": []
+  }
+]

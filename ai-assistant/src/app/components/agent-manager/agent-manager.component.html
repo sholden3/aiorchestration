@@ -1,0 +1,190 @@
+<div class="agent-manager-container">
+  <!-- Header -->
+  <div class="header">
+    <h2>AI Agent Management</h2>
+    <div class="agent-count">
+      <span class="agent-counter">
+        {{ agents.length }}/{{ maxAgents }} Agents Active
+      </span>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <mat-card *ngIf="error" class="error-card">
+    <mat-card-content>
+      <mat-icon>error</mat-icon>
+      {{ error }}
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Agent Spawn Controls -->
+  <mat-card class="spawn-controls">
+    <mat-card-header>
+      <mat-card-title>Spawn New Agent</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="agent-types">
+        <button mat-raised-button 
+                *ngFor="let type of agentTypes"
+                [color]="agents.length >= maxAgents ? '' : 'primary'"
+                [disabled]="agents.length >= maxAgents || isLoading"
+                (click)="spawnAgent(type.value)"
+                class="spawn-button">
+          <mat-icon>{{ type.icon }}</mat-icon>
+          {{ type.label }}
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Active Agents Grid -->
+  <div class="agents-grid">
+    <mat-card *ngFor="let agent of agents" class="agent-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>smart_toy</mat-icon>
+          {{ agent.name }}
+        </mat-card-title>
+        <mat-card-subtitle>
+          <span class="status-badge" [class]="'status-' + agent.status">
+            <mat-icon class="status-icon">{{ getStatusIcon(agent.status) }}</mat-icon>
+            {{ agent.status }}
+          </span>
+        </mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="agent-details">
+          <div class="detail-row">
+            <span class="label">Type:</span>
+            <span class="value">{{ agent.type }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Tasks Completed:</span>
+            <span class="value">{{ agent.tasks_completed }}</span>
+          </div>
+          <div class="detail-row" *ngIf="agent.current_task">
+            <span class="label">Current Task:</span>
+            <span class="value">{{ agent.current_task }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Created:</span>
+            <span class="value">{{ agent.created_at | date:'short' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+      
+      <mat-card-actions>
+        <button mat-button color="primary" (click)="selectAgent(agent)">
+          <mat-icon>terminal</mat-icon>
+          Terminal
+        </button>
+        <button mat-button color="warn" (click)="terminateAgent(agent.id)">
+          <mat-icon>stop</mat-icon>
+          Terminate
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Agent Terminal View -->
+  <mat-card *ngIf="selectedAgent" class="terminal-card">
+    <mat-card-header>
+      <mat-card-title>
+        Terminal - {{ selectedAgent.name }}
+      </mat-card-title>
+      <button mat-icon-button (click)="selectedAgent = null">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="terminal-window">
+        <div class="terminal-output">
+          <div *ngFor="let line of agentTerminals.get(selectedAgent.id)" class="terminal-line">
+            {{ line }}
+          </div>
+        </div>
+        <div class="terminal-input-row">
+          <input matInput 
+                 placeholder="Enter command for agent..." 
+                 #agentCommand
+                 (keyup.enter)="sendToAgent(selectedAgent.id, agentCommand.value); agentCommand.value = ''"
+                 class="terminal-input">
+          <button mat-icon-button 
+                  color="primary"
+                  (click)="sendToAgent(selectedAgent.id, agentCommand.value); agentCommand.value = ''">
+            <mat-icon>send</mat-icon>
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Claude Terminal -->
+  <mat-card class="claude-terminal-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>psychology</mat-icon>
+        Claude Terminal
+      </mat-card-title>
+      <div class="claude-actions">
+        <span class="connection-status" [class.connected]="claudeConnected">
+          {{ claudeConnected ? 'Connected' : 'Disconnected' }}
+        </span>
+        <button mat-icon-button 
+                *ngIf="!claudeConnected" 
+                (click)="connectClaude()"
+                matTooltip="Connect to Claude">
+          <mat-icon>link</mat-icon>
+        </button>
+        <button mat-icon-button 
+                *ngIf="claudeConnected" 
+                (click)="disconnectClaude()"
+                matTooltip="Disconnect">
+          <mat-icon>link_off</mat-icon>
+        </button>
+      </div>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="claude-chat">
+        <div class="chat-messages">
+          <div *ngFor="let msg of claudeMessages" 
+               class="message"
+               [ngClass]="'message-' + msg.type">
+            <div class="message-header">
+              <mat-icon *ngIf="msg.type === 'user'">person</mat-icon>
+              <mat-icon *ngIf="msg.type === 'claude'">smart_toy</mat-icon>
+              <mat-icon *ngIf="msg.type === 'system'">info</mat-icon>
+              <mat-icon *ngIf="msg.type === 'error'">error</mat-icon>
+              <span class="timestamp">{{ msg.timestamp | date:'short' }}</span>
+            </div>
+            <div class="message-content">{{ msg.content }}</div>
+          </div>
+        </div>
+        
+        <div class="chat-input" *ngIf="claudeConnected">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Message to Claude</mat-label>
+            <textarea matInput 
+                      [(ngModel)]="claudeInput" 
+                      (keyup.enter)="sendToClaude()"
+                      rows="2"
+                      placeholder="Type your message..."></textarea>
+          </mat-form-field>
+          <button mat-fab color="primary" (click)="sendToClaude()">
+            <mat-icon>send</mat-icon>
+          </button>
+        </div>
+        
+        <div class="connect-prompt" *ngIf="!claudeConnected">
+          <button mat-raised-button color="primary" (click)="connectClaude()">
+            <mat-icon>link</mat-icon>
+            Connect to Claude
+          </button>
+          <p>Connect to interact with Claude directly through the terminal</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

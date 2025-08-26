@@ -1,0 +1,50 @@
+[
+  {
+    "request": "How can I reduce my Claude API token usage by 50% while maintaining response quality?",
+    "persona": "sarah",
+    "priority": "high"
+  },
+  {
+    "request": "Design a caching system that achieves 90% hit rate with minimal memory usage",
+    "persona": "marcus",
+    "priority": "high"
+  },
+  {
+    "request": "Create a real-time dashboard interface for monitoring AI agent performance",
+    "persona": "emily",
+    "priority": "medium"
+  },
+  {
+    "request": "What's the best way to implement prompt templates for consistent AI responses?",
+    "persona": "sarah",
+    "priority": "medium"
+  },
+  {
+    "request": "Optimize database queries for sub-100ms response times",
+    "persona": "marcus",
+    "priority": "high"
+  },
+  {
+    "request": "Design an accessible color scheme for a developer dashboard",
+    "persona": "emily",
+    "priority": "low"
+  },
+  {
+    "request": "Implement retry logic with exponential backoff for API calls",
+    "note": "Let system auto-select persona"
+  },
+  {
+    "request": "How to implement semantic caching for AI responses?",
+    "note": "Should select Sarah for AI or Marcus for caching"
+  },
+  {
+    "request": "Build a command palette interface like VS Code",
+    "persona": "emily",
+    "priority": "medium"
+  },
+  {
+    "request": "Analyze memory usage patterns in our caching system",
+    "persona": "marcus",
+    "priority": "high"
+  }
+]

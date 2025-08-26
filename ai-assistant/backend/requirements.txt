@@ -1,0 +1,42 @@
+# Backend Requirements for AI Development Assistant
+# Python 3.10+ required
+
+# Core Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# Database
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+
+# Async Support
+asyncio==3.4.3
+aiofiles==23.2.1
+
+# Utilities
+python-dotenv==1.0.0
+pyyaml==6.0.1
+click==8.1.7
+
+# WebSocket Support
+websockets==12.0
+
+# Development
+pytest==7.4.4
+pytest-asyncio==0.23.3
+black==23.12.1
+flake8==7.0.0
+
+# Logging
+python-json-logger==2.0.7
+
+# Optional: Claude SDK Integration
+# Uncomment if you want to use SDK instead of CLI
+# Note: Using SDK requires separate API key purchase (not included with Claude Pro)
+# anthropic==0.18.1
+
+# Optional: Windows PTY Support
+# Uncomment for enhanced terminal support on Windows
+# pywinpty==2.0.12

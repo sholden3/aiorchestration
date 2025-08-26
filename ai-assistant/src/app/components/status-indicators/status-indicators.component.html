@@ -1,0 +1,31 @@
+<div class="status-indicators">
+  <mat-chip-set>
+    <mat-chip 
+      [class.active]="systemStatus?.is_running"
+      [matTooltip]="getSystemTooltip()">
+      <mat-icon class="status-icon">circle</mat-icon>
+      {{ systemStatus?.is_running ? 'Running' : 'Stopped' }}
+    </mat-chip>
+    
+    <mat-chip 
+      [class.active]="systemStatus?.governance_active"
+      matTooltip="Governance system ensures quality and prevents hallucinations">
+      <mat-icon class="status-icon">security</mat-icon>
+      Governance {{ systemStatus?.governance_active ? 'Active' : 'Inactive' }}
+    </mat-chip>
+    
+    <mat-chip 
+      [class.active]="systemStatus?.persona_orchestration_active"
+      matTooltip="Persona orchestration manages AI agent personalities">
+      <mat-icon class="status-icon">group</mat-icon>
+      Personas {{ systemStatus?.persona_orchestration_active ? 'Active' : 'Inactive' }}
+    </mat-chip>
+    
+    <mat-chip 
+      *ngIf="systemStatus?.agents"
+      matTooltip="Active AI agents processing tasks">
+      <mat-icon class="status-icon">smart_toy</mat-icon>
+      {{ systemStatus.agents.active }}/{{ systemStatus.agents.total }} Agents
+    </mat-chip>
+  </mat-chip-set>
+</div>

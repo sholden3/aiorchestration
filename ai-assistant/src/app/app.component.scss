@@ -1,0 +1,18 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.sidenav-container {
+  height: 100%;
+  background-color: $color-background;
+}
+
+.sidenav {
+  width: $sidebar-width;
+  background-color: $color-surface;
+  border-right: $border-width solid $color-border;
+}
+
+.main-content {
+  padding: $space-6;
+  min-height: calc(100vh - #{$header-height});
+}

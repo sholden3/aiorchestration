@@ -1,0 +1,106 @@
+<div class="layout-container">
+  <!-- Top Toolbar -->
+  <app-toolbar 
+    (toggleTerminal)="showTerminal()"
+    (toggleDashboard)="showDashboard()"
+    (newTerminal)="createNewTerminal()">
+  </app-toolbar>
+
+  <!-- Main Content Area -->
+  <div class="layout-body">
+    
+    <!-- Left Sidebar (optional, for file explorer later) -->
+    <div class="layout-left" *ngIf="hasLeftPanel()">
+      <!-- Future: File Explorer -->
+    </div>
+
+    <!-- Center Content -->
+    <div class="layout-center">
+      
+      <!-- Main Panel -->
+      <div class="layout-main" [class.with-bottom]="hasBottomPanel()">
+        <ng-container *ngFor="let panel of getMainPanels()">
+          <div class="panel-container"
+               [class.active]="activePanel === panel.id">
+            
+            <!-- Dashboard -->
+            <app-dashboard *ngIf="panel.type === 'dashboard'"></app-dashboard>
+            
+            <!-- Future: Editor -->
+            <div *ngIf="panel.type === 'editor'" class="editor-placeholder">
+              Editor coming soon...
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Bottom Panel (Terminals) -->
+      <div class="layout-bottom" 
+           *ngIf="hasBottomPanel()"
+           [style.height.%]="getBottomPanelSize()">
+        
+        <!-- Terminal Tabs -->
+        <div class="terminal-tabs">
+          <div class="tabs-list">
+            <ng-container *ngFor="let panel of getTerminalPanels()">
+              <button [class.active]="activePanel === panel.id"
+                      (click)="setActivePanel(panel.id)"
+                      class="tab-button">
+                <mat-icon>terminal</mat-icon>
+                {{ panel.title }}
+                <button mat-icon-button class="tab-close" (click)="togglePanel(panel.id)">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </button>
+            </ng-container>
+            <button mat-icon-button class="tab-add" (click)="createNewTerminal()">
+              <mat-icon>add</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Terminal Content -->
+        <div class="terminal-content">
+          <ng-container *ngFor="let panel of getTerminalPanels()">
+            <app-terminal 
+              *ngIf="isActiveTerminal(panel)"
+              [sessionId]="panel.id">
+            </app-terminal>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- Resize Handle -->
+      <div class="resize-handle horizontal" 
+           *ngIf="hasBottomPanel()"
+           (mousedown)="resizing = true">
+      </div>
+    </div>
+
+    <!-- Right Sidebar (AI Chat) -->
+    <div class="layout-right" 
+         *ngIf="hasRightPanel()"
+         [style.width.px]="getRightPanelSize()">
+      
+      <div class="panel-header">
+        <h3>AI Assistant</h3>
+        <button mat-icon-button (click)="togglePanel('chat-assistant')">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="chat-container">
+        <!-- Future: AI Chat Interface -->
+        <div class="chat-placeholder">
+          <p>AI Assistant Chat</p>
+          <p>• Ask questions about your code</p>
+          <p>• Get suggestions</p>
+          <p>• Run AI orchestration tasks</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <app-status-indicators></app-status-indicators>
+</div>

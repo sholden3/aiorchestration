@@ -1,0 +1,284 @@
+{
+  "templates": [
+    {
+      "template_id": "TMPL-003",
+      "name": "React Component Template",
+      "description": "Standard React functional component with TypeScript",
+      "category": "general",
+      "template_content": "import React from 'react';\nimport { {{IMPORTS}} } from '{{IMPORT_SOURCE}}';\n\ninterface {{COMPONENT_NAME}}Props {\n  {{PROPS}}\n}\n\nexport const {{COMPONENT_NAME}}: React.FC<{{COMPONENT_NAME}}Props> = ({{PROPS_DESTRUCTURE}}) => {\n  {{STATE_HOOKS}}\n  \n  {{EFFECTS}}\n  \n  return (\n    <div className=\"{{CSS_CLASS}}\">\n      {{JSX_CONTENT}}\n    </div>\n  );\n};",
+      "variables": ["COMPONENT_NAME", "IMPORTS", "IMPORT_SOURCE", "PROPS", "PROPS_DESTRUCTURE", "STATE_HOOKS", "EFFECTS", "CSS_CLASS", "JSX_CONTENT"],
+      "tags": ["react", "typescript", "component"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-004",
+      "name": "Express Route Handler",
+      "description": "Express.js route handler with error handling",
+      "category": "general",
+      "template_content": "router.{{METHOD}}('{{ROUTE_PATH}}', {{MIDDLEWARE}}, async (req, res, next) => {\n  try {\n    {{VALIDATION}}\n    \n    const result = await {{SERVICE_CALL}};\n    \n    res.status({{STATUS_CODE}}).json({\n      success: true,\n      data: result,\n      message: '{{SUCCESS_MESSAGE}}'\n    });\n  } catch (error) {\n    next(error);\n  }\n});",
+      "variables": ["METHOD", "ROUTE_PATH", "MIDDLEWARE", "VALIDATION", "SERVICE_CALL", "STATUS_CODE", "SUCCESS_MESSAGE"],
+      "tags": ["express", "nodejs", "api"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-005",
+      "name": "Python Class Template",
+      "description": "Python class with docstrings and type hints",
+      "category": "general",
+      "template_content": "from typing import {{TYPE_IMPORTS}}\n{{IMPORTS}}\n\nclass {{CLASS_NAME}}:\n    \"\"\"{{CLASS_DESCRIPTION}}\n    \n    Attributes:\n        {{ATTRIBUTES_DOC}}\n    \"\"\"\n    \n    def __init__(self, {{INIT_PARAMS}}):\n        \"\"\"Initialize {{CLASS_NAME}}\n        \n        Args:\n            {{INIT_PARAMS_DOC}}\n        \"\"\"\n        {{INIT_BODY}}\n    \n    {{METHODS}}\n    \n    def __repr__(self) -> str:\n        return f\"{{CLASS_NAME}}({{REPR_CONTENT}})\"",
+      "variables": ["CLASS_NAME", "CLASS_DESCRIPTION", "TYPE_IMPORTS", "IMPORTS", "ATTRIBUTES_DOC", "INIT_PARAMS", "INIT_PARAMS_DOC", "INIT_BODY", "METHODS", "REPR_CONTENT"],
+      "tags": ["python", "class", "oop"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-006",
+      "name": "Unit Test Template",
+      "description": "Unit test template with setup and teardown",
+      "category": "testing",
+      "template_content": "import {{TEST_FRAMEWORK}}\nfrom {{MODULE_PATH}} import {{MODULE_NAME}}\n\nclass Test{{TEST_CLASS_NAME}}({{TEST_BASE_CLASS}}):\n    \"\"\"Tests for {{MODULE_NAME}}\"\"\"\n    \n    def setUp(self):\n        \"\"\"Set up test fixtures\"\"\"\n        {{SETUP_CODE}}\n    \n    def tearDown(self):\n        \"\"\"Clean up after tests\"\"\"\n        {{TEARDOWN_CODE}}\n    \n    def test_{{TEST_NAME}}(self):\n        \"\"\"Test {{TEST_DESCRIPTION}}\"\"\"\n        # Arrange\n        {{ARRANGE}}\n        \n        # Act\n        {{ACT}}\n        \n        # Assert\n        {{ASSERT}}",
+      "variables": ["TEST_FRAMEWORK", "MODULE_PATH", "MODULE_NAME", "TEST_CLASS_NAME", "TEST_BASE_CLASS", "SETUP_CODE", "TEARDOWN_CODE", "TEST_NAME", "TEST_DESCRIPTION", "ARRANGE", "ACT", "ASSERT"],
+      "tags": ["testing", "unittest", "python"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-007",
+      "name": "Docker Compose Template",
+      "description": "Docker Compose configuration for multi-service app",
+      "category": "architecture",
+      "template_content": "version: '3.8'\n\nservices:\n  {{SERVICE_NAME}}:\n    image: {{IMAGE_NAME}}:{{IMAGE_TAG}}\n    container_name: {{CONTAINER_NAME}}\n    ports:\n      - \"{{HOST_PORT}}:{{CONTAINER_PORT}}\"\n    environment:\n      {{ENVIRONMENT_VARS}}\n    volumes:\n      {{VOLUMES}}\n    networks:\n      - {{NETWORK_NAME}}\n    depends_on:\n      {{DEPENDENCIES}}\n    restart: {{RESTART_POLICY}}\n\nnetworks:\n  {{NETWORK_NAME}}:\n    driver: bridge\n\nvolumes:\n  {{VOLUME_DEFINITIONS}}",
+      "variables": ["SERVICE_NAME", "IMAGE_NAME", "IMAGE_TAG", "CONTAINER_NAME", "HOST_PORT", "CONTAINER_PORT", "ENVIRONMENT_VARS", "VOLUMES", "NETWORK_NAME", "DEPENDENCIES", "RESTART_POLICY", "VOLUME_DEFINITIONS"],
+      "tags": ["docker", "devops", "infrastructure"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-008",
+      "name": "GitHub Actions Workflow",
+      "description": "CI/CD workflow for GitHub Actions",
+      "category": "general",
+      "template_content": "name: {{WORKFLOW_NAME}}\n\non:\n  {{TRIGGERS}}\n\njobs:\n  {{JOB_NAME}}:\n    runs-on: {{RUNNER}}\n    \n    steps:\n      - uses: actions/checkout@v3\n      \n      - name: {{SETUP_STEP_NAME}}\n        uses: {{SETUP_ACTION}}\n        with:\n          {{SETUP_PARAMS}}\n      \n      - name: Install dependencies\n        run: {{INSTALL_COMMAND}}\n      \n      - name: Run tests\n        run: {{TEST_COMMAND}}\n      \n      - name: {{CUSTOM_STEP_NAME}}\n        run: {{CUSTOM_COMMAND}}\n      \n      {{ADDITIONAL_STEPS}}",
+      "variables": ["WORKFLOW_NAME", "TRIGGERS", "JOB_NAME", "RUNNER", "SETUP_STEP_NAME", "SETUP_ACTION", "SETUP_PARAMS", "INSTALL_COMMAND", "TEST_COMMAND", "CUSTOM_STEP_NAME", "CUSTOM_COMMAND", "ADDITIONAL_STEPS"],
+      "tags": ["ci-cd", "github", "automation"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-009",
+      "name": "SQL Migration Template",
+      "description": "Database migration script template",
+      "category": "architecture",
+      "template_content": "-- Migration: {{MIGRATION_NAME}}\n-- Date: {{DATE}}\n-- Author: {{AUTHOR}}\n-- Description: {{DESCRIPTION}}\n\n-- Up Migration\nBEGIN TRANSACTION;\n\n{{UP_MIGRATION}}\n\nCOMMIT;\n\n-- Down Migration\n-- BEGIN TRANSACTION;\n-- {{DOWN_MIGRATION}}\n-- COMMIT;",
+      "variables": ["MIGRATION_NAME", "DATE", "AUTHOR", "DESCRIPTION", "UP_MIGRATION", "DOWN_MIGRATION"],
+      "tags": ["sql", "database", "migration"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-010",
+      "name": "REST API Error Response",
+      "description": "Standardized error response template",
+      "category": "general",
+      "template_content": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"{{ERROR_CODE}}\",\n    \"message\": \"{{ERROR_MESSAGE}}\",\n    \"details\": {{ERROR_DETAILS}},\n    \"timestamp\": \"{{TIMESTAMP}}\",\n    \"path\": \"{{REQUEST_PATH}}\",\n    \"requestId\": \"{{REQUEST_ID}}\"\n  }\n}",
+      "variables": ["ERROR_CODE", "ERROR_MESSAGE", "ERROR_DETAILS", "TIMESTAMP", "REQUEST_PATH", "REQUEST_ID"],
+      "tags": ["api", "error-handling", "rest"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-011",
+      "name": "Environment Configuration",
+      "description": ".env file template for application configuration",
+      "category": "general",
+      "template_content": "# Application\nNODE_ENV={{NODE_ENV}}\nPORT={{PORT}}\nHOST={{HOST}}\n\n# Database\nDB_HOST={{DB_HOST}}\nDB_PORT={{DB_PORT}}\nDB_NAME={{DB_NAME}}\nDB_USER={{DB_USER}}\nDB_PASSWORD={{DB_PASSWORD}}\n\n# Redis\nREDIS_URL={{REDIS_URL}}\n\n# API Keys\n{{API_KEYS}}\n\n# Feature Flags\n{{FEATURE_FLAGS}}\n\n# Logging\nLOG_LEVEL={{LOG_LEVEL}}\n\n# Security\nJWT_SECRET={{JWT_SECRET}}\nSESSION_SECRET={{SESSION_SECRET}}",
+      "variables": ["NODE_ENV", "PORT", "HOST", "DB_HOST", "DB_PORT", "DB_NAME", "DB_USER", "DB_PASSWORD", "REDIS_URL", "API_KEYS", "FEATURE_FLAGS", "LOG_LEVEL", "JWT_SECRET", "SESSION_SECRET"],
+      "tags": ["configuration", "environment", "settings"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-012",
+      "name": "Angular Service Template",
+      "description": "Angular service with dependency injection",
+      "category": "general",
+      "template_content": "import { Injectable } from '@angular/core';\nimport { HttpClient } from '@angular/common/http';\nimport { Observable } from 'rxjs';\nimport { {{IMPORTS}} } from '{{IMPORT_PATH}}';\n\n@Injectable({\n  providedIn: 'root'\n})\nexport class {{SERVICE_NAME}}Service {\n  private apiUrl = '{{API_URL}}';\n  \n  constructor(private http: HttpClient) {}\n  \n  {{METHOD_NAME}}({{PARAMS}}): Observable<{{RETURN_TYPE}}> {\n    {{METHOD_BODY}}\n  }\n  \n  {{ADDITIONAL_METHODS}}\n}",
+      "variables": ["SERVICE_NAME", "IMPORTS", "IMPORT_PATH", "API_URL", "METHOD_NAME", "PARAMS", "RETURN_TYPE", "METHOD_BODY", "ADDITIONAL_METHODS"],
+      "tags": ["angular", "service", "typescript"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-013",
+      "name": "Kubernetes Deployment",
+      "description": "Kubernetes deployment configuration",
+      "category": "architecture",
+      "template_content": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: {{DEPLOYMENT_NAME}}\n  namespace: {{NAMESPACE}}\n  labels:\n    app: {{APP_LABEL}}\nspec:\n  replicas: {{REPLICAS}}\n  selector:\n    matchLabels:\n      app: {{APP_LABEL}}\n  template:\n    metadata:\n      labels:\n        app: {{APP_LABEL}}\n    spec:\n      containers:\n      - name: {{CONTAINER_NAME}}\n        image: {{IMAGE}}:{{TAG}}\n        ports:\n        - containerPort: {{PORT}}\n        env:\n        {{ENV_VARS}}\n        resources:\n          limits:\n            memory: {{MEMORY_LIMIT}}\n            cpu: {{CPU_LIMIT}}\n          requests:\n            memory: {{MEMORY_REQUEST}}\n            cpu: {{CPU_REQUEST}}",
+      "variables": ["DEPLOYMENT_NAME", "NAMESPACE", "APP_LABEL", "REPLICAS", "CONTAINER_NAME", "IMAGE", "TAG", "PORT", "ENV_VARS", "MEMORY_LIMIT", "CPU_LIMIT", "MEMORY_REQUEST", "CPU_REQUEST"],
+      "tags": ["kubernetes", "deployment", "infrastructure"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-014",
+      "name": "GraphQL Schema",
+      "description": "GraphQL type definition template",
+      "category": "general",
+      "template_content": "type {{TYPE_NAME}} {\n  id: ID!\n  {{FIELDS}}\n  createdAt: DateTime!\n  updatedAt: DateTime!\n}\n\ninput {{TYPE_NAME}}Input {\n  {{INPUT_FIELDS}}\n}\n\ntype Query {\n  {{TYPE_NAME_LOWER}}(id: ID!): {{TYPE_NAME}}\n  {{TYPE_NAME_LOWER}}s({{QUERY_PARAMS}}): [{{TYPE_NAME}}!]!\n}\n\ntype Mutation {\n  create{{TYPE_NAME}}(input: {{TYPE_NAME}}Input!): {{TYPE_NAME}}!\n  update{{TYPE_NAME}}(id: ID!, input: {{TYPE_NAME}}Input!): {{TYPE_NAME}}!\n  delete{{TYPE_NAME}}(id: ID!): Boolean!\n}",
+      "variables": ["TYPE_NAME", "TYPE_NAME_LOWER", "FIELDS", "INPUT_FIELDS", "QUERY_PARAMS"],
+      "tags": ["graphql", "api", "schema"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-015",
+      "name": "Terraform Module",
+      "description": "Terraform module structure",
+      "category": "architecture",
+      "template_content": "# {{MODULE_NAME}} Module\n# {{MODULE_DESCRIPTION}}\n\nvariable \"{{VARIABLE_NAME}}\" {\n  description = \"{{VARIABLE_DESCRIPTION}}\"\n  type        = {{VARIABLE_TYPE}}\n  default     = {{VARIABLE_DEFAULT}}\n}\n\nresource \"{{RESOURCE_TYPE}}\" \"{{RESOURCE_NAME}}\" {\n  {{RESOURCE_CONFIG}}\n  \n  tags = {\n    Name        = \"{{TAG_NAME}}\"\n    Environment = var.environment\n    ManagedBy   = \"Terraform\"\n  }\n}\n\noutput \"{{OUTPUT_NAME}}\" {\n  description = \"{{OUTPUT_DESCRIPTION}}\"\n  value       = {{OUTPUT_VALUE}}\n}",
+      "variables": ["MODULE_NAME", "MODULE_DESCRIPTION", "VARIABLE_NAME", "VARIABLE_DESCRIPTION", "VARIABLE_TYPE", "VARIABLE_DEFAULT", "RESOURCE_TYPE", "RESOURCE_NAME", "RESOURCE_CONFIG", "TAG_NAME", "OUTPUT_NAME", "OUTPUT_DESCRIPTION", "OUTPUT_VALUE"],
+      "tags": ["terraform", "iac", "infrastructure"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-016",
+      "name": "Jest Test Suite",
+      "description": "Jest test suite with mocking",
+      "category": "testing",
+      "template_content": "import { {{IMPORTS}} } from '{{IMPORT_PATH}}';\n\njest.mock('{{MOCK_PATH}}', () => ({\n  {{MOCK_IMPLEMENTATION}}\n}));\n\ndescribe('{{DESCRIBE_NAME}}', () => {\n  let {{VARIABLES}};\n  \n  beforeEach(() => {\n    {{BEFORE_EACH}}\n  });\n  \n  afterEach(() => {\n    {{AFTER_EACH}}\n  });\n  \n  it('{{TEST_DESCRIPTION}}', async () => {\n    // Arrange\n    {{ARRANGE}}\n    \n    // Act\n    {{ACT}}\n    \n    // Assert\n    expect({{ASSERTION}}).{{MATCHER}}({{EXPECTED}});\n  });\n  \n  {{ADDITIONAL_TESTS}}\n});",
+      "variables": ["IMPORTS", "IMPORT_PATH", "MOCK_PATH", "MOCK_IMPLEMENTATION", "DESCRIBE_NAME", "VARIABLES", "BEFORE_EACH", "AFTER_EACH", "TEST_DESCRIPTION", "ARRANGE", "ACT", "ASSERTION", "MATCHER", "EXPECTED", "ADDITIONAL_TESTS"],
+      "tags": ["jest", "testing", "javascript"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-017",
+      "name": "Logging Configuration",
+      "description": "Structured logging setup template",
+      "category": "general",
+      "template_content": "import {{LOGGER_IMPORT}} from '{{LOGGER_PACKAGE}}';\n\nconst logger = {{LOGGER_IMPORT}}.createLogger({\n  level: process.env.LOG_LEVEL || '{{DEFAULT_LEVEL}}',\n  format: {{LOGGER_IMPORT}}.format.combine(\n    {{LOGGER_IMPORT}}.format.timestamp(),\n    {{LOGGER_IMPORT}}.format.errors({ stack: true }),\n    {{LOGGER_IMPORT}}.format.json()\n  ),\n  defaultMeta: {\n    service: '{{SERVICE_NAME}}',\n    environment: process.env.NODE_ENV,\n    {{ADDITIONAL_META}}\n  },\n  transports: [\n    {{TRANSPORTS}}\n  ]\n});\n\nexport default logger;",
+      "variables": ["LOGGER_IMPORT", "LOGGER_PACKAGE", "DEFAULT_LEVEL", "SERVICE_NAME", "ADDITIONAL_META", "TRANSPORTS"],
+      "tags": ["logging", "observability", "monitoring"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-018",
+      "name": "API Documentation",
+      "description": "OpenAPI/Swagger endpoint documentation",
+      "category": "general",
+      "template_content": "/**\n * @swagger\n * {{ENDPOINT_PATH}}:\n *   {{METHOD}}:\n *     summary: {{SUMMARY}}\n *     description: {{DESCRIPTION}}\n *     tags:\n *       - {{TAGS}}\n *     parameters:\n *       {{PARAMETERS}}\n *     requestBody:\n *       required: {{BODY_REQUIRED}}\n *       content:\n *         application/json:\n *           schema:\n *             {{REQUEST_SCHEMA}}\n *     responses:\n *       200:\n *         description: {{SUCCESS_DESCRIPTION}}\n *         content:\n *           application/json:\n *             schema:\n *               {{RESPONSE_SCHEMA}}\n *       {{ERROR_RESPONSES}}\n */",
+      "variables": ["ENDPOINT_PATH", "METHOD", "SUMMARY", "DESCRIPTION", "TAGS", "PARAMETERS", "BODY_REQUIRED", "REQUEST_SCHEMA", "SUCCESS_DESCRIPTION", "RESPONSE_SCHEMA", "ERROR_RESPONSES"],
+      "tags": ["documentation", "swagger", "api"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-019",
+      "name": "Database Connection Pool",
+      "description": "Database connection pool configuration",
+      "category": "architecture",
+      "template_content": "import { Pool } from '{{DB_LIBRARY}}';\n\nconst pool = new Pool({\n  host: process.env.{{DB_HOST_ENV}} || '{{DEFAULT_HOST}}',\n  port: parseInt(process.env.{{DB_PORT_ENV}} || '{{DEFAULT_PORT}}'),\n  database: process.env.{{DB_NAME_ENV}} || '{{DEFAULT_DB}}',\n  user: process.env.{{DB_USER_ENV}} || '{{DEFAULT_USER}}',\n  password: process.env.{{DB_PASSWORD_ENV}},\n  max: {{MAX_CONNECTIONS}},\n  min: {{MIN_CONNECTIONS}},\n  idleTimeoutMillis: {{IDLE_TIMEOUT}},\n  connectionTimeoutMillis: {{CONNECTION_TIMEOUT}},\n  {{ADDITIONAL_CONFIG}}\n});\n\npool.on('error', (err) => {\n  console.error('Unexpected error on idle client', err);\n  process.exit(-1);\n});\n\nexport default pool;",
+      "variables": ["DB_LIBRARY", "DB_HOST_ENV", "DEFAULT_HOST", "DB_PORT_ENV", "DEFAULT_PORT", "DB_NAME_ENV", "DEFAULT_DB", "DB_USER_ENV", "DEFAULT_USER", "DB_PASSWORD_ENV", "MAX_CONNECTIONS", "MIN_CONNECTIONS", "IDLE_TIMEOUT", "CONNECTION_TIMEOUT", "ADDITIONAL_CONFIG"],
+      "tags": ["database", "connection-pool", "configuration"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-020",
+      "name": "Error Boundary Component",
+      "description": "React Error Boundary for error handling",
+      "category": "general",
+      "template_content": "import React, { Component, ErrorInfo, ReactNode } from 'react';\n\ninterface Props {\n  children: ReactNode;\n  fallback?: ReactNode;\n}\n\ninterface State {\n  hasError: boolean;\n  error?: Error;\n}\n\nexport class {{BOUNDARY_NAME}} extends Component<Props, State> {\n  constructor(props: Props) {\n    super(props);\n    this.state = { hasError: false };\n  }\n\n  static getDerivedStateFromError(error: Error): State {\n    return { hasError: true, error };\n  }\n\n  componentDidCatch(error: Error, errorInfo: ErrorInfo) {\n    console.error('Error caught by boundary:', error, errorInfo);\n    {{ERROR_REPORTING}}\n  }\n\n  render() {\n    if (this.state.hasError) {\n      return this.props.fallback || (\n        <div className=\"error-fallback\">\n          <h2>{{ERROR_TITLE}}</h2>\n          <p>{{ERROR_MESSAGE}}</p>\n          {{RETRY_BUTTON}}\n        </div>\n      );\n    }\n\n    return this.props.children;\n  }\n}",
+      "variables": ["BOUNDARY_NAME", "ERROR_REPORTING", "ERROR_TITLE", "ERROR_MESSAGE", "RETRY_BUTTON"],
+      "tags": ["react", "error-handling", "component"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-021",
+      "name": "Redux Slice",
+      "description": "Redux Toolkit slice template",
+      "category": "general",
+      "template_content": "import { createSlice, PayloadAction } from '@reduxjs/toolkit';\nimport { RootState } from '{{STORE_PATH}}';\n\ninterface {{STATE_NAME}}State {\n  {{STATE_FIELDS}}\n  loading: boolean;\n  error: string | null;\n}\n\nconst initialState: {{STATE_NAME}}State = {\n  {{INITIAL_VALUES}}\n  loading: false,\n  error: null,\n};\n\nexport const {{SLICE_NAME}}Slice = createSlice({\n  name: '{{SLICE_NAME}}',\n  initialState,\n  reducers: {\n    {{REDUCER_NAME}}: (state, action: PayloadAction<{{PAYLOAD_TYPE}}>) => {\n      {{REDUCER_LOGIC}}\n    },\n    {{ADDITIONAL_REDUCERS}}\n  },\n});\n\nexport const { {{EXPORTED_ACTIONS}} } = {{SLICE_NAME}}Slice.actions;\n\nexport const select{{STATE_NAME}} = (state: RootState) => state.{{SLICE_NAME}};\n\nexport default {{SLICE_NAME}}Slice.reducer;",
+      "variables": ["STATE_NAME", "STATE_FIELDS", "INITIAL_VALUES", "SLICE_NAME", "STORE_PATH", "REDUCER_NAME", "PAYLOAD_TYPE", "REDUCER_LOGIC", "ADDITIONAL_REDUCERS", "EXPORTED_ACTIONS"],
+      "tags": ["redux", "state-management", "typescript"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-022",
+      "name": "Middleware Template",
+      "description": "Express middleware function template",
+      "category": "general",
+      "template_content": "import { Request, Response, NextFunction } from 'express';\nimport { {{IMPORTS}} } from '{{IMPORT_PATH}}';\n\nexport const {{MIDDLEWARE_NAME}} = async (\n  req: Request,\n  res: Response,\n  next: NextFunction\n): Promise<void> => {\n  try {\n    {{VALIDATION_LOGIC}}\n    \n    {{MIDDLEWARE_LOGIC}}\n    \n    {{ATTACH_TO_REQUEST}}\n    \n    next();\n  } catch (error) {\n    {{ERROR_HANDLING}}\n  }\n};",
+      "variables": ["MIDDLEWARE_NAME", "IMPORTS", "IMPORT_PATH", "VALIDATION_LOGIC", "MIDDLEWARE_LOGIC", "ATTACH_TO_REQUEST", "ERROR_HANDLING"],
+      "tags": ["express", "middleware", "nodejs"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-023",
+      "name": "WebSocket Handler",
+      "description": "WebSocket connection handler template",
+      "category": "general",
+      "template_content": "import { Server } from 'socket.io';\nimport { {{IMPORTS}} } from '{{IMPORT_PATH}}';\n\nexport const {{HANDLER_NAME}} = (io: Server) => {\n  io.on('connection', (socket) => {\n    console.log('Client connected:', socket.id);\n    \n    socket.on('{{EVENT_NAME}}', async (data: {{DATA_TYPE}}) => {\n      try {\n        {{VALIDATION}}\n        \n        {{HANDLER_LOGIC}}\n        \n        socket.emit('{{RESPONSE_EVENT}}', {{RESPONSE_DATA}});\n        \n        {{BROADCAST_LOGIC}}\n      } catch (error) {\n        socket.emit('error', { message: error.message });\n      }\n    });\n    \n    {{ADDITIONAL_EVENTS}}\n    \n    socket.on('disconnect', () => {\n      console.log('Client disconnected:', socket.id);\n      {{DISCONNECT_LOGIC}}\n    });\n  });\n};",
+      "variables": ["HANDLER_NAME", "IMPORTS", "IMPORT_PATH", "EVENT_NAME", "DATA_TYPE", "VALIDATION", "HANDLER_LOGIC", "RESPONSE_EVENT", "RESPONSE_DATA", "BROADCAST_LOGIC", "ADDITIONAL_EVENTS", "DISCONNECT_LOGIC"],
+      "tags": ["websocket", "real-time", "socket.io"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-024",
+      "name": "Batch Processing Job",
+      "description": "Batch job processing template",
+      "category": "performance",
+      "template_content": "import { {{IMPORTS}} } from '{{IMPORT_PATH}}';\n\ninterface {{JOB_NAME}}Options {\n  batchSize: number;\n  concurrency: number;\n  {{ADDITIONAL_OPTIONS}}\n}\n\nexport class {{JOB_NAME}}Job {\n  constructor(private options: {{JOB_NAME}}Options) {}\n  \n  async run(): Promise<void> {\n    const items = await this.fetchItems();\n    const batches = this.createBatches(items, this.options.batchSize);\n    \n    for (const batch of batches) {\n      await this.processBatch(batch);\n      {{PROGRESS_TRACKING}}\n    }\n  }\n  \n  private async fetchItems(): Promise<{{ITEM_TYPE}}[]> {\n    {{FETCH_LOGIC}}\n  }\n  \n  private createBatches<T>(items: T[], size: number): T[][] {\n    const batches: T[][] = [];\n    for (let i = 0; i < items.length; i += size) {\n      batches.push(items.slice(i, i + size));\n    }\n    return batches;\n  }\n  \n  private async processBatch(batch: {{ITEM_TYPE}}[]): Promise<void> {\n    {{BATCH_PROCESSING_LOGIC}}\n  }\n}",
+      "variables": ["JOB_NAME", "IMPORTS", "IMPORT_PATH", "ADDITIONAL_OPTIONS", "ITEM_TYPE", "FETCH_LOGIC", "PROGRESS_TRACKING", "BATCH_PROCESSING_LOGIC"],
+      "tags": ["batch-processing", "performance", "job"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-025",
+      "name": "Cache Implementation",
+      "description": "Caching layer implementation template",
+      "category": "performance",
+      "template_content": "import { {{CACHE_CLIENT}} } from '{{CACHE_LIBRARY}}';\n\nexport class {{CACHE_NAME}}Cache {\n  private client: {{CACHE_CLIENT}};\n  private defaultTTL = {{DEFAULT_TTL}};\n  \n  constructor() {\n    this.client = new {{CACHE_CLIENT}}({{CLIENT_CONFIG}});\n  }\n  \n  async get<T>(key: string): Promise<T | null> {\n    try {\n      const cached = await this.client.get(key);\n      if (cached) {\n        return JSON.parse(cached) as T;\n      }\n      return null;\n    } catch (error) {\n      console.error(`Cache get error for key ${key}:`, error);\n      return null;\n    }\n  }\n  \n  async set<T>(key: string, value: T, ttl = this.defaultTTL): Promise<void> {\n    try {\n      await this.client.set(key, JSON.stringify(value), 'EX', ttl);\n    } catch (error) {\n      console.error(`Cache set error for key ${key}:`, error);\n    }\n  }\n  \n  async delete(key: string): Promise<void> {\n    try {\n      await this.client.del(key);\n    } catch (error) {\n      console.error(`Cache delete error for key ${key}:`, error);\n    }\n  }\n  \n  async flush(): Promise<void> {\n    {{FLUSH_LOGIC}}\n  }\n}",
+      "variables": ["CACHE_NAME", "CACHE_CLIENT", "CACHE_LIBRARY", "DEFAULT_TTL", "CLIENT_CONFIG", "FLUSH_LOGIC"],
+      "tags": ["caching", "performance", "redis"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-026",
+      "name": "OAuth2 Configuration",
+      "description": "OAuth2 authentication setup template",
+      "category": "security",
+      "template_content": "import { Strategy as {{STRATEGY_NAME}} } from '{{PASSPORT_STRATEGY}}';\nimport passport from 'passport';\n\npassport.use(\n  new {{STRATEGY_NAME}}(\n    {\n      clientID: process.env.{{CLIENT_ID_ENV}},\n      clientSecret: process.env.{{CLIENT_SECRET_ENV}},\n      callbackURL: '{{CALLBACK_URL}}',\n      scope: {{SCOPES}},\n      {{ADDITIONAL_OPTIONS}}\n    },\n    async (accessToken, refreshToken, profile, done) => {\n      try {\n        {{USER_LOOKUP_LOGIC}}\n        \n        if (!user) {\n          {{USER_CREATION_LOGIC}}\n        }\n        \n        {{TOKEN_STORAGE_LOGIC}}\n        \n        return done(null, user);\n      } catch (error) {\n        return done(error, null);\n      }\n    }\n  )\n);",
+      "variables": ["STRATEGY_NAME", "PASSPORT_STRATEGY", "CLIENT_ID_ENV", "CLIENT_SECRET_ENV", "CALLBACK_URL", "SCOPES", "ADDITIONAL_OPTIONS", "USER_LOOKUP_LOGIC", "USER_CREATION_LOGIC", "TOKEN_STORAGE_LOGIC"],
+      "tags": ["oauth", "authentication", "security"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-027",
+      "name": "Rate Limiter",
+      "description": "API rate limiting implementation",
+      "category": "security",
+      "template_content": "import rateLimit from 'express-rate-limit';\nimport { {{IMPORTS}} } from '{{IMPORT_PATH}}';\n\nexport const {{LIMITER_NAME}} = rateLimit({\n  windowMs: {{WINDOW_MS}}, // {{WINDOW_DESCRIPTION}}\n  max: {{MAX_REQUESTS}}, // Limit each IP to {{MAX_REQUESTS}} requests per window\n  message: '{{RATE_LIMIT_MESSAGE}}',\n  standardHeaders: true,\n  legacyHeaders: false,\n  handler: (req, res) => {\n    {{CUSTOM_HANDLER}}\n  },\n  skip: (req) => {\n    {{SKIP_LOGIC}}\n  },\n  keyGenerator: (req) => {\n    {{KEY_GENERATOR}}\n  },\n  {{ADDITIONAL_OPTIONS}}\n});",
+      "variables": ["LIMITER_NAME", "IMPORTS", "IMPORT_PATH", "WINDOW_MS", "WINDOW_DESCRIPTION", "MAX_REQUESTS", "RATE_LIMIT_MESSAGE", "CUSTOM_HANDLER", "SKIP_LOGIC", "KEY_GENERATOR", "ADDITIONAL_OPTIONS"],
+      "tags": ["rate-limiting", "security", "middleware"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-028",
+      "name": "Event Emitter Pattern",
+      "description": "Event-driven architecture template",
+      "category": "architecture",
+      "template_content": "import { EventEmitter } from 'events';\nimport { {{IMPORTS}} } from '{{IMPORT_PATH}}';\n\nexport enum {{EVENT_ENUM}} {\n  {{EVENT_NAMES}}\n}\n\nclass {{EMITTER_NAME}} extends EventEmitter {\n  private static instance: {{EMITTER_NAME}};\n  \n  private constructor() {\n    super();\n    this.setMaxListeners({{MAX_LISTENERS}});\n  }\n  \n  static getInstance(): {{EMITTER_NAME}} {\n    if (!{{EMITTER_NAME}}.instance) {\n      {{EMITTER_NAME}}.instance = new {{EMITTER_NAME}}();\n    }\n    return {{EMITTER_NAME}}.instance;\n  }\n  \n  emit{{EVENT_METHOD}}(data: {{EVENT_DATA_TYPE}}): void {\n    this.emit({{EVENT_ENUM}}.{{EVENT_NAME}}, data);\n  }\n  \n  on{{EVENT_METHOD}}(handler: (data: {{EVENT_DATA_TYPE}}) => void): void {\n    this.on({{EVENT_ENUM}}.{{EVENT_NAME}}, handler);\n  }\n  \n  {{ADDITIONAL_METHODS}}\n}\n\nexport default {{EMITTER_NAME}}.getInstance();",
+      "variables": ["EMITTER_NAME", "IMPORTS", "IMPORT_PATH", "EVENT_ENUM", "EVENT_NAMES", "MAX_LISTENERS", "EVENT_METHOD", "EVENT_DATA_TYPE", "EVENT_NAME", "ADDITIONAL_METHODS"],
+      "tags": ["events", "pattern", "architecture"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-029",
+      "name": "CLI Command Template",
+      "description": "Command-line interface command template",
+      "category": "general",
+      "template_content": "#!/usr/bin/env node\n\nimport { Command } from 'commander';\nimport { {{IMPORTS}} } from '{{IMPORT_PATH}}';\n\nconst program = new Command();\n\nprogram\n  .name('{{COMMAND_NAME}}')\n  .description('{{COMMAND_DESCRIPTION}}')\n  .version('{{VERSION}}');\n\nprogram\n  .command('{{SUBCOMMAND}}')\n  .alias('{{ALIAS}}')\n  .description('{{SUBCOMMAND_DESCRIPTION}}')\n  .option('{{OPTION_FLAGS}}', '{{OPTION_DESCRIPTION}}')\n  .action(async (options) => {\n    try {\n      {{VALIDATION_LOGIC}}\n      \n      console.log('{{START_MESSAGE}}');\n      \n      {{COMMAND_LOGIC}}\n      \n      console.log('{{SUCCESS_MESSAGE}}');\n    } catch (error) {\n      console.error('Error:', error.message);\n      process.exit(1);\n    }\n  });\n\n{{ADDITIONAL_COMMANDS}}\n\nprogram.parse(process.argv);",
+      "variables": ["COMMAND_NAME", "COMMAND_DESCRIPTION", "VERSION", "IMPORTS", "IMPORT_PATH", "SUBCOMMAND", "ALIAS", "SUBCOMMAND_DESCRIPTION", "OPTION_FLAGS", "OPTION_DESCRIPTION", "VALIDATION_LOGIC", "START_MESSAGE", "COMMAND_LOGIC", "SUCCESS_MESSAGE", "ADDITIONAL_COMMANDS"],
+      "tags": ["cli", "command", "tool"],
+      "created_by": "system"
+    },
+    {
+      "template_id": "TMPL-030",
+      "name": "Queue Worker",
+      "description": "Message queue worker template",
+      "category": "performance",
+      "template_content": "import { {{QUEUE_CLIENT}} } from '{{QUEUE_LIBRARY}}';\nimport { {{IMPORTS}} } from '{{IMPORT_PATH}}';\n\nexport class {{WORKER_NAME}}Worker {\n  private queue: {{QUEUE_CLIENT}};\n  private isRunning = false;\n  \n  constructor() {\n    this.queue = new {{QUEUE_CLIENT}}('{{QUEUE_NAME}}', {\n      {{QUEUE_CONFIG}}\n    });\n    \n    this.setupEventHandlers();\n  }\n  \n  private setupEventHandlers(): void {\n    this.queue.on('completed', (job) => {\n      console.log(`Job ${job.id} completed`);\n    });\n    \n    this.queue.on('failed', (job, err) => {\n      console.error(`Job ${job.id} failed:`, err);\n      {{ERROR_HANDLING}}\n    });\n  }\n  \n  async start(): Promise<void> {\n    if (this.isRunning) return;\n    \n    this.isRunning = true;\n    \n    this.queue.process({{CONCURRENCY}}, async (job) => {\n      const { {{JOB_DATA_DESTRUCTURE}} } = job.data;\n      \n      {{JOB_PROCESSING_LOGIC}}\n      \n      return result;\n    });\n    \n    console.log('{{WORKER_NAME}} worker started');\n  }\n  \n  async stop(): Promise<void> {\n    this.isRunning = false;\n    await this.queue.close();\n    console.log('{{WORKER_NAME}} worker stopped');\n  }\n}",
+      "variables": ["WORKER_NAME", "QUEUE_CLIENT", "QUEUE_LIBRARY", "IMPORTS", "IMPORT_PATH", "QUEUE_NAME", "QUEUE_CONFIG", "ERROR_HANDLING", "CONCURRENCY", "JOB_DATA_DESTRUCTURE", "JOB_PROCESSING_LOGIC"],
+      "tags": ["queue", "worker", "async"],
+      "created_by": "system"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+# FILE: collaboration_rules.yaml
+# Rules for multi-persona collaboration with VRO PRIORITY
+collaboration_rules:
+  minimum_personas_for_complex_problems: 2
+  maximum_personas_per_request: 4
+  
+  # 🎯 VRO OPTIMIZATION GETS TOP PRIORITY
+  priority_triggers:
+    vro_optimization:
+      keywords: ["VRP", "vehicle routing", "optimization", "metaheuristics", "routing algorithms", "TSP", "CVRP", "VRPTW"]
+      primary_persona: "vro_optimization_expert"
+      secondary_personas: ["alexandra_vro_expert", "defensive_ai_architect"]
+      validation_level: "maximum"
+      
+  required_collaborations:
+    vro_optimization_analysis:
+      required_personas: ["vro_optimization_expert", "defensive_ai_architect"]
+      validation_level: "maximum"
+      triggers: ["optimization", "metaheuristics", "algorithm", "performance"]
+      
+    vro_architecture_review:
+      required_personas: ["vro_optimization_expert", "alexandra_vro_expert", "defensive_ai_architect"]
+      validation_level: "strict"
+      triggers: ["VRO", "routing", "architecture", "system design"]
+      
+    dotnet_performance_optimization:
+      required_personas: ["marcus_dotnet_architect", "vro_optimization_expert", "defensive_ai_architect"]
+      validation_level: "strict"
+      triggers: [".NET", "performance", "optimization", "C#"]
+      
+    comprehensive_system_review:
+      required_personas: ["vro_optimization_expert", "defensive_ai_architect", "marcus_dotnet_architect", "general_senior_architect"]
+      validation_level: "maximum"
+      triggers: ["comprehensive", "system", "review", "architecture"]
+      
+    angular_architecture_review:
+      required_personas: ["alex_angular_architect", "general_senior_architect", "defensive_ai_architect"]
+      validation_level: "strict"
+      triggers: ["Angular", "frontend", "SPA", "TypeScript"]
+
+consensus_requirements:
+  minimum_agreement_threshold: 0.75
+  require_unanimous_for_breaking_changes: true
+  escalation_on_major_disagreement: true
+  vro_expert_veto_power: true  # 🎯 VRO expert can override other recommendations for optimization decisions
+
+synthesis_rules:
+  combine_complementary_insights: true
+  highlight_conflicting_recommendations: true
+  provide_implementation_priority: true
+  include_validation_summary: true
+  prioritize_vro_recommendations: true  # 🔥 VRO recommendations get top billing

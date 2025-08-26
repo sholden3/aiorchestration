@@ -1,0 +1,31 @@
+{
+  "governance_report": {
+    "timestamp": "2025-08-21T17:10:28.699596",
+    "governance_level": "adaptive",
+    "summary": {
+      "files_analyzed": [
+        "glob"
+      ],
+      "violations_found": 0,
+      "assumptions_detected": 0,
+      "governance_score": 100,
+      "status": "PASS"
+    },
+    "details": {
+      "files_analyzed": [
+        "glob"
+      ],
+      "violations": [],
+      "assumptions": [],
+      "challenges": {
+        "generated_at": "2025-08-21T17:10:28.699596",
+        "sarah_challenges": [],
+        "marcus_challenges": [],
+        "emily_challenges": []
+      },
+      "evidence_collected": {
+        "timestamp": "2025-08-21T17:10:28.699596",
+        "files_analyzed": 1,
+        "evidence_collected": {}
+      },
+      "governance_report": 

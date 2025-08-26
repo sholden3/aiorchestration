@@ -1,0 +1,389 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.dashboard-container {
+  padding: $space-6;
+
+  .page-header {
+    margin-bottom: $space-8;
+
+    .page-title {
+      font-size: $font-size-3xl;
+      font-weight: $font-weight-normal;
+      color: $color-text-primary;
+      margin: 0 0 $space-2 0;
+    }
+
+    .page-subtitle {
+      color: $color-text-secondary;
+      font-size: $font-size-base;
+      margin: 0;
+    }
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-6;
+    margin-bottom: $space-8;
+
+    @media (max-width: #{$breakpoint-md}) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .card {
+    @include card;
+
+    mat-card-header {
+      border-bottom: $border-width solid $color-border;
+      padding-bottom: $space-4;
+      margin-bottom: 0;
+    }
+
+    mat-card-title {
+      font-size: $font-size-lg;
+      font-weight: $font-weight-medium;
+      color: $color-text-primary;
+    }
+
+    .update-item {
+      display: flex;
+      align-items: flex-start;
+      padding: $space-4 0;
+      border-bottom: $border-width solid $color-border;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .update-icon {
+        width: $avatar-size;
+        height: $avatar-size;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: $space-4;
+        flex-shrink: 0;
+        color: $color-dark-text-primary;
+
+        mat-icon {
+          color: $color-dark-text-primary;
+          font-size: $icon-size-lg;
+        }
+      }
+
+      .update-content {
+        flex: 1;
+
+        .update-title {
+          font-weight: $font-weight-medium;
+          margin-bottom: $space-1;
+          color: $color-text-primary;
+        }
+
+        .update-description {
+          color: $color-text-secondary;
+          font-size: $font-size-sm;
+          line-height: 1.5;
+        }
+
+        .update-time {
+          color: $color-text-muted;
+          font-size: $font-size-xs;
+          margin-top: $space-2;
+        }
+      }
+    }
+
+    .project-item {
+      padding: $space-5 0;
+      border-bottom: $border-width solid $color-border;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .project-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: $space-3;
+
+        .project-name {
+          font-weight: $font-weight-medium;
+          font-size: $font-size-base;
+          color: $color-text-primary;
+        }
+
+        .project-percentage {
+          color: $color-primary;
+          font-weight: $font-weight-medium;
+        }
+      }
+
+      .progress-bar {
+        margin-bottom: $space-2;
+
+        ::ng-deep .mat-progress-bar-fill::after {
+          @include gradient-primary;
+        }
+      }
+
+      .project-status {
+        color: $color-text-secondary;
+        font-size: $font-size-sm;
+      }
+    }
+  }
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.category-filter {
+  margin-left: $space-5;
+  min-width: 200px;
+}
+
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: $space-5;
+  margin: $space-5 0;
+}
+
+.stat-card {
+  text-align: center;
+  
+  .stat-number {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+  }
+  
+  .stat-label {
+    font-size: $font-size-lg;
+    color: $color-text-secondary;
+    margin-top: $space-2;
+  }
+  
+  .stat-sub {
+    font-size: $font-size-sm;
+    color: $color-text-muted;
+    margin-top: $space-1;
+  }
+}
+
+.tab-content {
+  padding: $space-5;
+  min-height: 400px;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  color: $color-error;
+  padding: $space-5;
+  background: lighten($color-error, 40%);
+  border-radius: $radius-sm;
+  margin: $space-5 0;
+  
+  mat-icon {
+    margin-right: $space-2;
+  }
+}
+
+.practices-grid,
+.rules-grid,
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: $space-5;
+  margin-top: $space-5;
+}
+
+.practice-card,
+.rule-card,
+.template-card {
+  &:hover {
+    box-shadow: $shadow-lg;
+  }
+  
+  mat-card-title {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    flex-wrap: wrap;
+  }
+  
+  mat-card-subtitle {
+    margin-top: $space-2;
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+  }
+  
+  mat-expansion-panel {
+    margin-top: $space-4;
+  }
+}
+
+.template-content {
+  background: $color-background;
+  padding: $space-4;
+  border-radius: $radius-sm;
+  overflow-x: auto;
+  font-family: $font-family-mono;
+  font-size: $font-size-sm;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+// Priority classes
+.priority-critical {
+  background-color: $color-error !important;
+  color: $color-dark-text-primary !important;
+}
+
+.priority-high {
+  background-color: $color-warning !important;
+  color: $color-dark-text-primary !important;
+}
+
+.priority-medium {
+  background-color: lighten($color-warning, 20%) !important;
+  color: $color-text-primary !important;
+}
+
+.priority-low {
+  background-color: $color-success !important;
+  color: $color-dark-text-primary !important;
+}
+
+// Severity classes
+.severity-critical {
+  background-color: darken($color-error, 10%) !important;
+  color: $color-dark-text-primary !important;
+}
+
+.severity-high {
+  background-color: darken($color-warning, 10%) !important;
+  color: $color-dark-text-primary !important;
+}
+
+.severity-medium {
+  background-color: lighten($color-warning, 10%) !important;
+  color: $color-text-primary !important;
+}
+
+.severity-low {
+  background-color: darken($color-success, 10%) !important;
+  color: $color-dark-text-primary !important;
+}
+
+mat-chip {
+  font-size: $font-size-sm;
+}
+
+mat-list-item {
+  height: auto !important;
+  min-height: $nav-item-height;
+  padding: $space-2 0;
+  
+  mat-icon {
+    margin-right: $space-2;
+  }
+}
+
+::ng-deep .mat-mdc-tab-label {
+  font-weight: $font-weight-medium;
+}
+
+::ng-deep .mat-mdc-form-field-outline {
+  background-color: $color-surface;
+}
+
+// Orchestration Status Styles
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $space-6;
+  margin-bottom: $space-6;
+  
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    
+    mat-icon {
+      color: $color-text-secondary;
+      
+      &.active {
+        color: $color-success;
+      }
+    }
+    
+    span {
+      color: $color-text-primary;
+      font-size: $font-size-base;
+    }
+  }
+}
+
+.metrics-row {
+  display: flex;
+  justify-content: space-between;
+  padding-top: $space-4;
+  border-top: 1px solid $color-border;
+  
+  .metric {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    
+    .metric-label {
+      color: $color-text-secondary;
+      font-size: $font-size-sm;
+    }
+    
+    .metric-value {
+      color: $color-text-primary;
+      font-size: $font-size-base;
+      font-weight: $font-weight-medium;
+    }
+  }
+}
+
+// Cache Stats Styles
+.cache-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-6;
+  margin-bottom: $space-6;
+  
+  .cache-stat {
+    text-align: center;
+    
+    .stat-value {
+      font-size: $font-size-2xl;
+      font-weight: $font-weight-semibold;
+      color: $color-primary;
+      margin-bottom: $space-1;
+    }
+    
+    .stat-label {
+      font-size: $font-size-sm;
+      color: $color-text-secondary;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+.cache-progress {
+  height: $space-2;
+  border-radius: $radius-sm;
+}

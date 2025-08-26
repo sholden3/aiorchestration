@@ -1,0 +1,162 @@
+<!-- Top Navigation -->
+<mat-toolbar class="top-nav">
+  <div class="nav-left">
+    <button mat-icon-button (click)="toggleSidebar()" class="menu-toggle">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <h1 class="app-title">AI Orchestration Tool</h1>
+  </div>
+  
+  <div class="nav-right">
+    <button mat-icon-button (click)="openSettings()" class="nav-icon-btn">
+      <mat-icon>settings</mat-icon>
+    </button>
+    <div class="user-info">
+      <span class="user-name">{{ userName }}</span>
+      <div class="user-avatar">{{ userInitials }}</div>
+      <mat-icon class="user-menu-icon">expand_more</mat-icon>
+    </div>
+  </div>
+</mat-toolbar>
+
+<!-- Sidebar -->
+<mat-sidenav-container class="main-container">
+  <mat-sidenav 
+    #sidenav 
+    [opened]="sidebarOpen" 
+    [mode]="'side'"
+    class="sidebar"
+    [style.width.px]="sidebarOpen ? 280 : 0">
+    
+    <app-sidenav
+      [isOpen]="sidebarOpen"
+      [activeMenuItem]="activeMenuItem"
+      (menuItemSelected)="selectMenuItem($event)">
+    </app-sidenav>
+  </mat-sidenav>
+  
+  <mat-sidenav-content class="content-wrapper">
+    <!-- AI Assistant Panel -->
+    <div class="ai-assistant" [class.open]="aiAssistantOpen">
+      <div class="ai-header">
+        <div class="ai-title">
+          <mat-icon>smart_toy</mat-icon>
+          AI Assistant
+        </div>
+        <button mat-icon-button (click)="toggleAIAssistant()" class="close-ai">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="chat-messages">
+        <div *ngFor="let message of chatMessages" 
+             [class]="'message ' + message.type">
+          <div class="message-avatar">
+            {{ message.type === 'ai' ? 'AI' : userInitials }}
+          </div>
+          <div class="message-content">
+            {{ message.content }}
+          </div>
+        </div>
+      </div>
+      
+      <div class="chat-input">
+        <mat-form-field appearance="outline" class="chat-input-field">
+          <input matInput 
+                 [(ngModel)]="chatInputValue"
+                 (keypress)="onChatKeyPress($event)"
+                 placeholder="Type your message...">
+          <button mat-icon-button matSuffix (click)="sendChatMessage()">
+            <mat-icon>send</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+    </div>
+    
+    <!-- AI Toggle Button -->
+    <button mat-fab 
+            class="ai-toggle" 
+            [class.hidden]="aiAssistantOpen"
+            (click)="toggleAIAssistant()">
+      <mat-icon>smart_toy</mat-icon>
+    </button>
+    
+    <!-- Main Content -->
+    <main class="main-content" 
+          [class.sidebar-collapsed]="!sidebarOpen"
+          [class.ai-open]="aiAssistantOpen"
+          [class.terminal-expanded]="terminalExpanded">
+      
+      <router-outlet></router-outlet>
+    </main>
+    
+    <!-- Floating Controls -->
+    <div class="floating-controls" [class.hidden]="terminalExpanded">
+      <div class="floating-item" 
+           [class.running]="backendStatus === 'running'"
+           [class.stopped]="backendStatus !== 'running'"
+           (click)="onStatusClick('backend')">
+        <div class="status-dot"></div>
+        {{ backendStatus === 'running' ? 'Running' : 'Stopped' }}
+      </div>
+      <div class="floating-item governance" 
+           [class.active]="governanceActive"
+           (click)="onStatusClick('governance')">
+        <div class="status-dot"></div>
+        Governance
+      </div>
+      <div class="floating-item personas"
+           [class.active]="personasActive"
+           (click)="onStatusClick('personas')">
+        <div class="status-dot"></div>
+        Personas
+      </div>
+    </div>
+    
+    <!-- Terminal Section -->
+    <div class="terminal-section" 
+         [class.sidebar-collapsed]="!sidebarOpen"
+         [class.ai-open]="aiAssistantOpen"
+         [class.expanded]="terminalExpanded">
+      
+      <div class="terminal-header">
+        <div class="terminal-tabs">
+          <button *ngFor="let terminal of terminals"
+                  class="terminal-tab"
+                  [class.active]="terminal.active"
+                  (click)="selectTerminal(terminal.id)">
+            <span>{{ terminal.name }}</span>
+            <mat-icon class="tab-close" 
+                      (click)="closeTerminal(terminal.id); $event.stopPropagation()">
+              close
+            </mat-icon>
+          </button>
+          <button mat-icon-button (click)="addTerminal()" class="terminal-btn">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+        
+        <div class="terminal-controls">
+          <button mat-button (click)="clearTerminal()" class="terminal-btn">
+            <mat-icon>clear_all</mat-icon>
+            <span>Clear</span>
+          </button>
+          <button mat-button (click)="toggleTerminalExpansion()" class="terminal-btn">
+            <mat-icon>{{ terminalExpanded ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+            <span>{{ terminalExpanded ? 'Collapse' : 'Expand' }}</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="terminal-content">
+        <app-terminal 
+          [sessionId]="activeTerminal"
+          [shell]="'powershell'"
+          [cwd]="'.'"
+          #terminalComponent>
+        </app-terminal>
+      </div>
+    </div>
+    
+  </mat-sidenav-content>
+</mat-sidenav-container>

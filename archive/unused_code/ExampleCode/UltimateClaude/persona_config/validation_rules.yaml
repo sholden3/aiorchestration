@@ -1,0 +1,45 @@
+# FILE: validation_rules.yaml
+# Global validation rules that apply to all personas
+validation_rules:
+  syntax_validation:
+    - "All methods have complete structure"
+    - "All braces properly closed"
+    - "All return paths valid"
+    - "No orphaned code fragments"
+    
+  field_validation:
+    - "Use exact field names from project knowledge"
+    - "Verify field existence before use"
+    - "Proper nullable type handling"
+    - "No assumptions about field types"
+    
+  business_logic:
+    - "Never change existing calculation outputs"
+    - "Preserve leg chaining rules"
+    - "Maintain RouteType constraints"
+    - "No breaking changes to core logic"
+    
+  defensive_patterns:
+    - "Input validation at all boundaries"
+    - "Output verification before return"
+    - "Error handling with graceful degradation"
+    - "Context preservation across operations"
+
+mandatory_questions:
+  - "What are the performance implications?"
+  - "How does this affect maintainability?"
+  - "Are there security considerations?"
+  - "What validation is needed?"
+  - "How will this be tested?"
+
+documentation_requirements:
+  require_persona_input: true
+  require_validation_checklist: true
+  require_adr_for_decisions: true
+  require_change_rationale: true
+  
+todo_handling:
+  require_persona_consultation: true
+  mandatory_documentation: true
+  require_validation_checklist: true
+  enforce_completion_deadlines: true

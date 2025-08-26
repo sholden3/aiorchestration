@@ -66,8 +66,10 @@ class ClaudeOptimizer:
         """
         # Common locations for Claude Code
         possible_commands = [
+            r"C:\Users\wesho\AppData\Roaming\npm\claude.cmd",  # Direct path
             "claude",  # In PATH
             "claude-code",  # Alternative name
+            "npx @anthropic-ai/claude-code",  # npm fallback
             r"C:\Program Files\Claude\claude.exe",  # Windows default
             r"C:\Users\%USERNAME%\AppData\Local\Claude\claude.exe",
             os.path.expanduser("~/claude/claude"),  # User directory

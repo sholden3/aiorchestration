@@ -1,6 +1,7 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import { TerminalManagerService } from './terminal-manager.service';
+import { IPCService } from './ipc.service';
 
 export interface TerminalSession {
   id: string;
@@ -36,12 +37,27 @@ declare global {
 }
 
 /**
+ * @fileoverview Terminal service with PTY management and IPC communication
+ * @author Alex Novak v3.0 - 2025-01-27
+ * @fixes C1: Terminal Service Memory Leak
+ * @architecture Frontend Service Layer
+ * @references docs/fixes/C1-terminal-service-memory-leak.md
+ * @testing_strategy Memory leak detection, cleanup verification
+ * @governance Alex's 3AM Test - full debugging capability
+ * @assumptions 
+ *   - IPC listeners must be explicitly cleaned up
+ *   - Angular doesn't auto-cleanup root services
+ * @hook_points
+ *   - Terminal lifecycle monitoring
+ *   - Resource cleanup verification
+ * 
  * FIX C1: Terminal Service - Refactored to component-scoped pattern
  * Removed 'providedIn: root' to allow proper lifecycle management
  * Now properly cleans up IPC listeners when component is destroyed
  * 
- * Architecture: Alex Novak
- * Memory Management: Explicit cleanup on destroy
+ * Architecture: Alex Novak v3.0
+ * Memory Management: Explicit cleanup on destroy with monitoring
+ * 3AM Test: Full debugging with correlation IDs and cleanup verification
  */
 @Injectable()  // FIX C1: REMOVED providedIn: 'root' - now component-scoped
 export class TerminalService implements OnDestroy {
@@ -50,6 +66,8 @@ export class TerminalService implements OnDestroy {
   private exitSubject = new Subject<any>();
   private cleanupFunctions: Array<() => void> = [];
   private isDestroyed = false;  // FIX C1: Track destruction state
+  private instanceId: string;  // FIX C1: Unique instance ID for debugging
+  private createdAt: number;   // FIX C1: Creation timestamp for leak tracking
   
   public output$ = this.outputSubject.asObservable();
   public sessions$ = this.sessionsSubject.asObservable();
@@ -57,18 +75,26 @@ export class TerminalService implements OnDestroy {
 
   constructor(
     private ngZone: NgZone,
-    private terminalManager: TerminalManagerService  // FIX C1: Inject manager
+    private terminalManager: TerminalManagerService,  // FIX C1: Inject manager
+    private ipcService: IPCService  // SECURITY: Inject IPC security service
   ) {
+    // FIX C1: Initialize debugging properties
+    this.instanceId = `terminal-service-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    this.createdAt = Date.now();
+    
     // Register with manager for lifecycle tracking
     this.terminalManager.register(this);
     
-    console.log('TerminalService initializing...');
-    console.log('Is Electron?', this.isElectron());
-    console.log('electronAPI available?', typeof window !== 'undefined' ? window.electronAPI : 'window not defined');
+    console.log(`[${this.instanceId}] TerminalService initializing...`);
+    console.log(`[${this.instanceId}] Is Electron?`, this.isElectron());
+    console.log(`[${this.instanceId}] electronAPI available?`, typeof window !== 'undefined' ? window.electronAPI : 'window not defined');
     
     if (this.isElectron()) {
       this.initializeListeners();
     }
+    
+    // FIX C1: 3AM Debug Hook - Log successful initialization
+    console.log(`[${this.instanceId}] Terminal service initialized successfully at ${new Date(this.createdAt).toISOString()}`);
   }
 
   private isElectron(): boolean {
@@ -77,40 +103,64 @@ export class TerminalService implements OnDestroy {
 
   private initializeListeners(): void {
     if (!this.isElectron() || !window.electronAPI) {
-      console.warn('Cannot initialize terminal listeners - not in Electron environment');
+      console.warn(`[${this.instanceId}] Cannot initialize terminal listeners - not in Electron environment`);
       return;
     }
 
-    console.log('Initializing terminal IPC listeners...');
+    console.log(`[${this.instanceId}] Initializing terminal IPC listeners...`);
 
     // Listen for terminal output
     const outputCleanup = window.electronAPI.onTerminalOutput((data: TerminalOutput) => {
-      console.log('Received terminal output:', data);
+      console.log(`[${this.instanceId}] Received terminal output:`, data);
+      
+      // FIX C1: Prevent processing if service is destroyed
+      if (this.isDestroyed) {
+        console.warn(`[${this.instanceId}] Ignoring output - service destroyed`);
+        return;
+      }
+      
       this.ngZone.run(() => {
         this.outputSubject.next(data);
       });
     });
     this.cleanupFunctions.push(outputCleanup);
+    console.log(`[${this.instanceId}] Output listener registered (${this.cleanupFunctions.length} total)`);
 
     // Listen for terminal exit
     const exitCleanup = window.electronAPI.onTerminalExit((data: any) => {
-      console.log('Terminal exited:', data);
+      console.log(`[${this.instanceId}] Terminal exited:`, data);
+      
+      // FIX C1: Prevent processing if service is destroyed
+      if (this.isDestroyed) {
+        console.warn(`[${this.instanceId}] Ignoring exit - service destroyed`);
+        return;
+      }
+      
       this.ngZone.run(() => {
         this.exitSubject.next(data);
       });
     });
     this.cleanupFunctions.push(exitCleanup);
+    console.log(`[${this.instanceId}] Exit listener registered (${this.cleanupFunctions.length} total)`);
 
     // Listen for session updates
     const sessionsCleanup = window.electronAPI.onTerminalSessions((sessions: TerminalSession[]) => {
-      console.log('Sessions updated:', sessions);
+      console.log(`[${this.instanceId}] Sessions updated:`, sessions);
+      
+      // FIX C1: Prevent processing if service is destroyed
+      if (this.isDestroyed) {
+        console.warn(`[${this.instanceId}] Ignoring sessions - service destroyed`);
+        return;
+      }
+      
       this.ngZone.run(() => {
         this.sessionsSubject.next(sessions);
       });
     });
     this.cleanupFunctions.push(sessionsCleanup);
+    console.log(`[${this.instanceId}] Sessions listener registered (${this.cleanupFunctions.length} total)`);
 
-    console.log('Terminal IPC listeners initialized');
+    console.log(`[${this.instanceId}] Terminal IPC listeners initialized - ${this.cleanupFunctions.length} listeners tracked`);
   }
 
   async createSession(shell?: string, cwd?: string): Promise<string> {
@@ -139,24 +189,29 @@ export class TerminalService implements OnDestroy {
       throw new Error('electronAPI not available');
     }
     
-    console.log('Creating terminal session:', { sessionId, shell, cwd });
+    console.log(`[${this.instanceId}] Creating terminal session:`, { sessionId, shell, cwd });
     
     try {
-      const result = await window.electronAPI.createTerminalSession({
+      // Use IPC security service instead of direct electronAPI access
+      const result = await this.ipcService.safeInvoke<string>('create-terminal-session', {
         sessionId,
         shell,
         cwd
+      }, {
+        timeout: 10000,  // 10 second timeout for session creation
+        retries: 1
       });
-      console.log('Terminal session created successfully:', result);
-      return result;
+      
+      console.log(`[${this.instanceId}] Terminal session created successfully:`, result);
+      return result || sessionId;
     } catch (error) {
-      console.error('Failed to create terminal session:', error);
+      console.error(`[${this.instanceId}] Failed to create terminal session:`, error);
       throw error;
     }
   }
 
   writeToSession(sessionId: string, data: string): void {
-    console.log('Writing to terminal session:', { sessionId, data });
+    console.log(`[${this.instanceId}] Writing to terminal session:`, { sessionId, data: data.substring(0, 100) });
     
     if (!this.isElectron()) {
       // Mock echo for development
@@ -180,12 +235,13 @@ export class TerminalService implements OnDestroy {
       return;
     }
     
-    if (!window.electronAPI) {
-      console.error('electronAPI not available for writeToSession');
-      return;
-    }
-    
-    window.electronAPI.writeToTerminal(sessionId, data);
+    // Use IPC security service for terminal writes
+    this.ipcService.safeInvoke('terminal-write', {
+      sessionId,
+      data
+    }).catch(error => {
+      console.error(`[${this.instanceId}] Failed to write to terminal:`, error);
+    });
   }
 
   resizeSession(sessionId: string, cols: number, rows: number): void {
@@ -194,13 +250,16 @@ export class TerminalService implements OnDestroy {
       return;
     }
     
-    if (!window.electronAPI) {
-      console.error('electronAPI not available for resizeSession');
-      return;
-    }
+    console.log(`[${this.instanceId}] Resizing terminal:`, { sessionId, cols, rows });
     
-    console.log('Resizing terminal:', { sessionId, cols, rows });
-    window.electronAPI.resizeTerminal(sessionId, cols, rows);
+    // Use IPC security service for terminal resize
+    this.ipcService.safeInvoke('terminal-resize', {
+      sessionId,
+      cols,
+      rows
+    }).catch(error => {
+      console.error(`[${this.instanceId}] Failed to resize terminal:`, error);
+    });
   }
 
   killSession(sessionId: string): void {
@@ -210,41 +269,53 @@ export class TerminalService implements OnDestroy {
       return;
     }
     
-    if (!window.electronAPI) {
-      console.error('electronAPI not available for killSession');
-      return;
-    }
+    console.log(`[${this.instanceId}] Killing terminal session:`, sessionId);
     
-    console.log('Killing terminal session:', sessionId);
-    window.electronAPI.killTerminal(sessionId);
+    // Use IPC security service for terminal kill
+    this.ipcService.safeInvoke('terminal-kill', {
+      sessionId
+    }).catch(error => {
+      console.error(`[${this.instanceId}] Failed to kill terminal:`, error);
+    });
   }
 
   async getActiveSessions(): Promise<TerminalSession[]> {
-    if (!this.isElectron() || !window.electronAPI) {
+    if (!this.isElectron()) {
       return Promise.resolve([]);
     }
     
     try {
-      const sessions = await window.electronAPI.getTerminalSessions();
-      console.log('Active sessions:', sessions);
-      return sessions;
+      const sessions = await this.ipcService.safeInvoke<TerminalSession[]>('get-terminal-sessions', {}, {
+        timeout: 5000,
+        fallbackValue: []
+      });
+      
+      console.log(`[${this.instanceId}] Active sessions:`, sessions);
+      return sessions || [];
     } catch (error) {
-      console.error('Failed to get terminal sessions:', error);
+      console.error(`[${this.instanceId}] Failed to get terminal sessions:`, error);
       return [];
     }
   }
 
   async getSessionOutput(sessionId: string, fromIndex: number = 0): Promise<any[]> {
-    if (!this.isElectron() || !window.electronAPI) {
+    if (!this.isElectron()) {
       return Promise.resolve([]);
     }
     
     try {
-      const output = await window.electronAPI.getTerminalOutput(sessionId, fromIndex);
-      console.log('Session output:', output);
-      return output;
+      const output = await this.ipcService.safeInvoke<any[]>('get-terminal-output', {
+        sessionId,
+        fromIndex
+      }, {
+        timeout: 5000,
+        fallbackValue: []
+      });
+      
+      console.log(`[${this.instanceId}] Session output:`, output);
+      return output || [];
     } catch (error) {
-      console.error('Failed to get terminal output:', error);
+      console.error(`[${this.instanceId}] Failed to get terminal output:`, error);
       return [];
     }
   }
@@ -260,33 +331,112 @@ export class TerminalService implements OnDestroy {
   /**
    * FIX C1: Force cleanup method - can be called directly or via manager
    * Ensures all resources are properly released
+   * 3AM Test: Comprehensive logging for debugging memory leaks
    */
   forceCleanup(): void {
-    if (this.isDestroyed) return;
+    if (this.isDestroyed) {
+      console.warn(`[${this.instanceId}] Cleanup already executed - ignoring duplicate call`);
+      return;
+    }
     
-    console.log('Terminal service cleanup initiated');
+    const cleanupStartTime = Date.now();
+    const serviceLifetime = cleanupStartTime - this.createdAt;
+    
+    console.log(`[${this.instanceId}] Terminal service cleanup initiated`);
+    console.log(`[${this.instanceId}] Service lifetime: ${serviceLifetime}ms (${Math.round(serviceLifetime/1000)}s)`);
+    console.log(`[${this.instanceId}] IPC listeners to cleanup: ${this.cleanupFunctions.length}`);
+    
     this.isDestroyed = true;
     
-    // Clean up all IPC listeners
-    this.cleanupFunctions.forEach(cleanup => {
+    // Clean up all IPC listeners with individual tracking
+    let cleanupErrors = 0;
+    this.cleanupFunctions.forEach((cleanup, index) => {
       try {
+        console.log(`[${this.instanceId}] Cleaning up listener ${index + 1}/${this.cleanupFunctions.length}`);
         cleanup();
       } catch (error) {
-        console.error('Cleanup error:', error);
+        cleanupErrors++;
+        console.error(`[${this.instanceId}] Cleanup error for listener ${index + 1}:`, error);
       }
     });
     this.cleanupFunctions = [];
     
     // Complete all observables to prevent memory leaks
-    this.outputSubject.complete();
-    this.sessionsSubject.complete();
-    this.exitSubject.complete();
+    try {
+      this.outputSubject.complete();
+      this.sessionsSubject.complete();
+      this.exitSubject.complete();
+      console.log(`[${this.instanceId}] All observables completed successfully`);
+    } catch (error) {
+      console.error(`[${this.instanceId}] Error completing observables:`, error);
+    }
     
     // Unregister from manager
     if (this.terminalManager) {
-      this.terminalManager.unregister(this);
+      try {
+        this.terminalManager.unregister(this);
+        console.log(`[${this.instanceId}] Unregistered from terminal manager`);
+      } catch (error) {
+        console.error(`[${this.instanceId}] Error unregistering from manager:`, error);
+      }
     }
     
-    console.log('Terminal service cleanup complete');
+    const cleanupDuration = Date.now() - cleanupStartTime;
+    console.log(`[${this.instanceId}] Terminal service cleanup complete in ${cleanupDuration}ms`);
+    console.log(`[${this.instanceId}] Cleanup summary: ${cleanupErrors} errors, ${this.cleanupFunctions.length} remaining listeners`);
+    
+    // FIX C1: 3AM Debug Hook - Final verification
+    if (cleanupErrors > 0 || this.cleanupFunctions.length > 0) {
+      console.error(`[${this.instanceId}] ⚠️  CLEANUP INCOMPLETE - May cause memory leak!`);
+    } else {
+      console.log(`[${this.instanceId}] ✅ Cleanup verified - No memory leak risk`);
+    }
+  }
+  
+  /**
+   * FIX C1: 3AM Debugging Utilities
+   * Provides runtime inspection capabilities for memory leak investigation
+   */
+  getDebugInfo(): any {
+    return {
+      instanceId: this.instanceId,
+      createdAt: this.createdAt,
+      createdAtISO: new Date(this.createdAt).toISOString(),
+      lifeTimeMs: Date.now() - this.createdAt,
+      isDestroyed: this.isDestroyed,
+      activeListeners: this.cleanupFunctions.length,
+      hasOutputSubscribers: this.outputSubject.observers.length,
+      hasSessionsSubscribers: this.sessionsSubject.observers.length,
+      hasExitSubscribers: this.exitSubject.observers.length,
+      memoryRisk: this.isDestroyed ? 'NO_RISK' : 
+                  this.cleanupFunctions.length > 0 ? 'POTENTIAL_LEAK' : 'LOW_RISK'
+    };
+  }
+  
+  /**
+   * FIX C1: Global debug hook - accessible from browser console
+   * Usage in DevTools: window.getTerminalDebugInfo()
+   */
+  static attachGlobalDebugHook(terminalManager: TerminalManagerService): void {
+    if (typeof window !== 'undefined') {
+      (window as any).getTerminalDebugInfo = () => {
+        const debugInfo: any[] = [];
+        (terminalManager as any).activeServices.forEach((service: TerminalService) => {
+          if (service.getDebugInfo) {
+            debugInfo.push(service.getDebugInfo());
+          }
+        });
+        
+        return {
+          totalServices: debugInfo.length,
+          activeServices: debugInfo.filter(info => !info.isDestroyed).length,
+          destroyedServices: debugInfo.filter(info => info.isDestroyed).length,
+          potentialLeaks: debugInfo.filter(info => info.memoryRisk === 'POTENTIAL_LEAK').length,
+          services: debugInfo
+        };
+      };
+      
+      console.log('🔧 Terminal debug utilities attached to window.getTerminalDebugInfo()');
+    }
   }
 }

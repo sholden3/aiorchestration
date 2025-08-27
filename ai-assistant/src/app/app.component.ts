@@ -1,5 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { OrchestrationService, OrchestrationStatus } from './services/orchestration.service';
+import { TerminalManagerService } from './services/terminal-manager.service';
+import { TerminalService } from './services/terminal.service';
 import { Subscription, interval } from 'rxjs';
 
 @Component({
@@ -12,16 +14,28 @@ export class AppComponent implements OnInit, OnDestroy {
   private statusSubscription?: Subscription;
   private refreshSubscription?: Subscription;
 
-  constructor(private orchestrationService: OrchestrationService) {}
+  constructor(
+    private orchestrationService: OrchestrationService,
+    private terminalManager: TerminalManagerService
+  ) {}
 
   ngOnInit(): void {
     this.loadSystemStatus();
     this.refreshSubscription = interval(5000).subscribe(() => this.loadSystemStatus());
+    
+    // FIX C1: Initialize 3AM debugging utilities
+    TerminalService.attachGlobalDebugHook(this.terminalManager);
+    console.log('🔧 Terminal service debugging enabled - Use window.getTerminalDebugInfo() in DevTools');
   }
 
   ngOnDestroy(): void {
     this.statusSubscription?.unsubscribe();
     this.refreshSubscription?.unsubscribe();
+    
+    // FIX C1: Emergency cleanup on app shutdown
+    // Ensures all terminal service instances are properly cleaned up
+    console.log('App shutdown - cleaning up terminal services');
+    this.terminalManager.cleanup();
   }
 
   private loadSystemStatus(): void {

@@ -87,6 +87,14 @@ class SystemsPerformanceConfig(BaseSettings):
     backend_port: int = Field(8000, description="FastAPI backend port")
     backend_workers: int = Field(4, description="Number of worker processes")
     
+    # WebSocket Resource Management (H1 Fix)
+    websocket_max_connections: int = Field(100, description="Maximum concurrent WebSocket connections")
+    websocket_idle_timeout_seconds: int = Field(300, description="Idle timeout for inactive connections (5 minutes)")
+    websocket_memory_limit_per_connection_mb: int = Field(5, description="Memory limit per connection in MB")
+    websocket_backpressure_threshold: float = Field(0.85, description="Connection limit threshold for backpressure (85%)")
+    websocket_cleanup_interval_seconds: int = Field(60, description="Interval for dead connection cleanup")
+    websocket_heartbeat_interval_seconds: int = Field(30, description="Heartbeat ping interval")
+    
     class Config:
         env_prefix = "SYSTEMS_"
 

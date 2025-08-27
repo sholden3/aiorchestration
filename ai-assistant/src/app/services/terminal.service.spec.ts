@@ -7,11 +7,14 @@ import { TestBed } from '@angular/core/testing';
 import { NgZone } from '@angular/core';
 import { TerminalService } from './terminal.service';
 import { TerminalManagerService } from './terminal-manager.service';
+import { IPCService } from './ipc.service';
+import { IPCErrorBoundaryService } from './ipc-error-boundary.service';
 
 describe('TerminalService - C1 Memory Leak Fix', () => {
   let service: TerminalService;
   let managerService: TerminalManagerService;
   let ngZone: NgZone;
+  let ipcService: IPCService;
   let mockElectronAPI: any;
 
   beforeEach(() => {
@@ -42,12 +45,15 @@ describe('TerminalService - C1 Memory Leak Fix', () => {
       providers: [
         TerminalService,
         TerminalManagerService,
+        IPCService,
+        IPCErrorBoundaryService,
         NgZone
       ]
     });
 
     managerService = TestBed.inject(TerminalManagerService);
     ngZone = TestBed.inject(NgZone);
+    ipcService = TestBed.inject(IPCService);
   });
 
   afterEach(() => {
@@ -189,7 +195,7 @@ describe('TerminalService - C1 Memory Leak Fix', () => {
       expect(managerService.getActiveCount()).toBe(initialCount + 1);
       
       // Create another instance (simulating another component)
-      const service2 = new TerminalService(ngZone, managerService);
+      const service2 = new TerminalService(ngZone, managerService, ipcService);
       expect(managerService.getActiveCount()).toBe(initialCount + 2);
       
       service1.ngOnDestroy();
@@ -201,7 +207,7 @@ describe('TerminalService - C1 Memory Leak Fix', () => {
 
     it('should provide memory usage estimate', () => {
       const service1 = TestBed.inject(TerminalService);
-      const service2 = new TerminalService(ngZone, managerService);
+      const service2 = new TerminalService(ngZone, managerService, ipcService);
       
       const estimate = managerService.getMemoryEstimate();
       
@@ -214,7 +220,7 @@ describe('TerminalService - C1 Memory Leak Fix', () => {
 
     it('should handle emergency cleanup', () => {
       const service1 = TestBed.inject(TerminalService);
-      const service2 = new TerminalService(ngZone, managerService);
+      const service2 = new TerminalService(ngZone, managerService, ipcService);
       
       const spy1 = jest.spyOn(service1, 'forceCleanup');
       const spy2 = jest.spyOn(service2, 'forceCleanup');
@@ -240,7 +246,7 @@ describe('TerminalService - C1 Memory Leak Fix', () => {
 
     it('should create separate instance per component', () => {
       const service1 = TestBed.inject(TerminalService);
-      const service2 = new TerminalService(ngZone, managerService);
+      const service2 = new TerminalService(ngZone, managerService, ipcService);
       
       // Should be different instances
       expect(service1).not.toBe(service2);
@@ -272,9 +278,12 @@ describe('TerminalService - C1 Memory Leak Fix', () => {
     it('should handle missing electronAPI gracefully', () => {
       delete (window as any).electronAPI;
       
+      // Mock the IPC service for this test
+      const mockIPCService = { safeInvoke: jest.fn() };
+      
       // Should not throw
       expect(() => {
-        service = new TerminalService(ngZone, managerService);
+        service = new TerminalService(ngZone, managerService, mockIPCService as any);
       }).not.toThrow();
       
       // Should handle operations gracefully

@@ -88,6 +88,11 @@ class AIBackendService:
         self.app = FastAPI(title="AI Development Assistant Backend")
         self.port = port or self.config.systems.backend_port
         
+        # FIX H3: Database initialization state tracking
+        self._initialization_complete = False
+        self._initialization_error = None
+        self._startup_lock = asyncio.Lock()
+        
         # Initialize components
         self.cache = IntelligentCache(
             hot_size_mb=self.config.systems.cache_hot_size_mb,
@@ -134,44 +139,53 @@ class AIBackendService:
         @self.app.on_event("startup")
         async def startup_event():
             """Initialize database connection and load cache"""
-            try:
-                # Initialize real database service with credentials
-                from credentials_manager import credentials_manager
-                db_url = credentials_manager.get_database_url(
-                    host='localhost',
-                    port=5432,
-                    database='ai_assistant',
-                    default_password='root'
-                )
-                await db_service.connect(db_url)
-                logger.info(f"Database service connected: {db_service.is_connected}")
-                
-                # Initialize schema if needed
-                await db_service.initialize_schema()
-                
-                # Initialize mock database manager for legacy code
-                self.db_manager = DatabaseManager()
-                await self.db_manager.initialize()
-                logger.info("Legacy database manager initialized")
-                
-                # Load persisted cache
-                await self.cache.load_from_database(self.db_manager)
-                logger.info("Cache loaded from database")
-                
-                # Start metrics collection
-                asyncio.create_task(self.metrics.start_collection())
-                logger.info("Metrics collection started")
-                
-                # Start AI orchestration engine
-                await self.ai_orchestrator.start_orchestration()
-                logger.info("AI Orchestration Engine started")
-                
-                # Persona orchestration is ready (no async initialization needed)
-                logger.info("Persona Orchestration ready with assumption fighting")
-                
-            except Exception as e:
-                logger.error(f"Startup failed: {e}")
-                # Continue anyway for local tool
+            # FIX H3: Ensure thread-safe initialization
+            async with self._startup_lock:
+                try:
+                    # Initialize real database service with credentials
+                    from credentials_manager import credentials_manager
+                    db_url = credentials_manager.get_database_url(
+                        host='localhost',
+                        port=5432,
+                        database='ai_assistant',
+                        default_password='root'
+                    )
+                    await db_service.connect(db_url)
+                    logger.info(f"Database service connected: {db_service.is_connected}")
+                    
+                    # Initialize schema if needed
+                    await db_service.initialize_schema()
+                    
+                    # Initialize mock database manager for legacy code
+                    self.db_manager = DatabaseManager()
+                    await self.db_manager.initialize()
+                    logger.info("Legacy database manager initialized")
+                    
+                    # Load persisted cache
+                    await self.cache.load_from_database(self.db_manager)
+                    logger.info("Cache loaded from database")
+                    
+                    # Start metrics collection
+                    asyncio.create_task(self.metrics.start_collection())
+                    logger.info("Metrics collection started")
+                    
+                    # Start AI orchestration engine
+                    await self.ai_orchestrator.start_orchestration()
+                    logger.info("AI Orchestration Engine started")
+                    
+                    # Persona orchestration is ready (no async initialization needed)
+                    logger.info("Persona Orchestration ready with assumption fighting")
+                    
+                    # FIX H3: Mark initialization as complete
+                    self._initialization_complete = True
+                    logger.info("Backend initialization complete - all services ready")
+                    
+                except Exception as e:
+                    logger.error(f"Startup failed: {e}")
+                    # FIX H3: Track initialization error for proper error responses
+                    self._initialization_error = str(e)
+                    # Continue anyway for local tool but mark as not fully initialized
+                    self._initialization_complete = False
         
         @self.app.on_event("shutdown")
         async def shutdown_event():
@@ -189,18 +203,61 @@ class AIBackendService:
             except Exception as e:
                 logger.error(f"Shutdown error: {e}")
     
+    async def _ensure_initialized(self):
+        """FIX H3: Ensure services are initialized before processing requests"""
+        if self._initialization_complete:
+            return True
+            
+        # If initialization is still in progress, wait for it
+        async with self._startup_lock:
+            if self._initialization_complete:
+                return True
+            
+            # If we have an initialization error, raise it
+            if self._initialization_error:
+                raise HTTPException(
+                    status_code=503,
+                    detail=f"Backend services not available: {self._initialization_error}"
+                )
+            
+            # Still initializing
+            raise HTTPException(
+                status_code=503,
+                detail="Backend services are still initializing. Please try again in a few seconds."
+            )
+    
     def setup_routes(self):
         """Define API endpoints"""
         
         @self.app.get("/health")
         async def health_check():
             """Health check endpoint for Electron to verify backend is running"""
-            return {
-                "status": "healthy",
-                "timestamp": datetime.now().isoformat(),
-                "cache_enabled": True,
-                "personas_available": len(self.persona_manager.personas)
-            }
+            # FIX H3: Health check returns different status based on initialization state
+            if self._initialization_complete:
+                return {
+                    "status": "healthy",
+                    "timestamp": datetime.now().isoformat(),
+                    "cache_enabled": True,
+                    "personas_available": len(self.persona_manager.personas),
+                    "initialized": True
+                }
+            elif self._initialization_error:
+                return {
+                    "status": "degraded",
+                    "timestamp": datetime.now().isoformat(),
+                    "cache_enabled": False,
+                    "personas_available": 0,
+                    "initialized": False,
+                    "error": self._initialization_error
+                }
+            else:
+                return {
+                    "status": "initializing",
+                    "timestamp": datetime.now().isoformat(),
+                    "cache_enabled": False,
+                    "personas_available": 0,
+                    "initialized": False
+                }
         
         @self.app.post("/ai/execute", response_model=TaskResponse)
         async def execute_ai_task(task: AITask, background_tasks: BackgroundTasks):
@@ -209,6 +266,9 @@ class AIBackendService:
             Performance: Check cache first to reduce token usage
             Error Handling: Graceful fallback if Claude unavailable
             """
+            # FIX H3: Ensure initialization is complete before processing
+            await self._ensure_initialized()
+            
             start_time = datetime.now()
             
             try:
@@ -286,6 +346,9 @@ class AIBackendService:
         @self.app.post("/ai/orchestrated", response_model=TaskResponse)
         async def execute_orchestrated_task(task: AITask, background_tasks: BackgroundTasks) -> TaskResponse:
             """Execute a task through the full orchestration system with persona assumption fighting"""
+            # FIX H3: Ensure initialization is complete before processing
+            await self._ensure_initialized()
+            
             start_time = datetime.now()
             
             try:
@@ -342,6 +405,9 @@ class AIBackendService:
         @self.app.get("/orchestration/status")
         async def get_orchestration_status():
             """Get status of the orchestration engine"""
+            # FIX H3: Ensure initialization is complete before accessing orchestrator
+            await self._ensure_initialized()
+            
             status = self.ai_orchestrator.get_orchestration_status()
             agent_status = agent_terminal_manager.get_agent_status()
             
@@ -364,6 +430,20 @@ class AIBackendService:
         @self.app.get("/metrics/cache", response_model=CacheMetrics)
         async def get_cache_metrics():
             """Return current cache performance metrics"""
+            # FIX H3: Cache metrics can be accessed without full initialization
+            # but we should still wait if initialization is in progress
+            if not self._initialization_complete:
+                # Return basic metrics if not fully initialized
+                return CacheMetrics(
+                    hit_rate=0.0,
+                    tokens_saved=0,
+                    hot_cache_size_mb=0.0,
+                    warm_cache_files=0,
+                    total_requests=0,
+                    cache_hits=0,
+                    cache_misses=0
+                )
+            
             metrics = self.cache.get_metrics()
             
             return CacheMetrics(
@@ -382,6 +462,8 @@ class AIBackendService:
             Business Logic: Auto-suggest best personas for task
             Returns: List of suggested personas with confidence scores
             """
+            # FIX H3: Persona suggestions don't require full initialization
+            # but should be consistent once available
             try:
                 suggestions = self.persona_manager.suggest_persona(suggestion.description)
                 
@@ -415,11 +497,21 @@ class AIBackendService:
         @self.app.get("/metrics/performance")
         async def get_performance_metrics():
             """Return overall system performance metrics"""
+            # FIX H3: Performance metrics can be partial during initialization
+            if not self._initialization_complete:
+                return {
+                    "status": "initializing",
+                    "metrics": {},
+                    "message": "System is still initializing"
+                }
             return await self.metrics.get_performance_summary()
         
         @self.app.get("/agents/status")
         async def get_agent_status():
             """Return status of all AI agents"""
+            # FIX H3: Agent status requires initialization
+            await self._ensure_initialized()
+            
             agent_status = agent_terminal_manager.get_agent_status()
             return {
                 "max_concurrent_agents": agent_status['max_agents'],
@@ -432,6 +524,9 @@ class AIBackendService:
         @self.app.post("/agents/spawn")
         async def spawn_agent(request_data: dict):
             """Spawn a new AI agent with its own terminal"""
+            # FIX H3: Agent spawning requires full initialization
+            await self._ensure_initialized()
+            
             agent_type_str = request_data.get('type', 'claude_assistant')
             try:
                 agent_type = AgentType(agent_type_str)
@@ -456,6 +551,9 @@ class AIBackendService:
         @self.app.post("/agents/{agent_id}/execute")
         async def execute_on_agent(agent_id: str, request_data: dict):
             """Send command to specific agent"""
+            # FIX H3: Agent execution requires full initialization
+            await self._ensure_initialized()
+            
             command = request_data.get('command', '')
             try:
                 response = await agent_terminal_manager.send_to_agent(agent_id, command)

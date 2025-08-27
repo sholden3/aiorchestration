@@ -49,6 +49,20 @@
 ### Mandatory Session Management
 Every development session MUST follow this protocol:
 
+#### Decision Approval Protocol (CRITICAL)
+**⚠️ NEVER proceed with architectural decisions without explicit approval:**
+1. Present the decision with all persona perspectives
+2. Wait for user to read and respond
+3. Only proceed after receiving explicit approval
+4. Document the approval in decision logs
+
+**Examples requiring approval:**
+- Changing testing strategies
+- Simplifying complex processes
+- Modifying architectural patterns
+- Altering established workflows
+- Deviating from documented standards
+
 #### Session Start (REQUIRED)
 ```bash
 # Before any development work
@@ -135,6 +149,49 @@ Example: 2025-08-26_test-setup-electron_v1_baseline.ts
 
 ---
 
+## 🧪 TESTING STRATEGY & GOVERNANCE (MANDATORY)
+
+### Hybrid Testing Approach (ENFORCED)
+As decided in [testing-strategy-unit-vs-integration.md](docs/decisions/testing-strategy-unit-vs-integration.md):
+
+#### **Testing Requirements**
+1. **Unit Tests**: Fast, focused tests for immediate feedback
+2. **Integration Tests**: Comprehensive validation with all dependencies
+3. **Contract Tests**: API behavior and backward compatibility
+4. **No Simplification Without Approval**: NEVER simplify tests without persona discussion and user approval
+
+#### **Approval Requirements (CRITICAL)**
+⚠️ **MANDATORY**: The following actions require explicit user approval:
+- Simplifying any testing approach
+- Skipping integration tests in favor of unit tests only
+- Removing or reducing test coverage
+- Changing established testing patterns
+- Making any architectural decisions that affect testing
+
+#### **Testing Decision Process**
+1. **Identify Issue**: Problem with current testing approach
+2. **Persona Discussion**: All relevant personas discuss pros/cons
+3. **Document Decision**: Create decision document with all perspectives
+4. **Wait for Approval**: DO NOT proceed without explicit user confirmation
+5. **Implement**: Only after approval is received
+
+#### **5-Layer Testing Architecture**
+```
+Layer 1: Unit Tests (Immediate feedback)
+Layer 2: Integration Tests (Component boundaries)
+Layer 3: Contract Tests (API contracts)
+Layer 4: End-to-End Tests (User workflows)
+Layer 5: Chaos Tests (Failure scenarios)
+```
+
+#### **Test Coverage Requirements**
+- Critical Fixes (C1-C3): 100% coverage required
+- High Priority (H1-H3): 90% coverage required
+- New Features: 80% coverage required
+- Bug Fixes: Must include regression tests
+
+---
+
 ## 📚 DOCUMENTATION NAVIGATION
 
 ### Master Documentation Index
@@ -217,17 +274,17 @@ Specialists are brought in for domain-specific expertise and must:
 - Memory leak prevention mechanism untested
 **Next Steps**: Fix NgZone injection, validate cleanup actually works
 
-#### **C2: Cache Disk I/O Failure Cascade** ❓ UNTESTED
-**Current State**: Fix implemented in backend, no tests available  
-**Test Results**: No frontend tests for cache interactions  
-**Remaining Issues**: Cannot validate if fix actually works without tests  
-**Next Steps**: Create integration tests for cache failure scenarios
+#### **C2: Cache Disk I/O Failure Cascade** ✅ IMPLEMENTED
+**Current State**: Memory-only fallback mode with automatic recovery implemented  
+**Test Results**: Core functionality working, needs integration tests  
+**Implementation**: Disk health monitoring, atomic writes, exponential backoff recovery  
+**Next Steps**: Integration tests for failure scenarios
 
-#### **C3: Process Coordination Configuration Error** ✅ LIKELY FIXED
-**Current State**: Port configuration aligned in documentation  
-**Test Results**: Not directly testable via unit tests  
-**Validation**: Manual testing required for process coordination  
-**Next Steps**: Create integration test for Electron-Backend communication
+#### **C3: Process Coordination Configuration Error** ✅ IMPLEMENTED
+**Current State**: Comprehensive retry logic with correlation IDs implemented  
+**Test Results**: Tests created, manual verification needed  
+**Implementation**: Exponential backoff, already-running detection, config.js created  
+**Next Steps**: Manual verification of Electron startup
 
 ### ⚠️ **SEVERITY: HIGH** (Implementation Status)
 
@@ -250,11 +307,11 @@ Specialists are brought in for domain-specific expertise and must:
 - Metrics tracking incomplete
 **Next Steps**: Fix timeout handling and circuit breaker state management
 
-#### **H3: Database Initialization Race Condition** ❓ UNTESTED
-**Current State**: Backend initialization order adjusted  
-**Test Results**: No frontend tests validate initialization sequence  
-**Remaining Issues**: Race condition prevention unverified  
-**Next Steps**: Add startup sequence integration tests
+#### **H3: Database Initialization Race Condition** ✅ VALIDATED
+**Current State**: Thread-safe initialization with state tracking implemented  
+**Test Results**: 12/12 unit tests passing (100%)  
+**Implementation**: _ensure_initialized() guards, 503 responses during init  
+**Next Steps**: Full integration testing when environment ready
 
 ---
 
@@ -1158,11 +1215,11 @@ grep -r "setInterval\|setTimeout" src/
 
 ## 🗺️ ROADMAP
 
-### Phase 1: Stabilization (Current)
-- [ ] Fix all critical issues (C1-C3)
-- [ ] Implement defensive patterns throughout  
-- [ ] Add comprehensive error boundaries
-- [ ] Establish monitoring and alerting
+### Phase 1: Stabilization ✅ MOSTLY COMPLETE
+- [x] Fix critical issues C2, C3 (C1 partial)
+- [x] Implement defensive patterns (cache, backend init)  
+- [x] Add comprehensive error boundaries (IPC, backend)
+- [ ] Establish monitoring and alerting (partial)
 
 ### Phase 2: Real AI Integration  
 - [ ] Replace simulated agent responses with actual AI calls

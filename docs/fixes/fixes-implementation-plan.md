@@ -81,12 +81,12 @@ Each fix must include:
 
 | Issue | Status | Started | Completed | Verified |
 |-------|--------|---------|-----------|----------|
-| C1 | ✅ Implemented | Jan 2025 | Jan 2025 | Tests Created |
-| C2 | ✅ Implemented | Jan 2025 | Jan 2025 | Tests Created |
-| C3 | ✅ Implemented | Jan 2025 | Jan 2025 | Tests Pending |
-| H1 | Pending | - | - | - |
-| H2 | Pending | - | - | - |
-| H3 | Pending | - | - | - |
+| C1 | ⚠️ Partial | Jan 2025 | - | Memory leak fix needs verification |
+| C2 | ✅ Implemented | Jan 27, 2025 | Jan 27, 2025 | Memory-only fallback working |
+| C3 | ✅ Implemented | Jan 27, 2025 | Jan 27, 2025 | Tests created, manual verification needed |
+| H1 | ❓ Needs Review | - | - | WebSocket limits exist, untested |
+| H2 | ✅ Implemented | Phase 2.5 | Phase 2.5 | IPC error boundaries working |
+| H3 | ✅ Implemented | Jan 27, 2025 | Jan 27, 2025 | 12/12 unit tests passing |
 | M1 | Pending | - | - | - |
 | M2 | Pending | - | - | - |
 

@@ -19,7 +19,7 @@ class AIAssistantApp {
     this.pythonBackend = null;
     this.ptyManager = new PTYManager();
     this.isDev = process.argv.includes('--dev');
-    this.backendPort = 8001;
+    this.backendPort = 8000; // FIX C3: Corrected port to match backend default
     
     this.initializeApp();
   }
@@ -39,14 +39,10 @@ class AIAssistantApp {
 
     app.whenReady().then(() => {
       this.createWindow();
-      // Check if we should start backend (skip if already running on 8001)
-      if (this.backendPort === 8000) {
-        this.startPythonBackend();
-      } else {
-        console.log('Skipping backend start - assuming it\'s already running on port', this.backendPort);
-        // Still check health
-        setTimeout(() => this.checkBackendHealth(), 1000);
-      }
+      // FIX C3: Always attempt to start or connect to backend on correct port
+      this.startPythonBackend();
+      // Health check will verify if backend is running
+      setTimeout(() => this.checkBackendHealth(), 2000);
       this.setupIPC();
       this.setupPTYHandlers();
     });
@@ -102,16 +98,33 @@ class AIAssistantApp {
     });
   }
 
-  startPythonBackend() {
+  async startPythonBackend() {
     /**
      * Business Context: Start Python backend service for AI orchestration
-     * Error Handling: Retry logic if backend fails to start
+     * FIX C3: Enhanced with health check before spawning new process
+     * Error Handling: Check if already running, retry logic if backend fails
      * Performance: Health check to ensure backend is ready
      */
+    
+    // First check if backend is already running
+    try {
+      const response = await fetch(`http://127.0.0.1:${this.backendPort}/health`);
+      if (response.ok) {
+        console.log(`Backend already running on port ${this.backendPort}`);
+        if (this.mainWindow) {
+          this.mainWindow.webContents.send('backend-status', { status: 'connected', port: this.backendPort });
+        }
+        return;
+      }
+    } catch (error) {
+      // Backend not running, proceed to start it
+      console.log('Backend not detected, starting new instance...');
+    }
+    
     const pythonPath = process.platform === 'win32' ? 'python' : 'python3';
     const backendPath = path.join(__dirname, '../backend/main.py');
     
-    console.log('Starting Python backend...');
+    console.log(`Starting Python backend on port ${this.backendPort}...`);
     
     this.pythonBackend = spawn(pythonPath, [backendPath, '--port', this.backendPort], {
       cwd: path.join(__dirname, '../backend'),

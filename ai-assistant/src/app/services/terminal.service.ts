@@ -1,5 +1,6 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
+import { TerminalManagerService } from './terminal-manager.service';
 
 export interface TerminalSession {
   id: string;
@@ -34,20 +35,33 @@ declare global {
   }
 }
 
-@Injectable({
-  providedIn: 'root'
-})
-export class TerminalService {
+/**
+ * FIX C1: Terminal Service - Refactored to component-scoped pattern
+ * Removed 'providedIn: root' to allow proper lifecycle management
+ * Now properly cleans up IPC listeners when component is destroyed
+ * 
+ * Architecture: Alex Novak
+ * Memory Management: Explicit cleanup on destroy
+ */
+@Injectable()  // FIX C1: REMOVED providedIn: 'root' - now component-scoped
+export class TerminalService implements OnDestroy {
   private outputSubject = new Subject<TerminalOutput>();
   private sessionsSubject = new Subject<TerminalSession[]>();
   private exitSubject = new Subject<any>();
   private cleanupFunctions: Array<() => void> = [];
+  private isDestroyed = false;  // FIX C1: Track destruction state
   
   public output$ = this.outputSubject.asObservable();
   public sessions$ = this.sessionsSubject.asObservable();
   public exit$ = this.exitSubject.asObservable();
 
-  constructor(private ngZone: NgZone) {
+  constructor(
+    private ngZone: NgZone,
+    private terminalManager: TerminalManagerService  // FIX C1: Inject manager
+  ) {
+    // Register with manager for lifecycle tracking
+    this.terminalManager.register(this);
+    
     console.log('TerminalService initializing...');
     console.log('Is Electron?', this.isElectron());
     console.log('electronAPI available?', typeof window !== 'undefined' ? window.electronAPI : 'window not defined');
@@ -235,9 +249,44 @@ export class TerminalService {
     }
   }
   
+  /**
+   * FIX C1: Proper cleanup implementation
+   * This will be called when the component using this service is destroyed
+   */
   ngOnDestroy(): void {
-    // Clean up all listeners
-    this.cleanupFunctions.forEach(cleanup => cleanup());
+    this.forceCleanup();
+  }
+  
+  /**
+   * FIX C1: Force cleanup method - can be called directly or via manager
+   * Ensures all resources are properly released
+   */
+  forceCleanup(): void {
+    if (this.isDestroyed) return;
+    
+    console.log('Terminal service cleanup initiated');
+    this.isDestroyed = true;
+    
+    // Clean up all IPC listeners
+    this.cleanupFunctions.forEach(cleanup => {
+      try {
+        cleanup();
+      } catch (error) {
+        console.error('Cleanup error:', error);
+      }
+    });
     this.cleanupFunctions = [];
+    
+    // Complete all observables to prevent memory leaks
+    this.outputSubject.complete();
+    this.sessionsSubject.complete();
+    this.exitSubject.complete();
+    
+    // Unregister from manager
+    if (this.terminalManager) {
+      this.terminalManager.unregister(this);
+    }
+    
+    console.log('Terminal service cleanup complete');
   }
 }

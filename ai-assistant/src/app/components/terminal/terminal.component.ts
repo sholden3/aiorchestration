@@ -1,11 +1,20 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Input, AfterViewInit } from '@angular/core';
 import { TerminalService, TerminalOutput } from '../../services/terminal.service';
+import { TerminalManagerService } from '../../services/terminal-manager.service';
 import { Subscription } from 'rxjs';
 
+/**
+ * FIX C1: Terminal Component with component-scoped service
+ * Provides TerminalService at component level to ensure proper cleanup
+ * 
+ * Architecture: Alex Novak
+ * Memory Management: Service destroyed with component
+ */
 @Component({
   selector: 'app-terminal',
   templateUrl: './terminal.component.html',
-  styleUrls: ['./terminal.component.scss']
+  styleUrls: ['./terminal.component.scss'],
+  providers: [TerminalService]  // FIX C1: Component-scoped service instance
 })
 export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('terminalContainer', { static: false }) terminalContainer!: ElementRef;

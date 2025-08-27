@@ -1,0 +1,93 @@
+[MAIN]
+# Phase 2.5 - Progressive Linting Configuration
+# Week 1: Detection only, minimal blocking
+
+[MESSAGES CONTROL]
+# Disable checks that would block progress in Phase 2.5
+disable=
+    missing-module-docstring,     # Will fix in Week 2
+    missing-class-docstring,      # Will fix in Week 2  
+    missing-function-docstring,   # Will fix in Week 2
+    too-few-public-methods,       # Sometimes valid
+    too-many-arguments,           # Refactor later
+    too-many-locals,              # Refactor later
+    too-many-branches,            # Refactor later
+    fixme,                        # Allow TODO/FIXME for now
+    import-outside-toplevel,      # Sometimes necessary
+    duplicate-code,               # Will refactor in Week 3
+    
+# Security issues - NEVER disable these
+# enable=
+#     eval-used,
+#     exec-used,
+#     bad-open-mode,
+
+[FORMAT]
+max-line-length=120
+indent-string='    '
+expected-line-ending-format=LF
+
+[BASIC]
+# Good variable names (don't warn on these)
+good-names=i,j,k,ex,_,df,id,e,ws,db,app,T
+
+# Naming conventions
+const-naming-style=UPPER_CASE
+class-naming-style=PascalCase
+function-naming-style=snake_case
+method-naming-style=snake_case
+attr-naming-style=snake_case
+argument-naming-style=snake_case
+variable-naming-style=snake_case
+
+[DESIGN]
+# Relaxed for Phase 2.5
+max-args=10              # Will reduce to 7 in Week 3
+max-attributes=15        # Will reduce to 10 in Week 3
+max-bool-expr=5
+max-branches=15          # Will reduce to 12 in Week 3
+max-locals=20            # Will reduce to 15 in Week 3
+max-parents=7
+max-public-methods=25    # Will reduce to 20 in Week 3
+max-returns=6
+max-statements=60        # Will reduce to 50 in Week 3
+min-public-methods=0
+
+[IMPORTS]
+# Import settings
+allow-wildcard-with-all=no
+analyse-fallback-blocks=no
+
+[EXCEPTIONS]
+# Overgeneral exceptions to allow (temporarily)
+overgeneral-exceptions=BaseException,Exception
+
+[REFACTORING]
+# Maximum number of nested blocks
+max-nested-blocks=5
+
+[SIMILARITIES]
+# Minimum lines for duplicate detection (high for now)
+min-similarity-lines=10
+ignore-comments=yes
+ignore-docstrings=yes
+
+[TYPECHECK]
+# Ignore missing imports for now
+ignored-modules=pytest,numpy,pandas
+ignored-classes=optparse.Values,thread._local,_thread._local
+generated-members=
+
+[LOGGING]
+# Logging format style
+logging-format-style=new
+
+[NOTES]
+# Note tags to search for
+notes=FIXME,XXX,TODO,HACK,WARNING,NOTE
+
+# Phase 2.5 Schedule:
+# Week 1: All non-security issues are warnings
+# Week 2: Documentation becomes required
+# Week 3: Complexity limits enforced
+# Week 4: Full pylint compliance required

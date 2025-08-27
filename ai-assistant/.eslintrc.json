@@ -1,0 +1,97 @@
+{
+  "root": true,
+  "ignorePatterns": [
+    "projects/**/*",
+    "node_modules/**/*",
+    "dist/**/*",
+    "coverage/**/*"
+  ],
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "parserOptions": {
+        "project": ["tsconfig.json"],
+        "createDefaultProgram": true
+      },
+      "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended"
+      ],
+      "rules": {
+        // Phase 2.5 - Week 1: All rules as warnings
+        // Security rules - NEVER disable
+        "no-eval": "error",
+        "no-implied-eval": "error",
+        "no-new-func": "error",
+        "no-script-url": "error",
+        
+        // Currently warnings - will become errors
+        "@typescript-eslint/no-explicit-any": "warn",
+        "@typescript-eslint/no-unused-vars": "warn",
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/no-empty-function": "warn",
+        "@typescript-eslint/no-non-null-assertion": "warn",
+        "@typescript-eslint/ban-ts-comment": "warn",
+        
+        // Code quality - warnings for now
+        "no-console": "warn",
+        "no-debugger": "warn",
+        "no-alert": "warn",
+        "prefer-const": "warn",
+        "no-var": "warn",
+        "eqeqeq": ["warn", "smart"],
+        "curly": ["warn", "all"],
+        
+        // Complexity - track but don't enforce
+        "complexity": ["warn", 15],
+        "max-depth": ["warn", 4],
+        "max-lines": ["warn", 500],
+        "max-params": ["warn", 5],
+        
+        // Angular specific - if using Angular
+        "@angular-eslint/directive-selector": [
+          "warn",
+          {
+            "type": "attribute",
+            "prefix": "app",
+            "style": "camelCase"
+          }
+        ],
+        "@angular-eslint/component-selector": [
+          "warn",
+          {
+            "type": "element",
+            "prefix": "app",
+            "style": "kebab-case"
+          }
+        ]
+      }
+    },
+    {
+      "files": ["*.html"],
+      "extends": ["plugin:@angular-eslint/template/recommended"],
+      "rules": {
+        // Template rules - all warnings for now
+        "@angular-eslint/template/banana-in-box": "warn",
+        "@angular-eslint/template/no-negated-async": "warn"
+      }
+    },
+    {
+      "files": ["*.spec.ts", "*.test.ts"],
+      "rules": {
+        // Test files - more relaxed
+        "@typescript-eslint/no-explicit-any": "off",
+        "no-console": "off",
+        "max-lines": "off"
+      }
+    }
+  ],
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true,
+    "jasmine": true,
+    "jest": true
+  }
+}

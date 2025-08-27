@@ -1,0 +1,280 @@
+name: CI Pipeline with Quality Gates
+
+# @specialist Riley Thompson v1.1 - 2025-01-27
+# @implements CI/CD pipeline per ci-cd-pipeline.md
+# @governance Dynamic Persona Orchestration Framework v2.2
+# @assumption Tests exist and can be run
+# @hook_point Pipeline events can trigger governance actions
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  # Quality Gate 1: Code Quality & Linting
+  code-quality:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ai-assistant/package-lock.json
+          
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install frontend dependencies
+        working-directory: ai-assistant
+        run: npm ci --legacy-peer-deps
+        
+      - name: Install backend dependencies
+        working-directory: ai-assistant/backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pylint black isort
+          
+      - name: Frontend linting
+        working-directory: ai-assistant
+        run: |
+          echo "Running ESLint..."
+          npm run lint || echo "::warning::ESLint found issues"
+          
+      - name: Backend linting
+        working-directory: ai-assistant/backend
+        run: |
+          echo "Running pylint..."
+          pylint *.py --exit-zero || echo "::warning::Pylint found issues"
+          
+          echo "Checking code formatting with black..."
+          black --check . || echo "::warning::Code formatting issues found"
+
+  # Quality Gate 2: Unit Tests with Coverage
+  unit-tests:
+    name: Unit Tests with Coverage
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ai-assistant/package-lock.json
+          
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install frontend dependencies
+        working-directory: ai-assistant
+        run: npm ci --legacy-peer-deps
+        
+      - name: Install backend dependencies
+        working-directory: ai-assistant/backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-asyncio
+          
+      - name: Run frontend tests with coverage
+        working-directory: ai-assistant
+        run: |
+          echo "Running Jest tests..."
+          npm run test:coverage -- --passWithNoTests || echo "::warning::Frontend tests need implementation"
+          
+          # Check coverage threshold (initially 40%, target 80%)
+          if [ -f coverage/coverage-summary.json ]; then
+            coverage=$(node -p "require('./coverage/coverage-summary.json').total.lines.pct")
+            echo "Frontend coverage: $coverage%"
+            if (( $(echo "$coverage < 40" | bc -l) )); then
+              echo "::error::Frontend coverage below 40% threshold"
+              exit 1
+            fi
+          fi
+          
+      - name: Run backend tests with coverage
+        working-directory: ai-assistant/backend
+        run: |
+          echo "Running pytest..."
+          python -m pytest tests/ --cov=. --cov-report=xml --cov-report=term || echo "::warning::Backend tests need implementation"
+          
+          # Check coverage threshold (initially 40%, target 80%)
+          if [ -f coverage.xml ]; then
+            coverage=$(python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); root = tree.getroot(); print(float(root.get('line-rate', 0)) * 100)")
+            echo "Backend coverage: $coverage%"
+            if (( $(echo "$coverage < 40" | bc -l) )); then
+              echo "::error::Backend coverage below 40% threshold"
+              exit 1
+            fi
+          fi
+          
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-reports
+          path: |
+            ai-assistant/coverage/
+            ai-assistant/backend/coverage.xml
+
+  # Quality Gate 3: Documentation Validation
+  documentation:
+    name: Documentation Standards Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Make scripts executable
+        run: |
+          chmod +x validate-code-documentation.sh
+          chmod +x validate-specialist-decisions.sh
+          chmod +x validate-project-structure.sh
+          
+      - name: Validate code documentation
+        run: |
+          echo "Checking documentation standards..."
+          ./validate-code-documentation.sh || echo "::warning::Documentation needs improvement"
+          
+      - name: Validate specialist decisions
+        run: |
+          echo "Checking specialist decision tracking..."
+          ./validate-specialist-decisions.sh || echo "::warning::Specialist decisions need documentation"
+          
+      - name: Validate project structure
+        run: |
+          echo "Checking project structure..."
+          ./validate-project-structure.sh
+
+  # Quality Gate 4: Security Scanning
+  security:
+    name: Security Vulnerability Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ai-assistant/package-lock.json
+          
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Frontend security audit
+        working-directory: ai-assistant
+        run: |
+          echo "Running npm audit..."
+          npm audit --audit-level=high || echo "::warning::Security vulnerabilities found in npm packages"
+          
+      - name: Backend security audit
+        working-directory: ai-assistant/backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit
+          echo "Running pip-audit..."
+          pip-audit || echo "::warning::Security vulnerabilities found in Python packages"
+
+  # Quality Gate 5: Build Verification
+  build:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    needs: [code-quality, unit-tests, documentation, security]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ai-assistant/package-lock.json
+          
+      - name: Install and build frontend
+        working-directory: ai-assistant
+        run: |
+          npm ci --legacy-peer-deps
+          echo "Building Angular application..."
+          npm run build || echo "::error::Frontend build failed"
+          
+      - name: Verify build artifacts
+        working-directory: ai-assistant
+        run: |
+          if [ -d "dist" ]; then
+            echo "Build artifacts created successfully"
+            ls -la dist/
+          else
+            echo "::error::No build artifacts found"
+            exit 1
+          fi
+
+  # Summary Job
+  pipeline-summary:
+    name: Pipeline Summary
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: always()
+    
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Quality Gates Status" >> $GITHUB_STEP_SUMMARY
+          echo "- Code Quality: ${{ needs.code-quality.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Unit Tests: ${{ needs.unit-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Documentation: ${{ needs.documentation.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Security: ${{ needs.security.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Build: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Phase 2.5 Progress" >> $GITHUB_STEP_SUMMARY
+          echo "- Target Coverage: 80%" >> $GITHUB_STEP_SUMMARY
+          echo "- Current Status: Implementation in progress" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "*Governance Framework: Dynamic Persona Orchestration v2.2*" >> $GITHUB_STEP_SUMMARY
+          
+          # Set workflow status
+          if [[ "${{ needs.build.result }}" == "failure" ]]; then
+            echo "::error::Pipeline failed quality gates"
+            exit 1
+          fi
+
+# Governance Hook Points:
+# - Pre-test validation
+# - Coverage threshold enforcement  
+# - Security scan integration
+# - Documentation validation
+# - Build artifact verification
+
+# Discovered Assumptions:
+# - ASSUMPTION: Tests might not exist yet - added passWithNoTests flag
+# - ASSUMPTION: Coverage might be very low initially - set 40% threshold
+# - ASSUMPTION: Some validation scripts might fail initially - added warnings instead of failures

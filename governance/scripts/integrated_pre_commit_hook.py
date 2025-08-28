@@ -41,6 +41,7 @@ from governance.core.correlation_tracker import get_correlation_tracker, Operati
 from governance.core.engine import GovernanceEngine
 from governance.core.context import GovernanceContext
 from governance.rules.smart_rules import SmartRules, RuleEnhancer
+from governance.rules.test_exemptions import TestExemptionRules, SmartExemptionEngine
 
 
 class ConfigLoader:
@@ -57,6 +58,7 @@ class ConfigLoader:
             'personas': 'personas/core-architects.json',
             'specialists': 'personas/specialists.json',
             'validation_rules': 'rules/validation-rules.json',
+            'test_exemptions': 'rules/test-exemptions.json',
             'consensus': 'consensus/strategies.json',
             'events': 'events/event-mappings.json',
             'circuit_breaker': 'performance/circuit-breaker.json'
@@ -218,6 +220,7 @@ class IntegratedGovernanceHook:
         self.governance_engine = GovernanceEngine()
         self.smart_rules = SmartRules()
         self.rule_enhancer = RuleEnhancer()
+        self.exemption_engine = SmartExemptionEngine()
         
         # Get event mapping for pre-commit
         self.event_config = self.config_loader.get_event_mapping('git.pre_commit')
@@ -333,10 +336,10 @@ class IntegratedGovernanceHook:
         return warnings
     
     def _validate_security(self, context: Dict[str, Any]) -> List[str]:
-        """Validate security requirements"""
+        """Validate security requirements with smart exemptions"""
         errors = []
         
-        # Check for secrets
+        # Check for security issues
         for file in context.get('files', []):
             if not file or not Path(file).exists():
                 continue
@@ -345,14 +348,35 @@ class IntegratedGovernanceHook:
                 with open(file, 'r', encoding='utf-8', errors='ignore') as f:
                     content = f.read()
                 
-                # Use smart rules to check
+                # Check for dangerous patterns
                 if self.smart_rules.contains_dangerous_patterns({'content': content}):
-                    errors.append(f"{file}: Contains dangerous patterns")
+                    # Get the actual patterns found
+                    found_patterns = self.smart_rules.get_dangerous_patterns({'content': content})
+                    
+                    # Check each pattern for exemption
+                    non_exempted = []
+                    for pattern in found_patterns:
+                        should_exempt, reason = self.exemption_engine.should_exempt(
+                            file, content, 'dangerous_pattern', pattern
+                        )
+                        if not should_exempt:
+                            non_exempted.append(pattern)
+                    
+                    if non_exempted:
+                        errors.append(f"{file}: Contains dangerous patterns: {', '.join(non_exempted)}")
                 
+                # Check for secrets (rarely exempted)
                 if self.smart_rules.check_for_secrets({'content': content}):
-                    errors.append(f"{file}: Potential secrets detected")
+                    # Check if there's an exemption for secrets (usually there shouldn't be)
+                    should_exempt, reason = self.exemption_engine.should_exempt(
+                        file, content, 'secret', 'credential'
+                    )
+                    
+                    if not should_exempt:
+                        errors.append(f"{file}: Potential secrets detected")
             
-            except Exception:
+            except Exception as e:
+                # Log the error but don't block
                 pass
         
         return errors

@@ -59,6 +59,12 @@ class ConfigLoader:
             'specialists': 'personas/specialists.json',
             'validation_rules': 'rules/validation-rules.json',
             'test_exemptions': 'rules/test-exemptions.json',
+            'documentation_standards': 'rules/documentation-standards.json',
+            'git_standards': 'rules/git-standards.json',
+            'archival_standards': 'rules/archival-standards.json',
+            'session_management': 'rules/session-management.json',
+            'data_persistence': 'rules/data-persistence.json',
+            'performance_standards': 'rules/performance-standards.json',
             'consensus': 'consensus/strategies.json',
             'events': 'events/event-mappings.json',
             'circuit_breaker': 'performance/circuit-breaker.json'
@@ -273,6 +279,16 @@ class IntegratedGovernanceHook:
                 if sec_errors:
                     errors.extend(sec_errors)
         
+        # Add comprehensive documentation standards validation
+        doc_standards_errors = self._validate_documentation_standards(context['files'])
+        if doc_standards_errors:
+            errors.extend(doc_standards_errors)
+        
+        # Add git standards validation
+        git_warnings = self._validate_git_standards(context)
+        if git_warnings:
+            warnings.extend(git_warnings)
+        
         return {'errors': errors, 'warnings': warnings}
     
     def _validate_documentation(self, files: List[str]) -> List[str]:
@@ -380,6 +396,80 @@ class IntegratedGovernanceHook:
                 pass
         
         return errors
+    
+    def _validate_documentation_standards(self, files: List[str]) -> List[str]:
+        """Validate comprehensive documentation standards from CLAUDE.md"""
+        errors = []
+        standards = self.config_loader.get_config('documentation_standards')
+        
+        if not standards:
+            return errors
+        
+        file_header_reqs = standards.get('file_header_requirements', {})
+        mandatory_fields = file_header_reqs.get('mandatory_fields', [])
+        
+        for file in files:
+            if not file or not Path(file).exists():
+                continue
+            
+            # Skip non-code files
+            if not any(file.endswith(ext) for ext in ['.py', '.ts', '.js', '.java']):
+                continue
+            
+            try:
+                with open(file, 'r', encoding='utf-8', errors='ignore') as f:
+                    content = f.read()
+                
+                # Check mandatory fields
+                missing_fields = []
+                for field in mandatory_fields:
+                    if field not in content[:1000]:  # Check in first 1000 chars
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    errors.append(f"{file}: Missing documentation fields: {', '.join(missing_fields)}")
+                
+                # Check business logic section
+                if file_header_reqs.get('business_logic_section', {}).get('required'):
+                    if 'Business Logic Summary:' not in content[:2000]:
+                        errors.append(f"{file}: Missing Business Logic Summary section")
+                
+                # Check architecture integration section  
+                if file_header_reqs.get('architecture_integration_section', {}).get('required'):
+                    if 'Architecture Integration:' not in content[:2000]:
+                        errors.append(f"{file}: Missing Architecture Integration section")
+                
+            except Exception:
+                pass
+        
+        return errors
+    
+    def _validate_git_standards(self, context: Dict[str, Any]) -> List[str]:
+        """Validate git commit standards"""
+        warnings = []
+        standards = self.config_loader.get_config('git_standards')
+        
+        if not standards:
+            return warnings
+        
+        # Get commit message (would need to be passed in context or fetched)
+        # For now, just check branch naming
+        branch = context.get('branch', '')
+        
+        branch_standards = standards.get('branch_naming', {})
+        prohibited = branch_standards.get('prohibited_names', [])
+        
+        if branch in prohibited:
+            warnings.append(f"Branch name '{branch}' is prohibited - use feature branches")
+        
+        max_length = branch_standards.get('max_length', 50)
+        if len(branch) > max_length:
+            warnings.append(f"Branch name exceeds {max_length} characters")
+        
+        # Check for conventional commit format in future commits
+        # This would need the actual commit message
+        
+        return warnings
     
     async def run_governance_check(self) -> int:
         """Main governance check execution"""

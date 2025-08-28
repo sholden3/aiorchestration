@@ -1,0 +1,133 @@
+{
+  "$schema": "https://governance.ai/schemas/rules/documentation/v1.0.0",
+  "version": "1.0.0",
+  "last_updated": "2025-01-28T21:00:00Z",
+  "description": "Comprehensive documentation standards from CLAUDE.md",
+  
+  "file_header_requirements": {
+    "mandatory_fields": [
+      "@fileoverview",
+      "@author",
+      "@architecture",
+      "@responsibility",
+      "@dependencies",
+      "@integration_points",
+      "@testing_strategy",
+      "@governance"
+    ],
+    "author_format": "{PersonaName} v{Version} - {Date}",
+    "business_logic_section": {
+      "required": true,
+      "minimum_items": 3,
+      "must_include": [
+        "Primary business rules",
+        "Key validation logic",
+        "Error handling approach"
+      ]
+    },
+    "architecture_integration_section": {
+      "required": true,
+      "must_include": [
+        "System overview fit",
+        "Security boundaries",
+        "Performance considerations"
+      ]
+    }
+  },
+  
+  "class_documentation": {
+    "mandatory_fields": [
+      "@class",
+      "@description",
+      "@architecture_role",
+      "@business_logic",
+      "@failure_modes",
+      "@debugging_info"
+    ],
+    "defensive_programming_section": {
+      "required": true,
+      "must_document": [
+        "Circuit breakers",
+        "Input validation",
+        "Resource limits"
+      ]
+    },
+    "integration_boundaries_section": {
+      "required": true,
+      "must_document": [
+        "External systems",
+        "Security controls",
+        "Error propagation"
+      ]
+    },
+    "framework_checks": {
+      "sarah_framework": "What breaks first, How we know, Plan B",
+      "alex_framework": "3AM debugging info, Integration points, Cleanup"
+    }
+  },
+  
+  "method_documentation": {
+    "mandatory_fields": [
+      "@method",
+      "@description",
+      "@param",
+      "@returns"
+    ],
+    "optional_fields": [
+      "@throws",
+      "@example",
+      "@performance",
+      "@side_effects"
+    ],
+    "business_rule_comments": {
+      "pattern": "// BUSINESS RULE: {rule}",
+      "required_for": ["validation", "authorization", "calculation"]
+    },
+    "validation_comments": {
+      "pattern": "// VALIDATION: {what and why}",
+      "required_for": ["input_processing", "data_transformation"]
+    },
+    "error_handling_comments": {
+      "pattern": "// ERROR HANDLING: {strategy}",
+      "required_for": ["external_calls", "user_input", "critical_operations"]
+    }
+  },
+  
+  "inline_documentation": {
+    "complex_logic": {
+      "threshold": 3,
+      "message": "Logic with nesting > 3 requires inline comments"
+    },
+    "magic_numbers": {
+      "prohibited": true,
+      "message": "Use named constants with documentation"
+    },
+    "todo_format": {
+      "pattern": "// TODO({author}): {description} - {date}",
+      "must_include_issue": true
+    },
+    "fixme_format": {
+      "pattern": "// FIXME({issue}): {description}",
+      "requires_timeline": true
+    }
+  },
+  
+  "enforcement": {
+    "missing_file_header": {
+      "level": "error",
+      "blocks_commit": true
+    },
+    "missing_class_docs": {
+      "level": "error",
+      "blocks_commit": true
+    },
+    "missing_method_docs": {
+      "level": "warning",
+      "threshold": "public_methods"
+    },
+    "insufficient_documentation": {
+      "level": "warning",
+      "min_doc_ratio": 0.3
+    }
+  }
+}

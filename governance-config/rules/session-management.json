@@ -1,0 +1,199 @@
+{
+  "$schema": "https://governance.ai/schemas/rules/session/v1.0.0",
+  "version": "1.0.0",
+  "last_updated": "2025-01-28T21:00:00Z",
+  "description": "Development session management requirements",
+  
+  "session_lifecycle": {
+    "session_start": {
+      "required_steps": [
+        "validate_environment",
+        "load_personas",
+        "check_previous_session",
+        "initialize_correlation",
+        "verify_governance"
+      ],
+      "validation_script": "./validate-session-start.sh",
+      "announcement": {
+        "format": "=== SESSION INITIALIZATION ===\nCore Architects: Alex Novak & Dr. Sarah Chen active\nSpecialist Pool: Available per PERSONAS.md\nDecision Log: DECISIONS.md ready for updates",
+        "required": true
+      }
+    },
+    
+    "session_end": {
+      "required_steps": [
+        "validate_completions",
+        "architect_approval",
+        "update_documentation",
+        "commit_changes",
+        "cleanup_resources"
+      ],
+      "validation_script": "./validate-task-completion.sh",
+      "checklist": [
+        "All tasks marked complete",
+        "Tests passing",
+        "Documentation updated",
+        "Both architects approved"
+      ]
+    },
+    
+    "session_timeout": {
+      "idle_minutes": 30,
+      "warning_at": 25,
+      "auto_save": true,
+      "cleanup_on_timeout": true
+    }
+  },
+  
+  "task_management": {
+    "task_lifecycle": [
+      "pending",
+      "in_progress",
+      "review",
+      "completed",
+      "blocked"
+    ],
+    "task_requirements": {
+      "description": "required",
+      "assignee": "auto_assign_persona",
+      "priority": ["critical", "high", "medium", "low"],
+      "estimated_time": "optional",
+      "actual_time": "track_automatically"
+    },
+    "completion_criteria": {
+      "code_complete": true,
+      "tests_passing": true,
+      "documentation_updated": true,
+      "review_approved": true
+    }
+  },
+  
+  "decision_tracking": {
+    "decision_approval_protocol": {
+      "steps": [
+        "Present decision with all persona perspectives",
+        "Document in DECISIONS.md",
+        "Wait for user acknowledgment",
+        "Only proceed after explicit approval",
+        "Update decision log with outcome"
+      ],
+      "requires_approval": [
+        "Architecture changes",
+        "Testing strategy changes",
+        "Process modifications",
+        "Tool selections",
+        "Performance trade-offs"
+      ]
+    },
+    "decision_format": {
+      "template": "decisions/TEMPLATE.md",
+      "sections": [
+        "Context",
+        "Problem Statement",
+        "Options Considered",
+        "Persona Perspectives",
+        "Decision",
+        "Consequences",
+        "Review Date"
+      ]
+    }
+  },
+  
+  "persona_orchestration": {
+    "core_architects": {
+      "always_active": ["alex_novak", "sarah_chen"],
+      "sign_off_required": true
+    },
+    "specialist_invocation": {
+      "automatic_based_on": ["file_type", "task_type", "domain"],
+      "manual_override": true,
+      "exit_after_contribution": true
+    },
+    "validation_requirements": {
+      "sarah_chen": {
+        "framework": "Three Questions",
+        "checks": [
+          "What breaks first?",
+          "How do we know?",
+          "What's Plan B?"
+        ]
+      },
+      "alex_novak": {
+        "framework": "3 AM Test",
+        "checks": [
+          "Debuggable under pressure?",
+          "Integration points documented?",
+          "Cleanup verified?"
+        ]
+      }
+    }
+  },
+  
+  "session_state": {
+    "persistence": {
+      "location": ".governance/session/",
+      "format": "json",
+      "encrypt": false,
+      "rotation": "daily"
+    },
+    "tracking": {
+      "correlation_ids": true,
+      "task_progress": true,
+      "decision_history": true,
+      "validation_results": true,
+      "time_tracking": true
+    },
+    "recovery": {
+      "auto_recovery": true,
+      "checkpoint_interval": 300,
+      "max_recovery_age": 86400
+    }
+  },
+  
+  "todo_management": {
+    "todo_format": {
+      "pattern": "TODO({author}): {description} #{issue}",
+      "priority_levels": ["P0", "P1", "P2", "P3"],
+      "must_have_issue": true,
+      "max_age_days": {
+        "P0": 1,
+        "P1": 7,
+        "P2": 30,
+        "P3": 90
+      }
+    },
+    "fixme_format": {
+      "pattern": "FIXME({issue}): {description}",
+      "requires_timeline": true,
+      "escalates_to_P0": true
+    },
+    "hack_format": {
+      "pattern": "HACK({author}): {justification}",
+      "requires_removal_plan": true,
+      "max_lifetime_days": 30
+    }
+  },
+  
+  "enforcement": {
+    "session_not_initialized": {
+      "level": "error",
+      "blocks_all_operations": true,
+      "message": "Must run ./validate-session-start.sh"
+    },
+    "missing_approval": {
+      "level": "error",
+      "blocks_commit": true,
+      "message": "Both architects must approve"
+    },
+    "stale_todos": {
+      "level": "warning",
+      "escalates": true,
+      "message": "TODOs exceeding age limit"
+    },
+    "incomplete_tasks": {
+      "level": "warning",
+      "blocks_session_end": false,
+      "requires_justification": true
+    }
+  }
+}

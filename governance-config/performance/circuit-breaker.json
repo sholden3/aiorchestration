@@ -1,0 +1,169 @@
+{
+  "$schema": "https://governance.ai/schemas/performance/v1.0.0",
+  "version": "1.0.0",
+  "last_updated": "2025-01-28T19:00:00Z",
+  "circuit_breaker": {
+    "global_settings": {
+      "enabled": true,
+      "failure_threshold": 5,
+      "success_threshold": 3,
+      "timeout_seconds": 120,
+      "half_open_max_requests": 3,
+      "monitoring_window_seconds": 60
+    },
+    "breakers": {
+      "database": {
+        "id": "database_breaker",
+        "enabled": true,
+        "failure_threshold": 3,
+        "timeout_seconds": 60,
+        "error_types": [
+          "connection_error",
+          "timeout",
+          "pool_exhausted"
+        ],
+        "fallback_strategy": "use_cache",
+        "alert_on_open": true
+      },
+      "persona_invocation": {
+        "id": "persona_breaker",
+        "enabled": true,
+        "failure_threshold": 5,
+        "timeout_seconds": 120,
+        "error_types": [
+          "persona_timeout",
+          "persona_error",
+          "consensus_failure"
+        ],
+        "fallback_strategy": "use_core_only",
+        "alert_on_open": false
+      },
+      "external_api": {
+        "id": "api_breaker",
+        "enabled": true,
+        "failure_threshold": 10,
+        "timeout_seconds": 300,
+        "error_types": [
+          "api_error",
+          "rate_limit",
+          "service_unavailable"
+        ],
+        "fallback_strategy": "queue_for_retry",
+        "alert_on_open": true
+      },
+      "validation_pipeline": {
+        "id": "validation_breaker",
+        "enabled": true,
+        "failure_threshold": 7,
+        "timeout_seconds": 180,
+        "error_types": [
+          "validation_timeout",
+          "validator_crash",
+          "resource_exhausted"
+        ],
+        "fallback_strategy": "minimal_validation",
+        "alert_on_open": true
+      }
+    },
+    "fallback_strategies": {
+      "use_cache": {
+        "description": "Use cached results when available",
+        "max_cache_age_seconds": 300
+      },
+      "use_core_only": {
+        "description": "Use only core architects for decisions",
+        "personas": ["alex_novak", "sarah_chen"]
+      },
+      "queue_for_retry": {
+        "description": "Queue request for later retry",
+        "max_queue_size": 1000,
+        "retry_delay_seconds": 60
+      },
+      "minimal_validation": {
+        "description": "Run only critical validations",
+        "validators": ["security"]
+      },
+      "emergency_mode": {
+        "description": "Emergency fallback with logging",
+        "auto_approve": false,
+        "require_manual_review": true
+      }
+    },
+    "monitoring": {
+      "metrics_collection_enabled": true,
+      "metrics_interval_seconds": 10,
+      "alert_channels": ["console", "file", "webhook"],
+      "dashboard_enabled": true,
+      "health_check_endpoint": "/health/circuit-breaker"
+    }
+  },
+  "performance_thresholds": {
+    "validation": {
+      "target_p50_ms": 500,
+      "target_p95_ms": 2000,
+      "target_p99_ms": 5000,
+      "max_timeout_ms": 10000
+    },
+    "consensus": {
+      "target_p50_ms": 1000,
+      "target_p95_ms": 5000,
+      "target_p99_ms": 30000,
+      "max_timeout_ms": 60000
+    },
+    "event_processing": {
+      "target_p50_ms": 50,
+      "target_p95_ms": 200,
+      "target_p99_ms": 500,
+      "max_timeout_ms": 1000
+    },
+    "database_operations": {
+      "read_p50_ms": 10,
+      "read_p99_ms": 100,
+      "write_p50_ms": 50,
+      "write_p99_ms": 500
+    }
+  },
+  "resource_limits": {
+    "memory": {
+      "max_heap_mb": 512,
+      "warning_threshold_mb": 400,
+      "gc_trigger_mb": 450
+    },
+    "connections": {
+      "max_database_connections": 20,
+      "max_websocket_connections": 100,
+      "max_concurrent_validations": 10
+    },
+    "queues": {
+      "max_event_queue_size": 10000,
+      "max_correlation_history": 1000,
+      "max_cache_entries": 5000
+    }
+  },
+  "rate_limiting": {
+    "global_limits": {
+      "requests_per_second": 100,
+      "requests_per_minute": 3000,
+      "burst_size": 200
+    },
+    "per_user_limits": {
+      "requests_per_second": 10,
+      "requests_per_minute": 300,
+      "concurrent_requests": 5
+    },
+    "per_operation_limits": {
+      "validation": {
+        "requests_per_minute": 60,
+        "concurrent": 3
+      },
+      "consensus": {
+        "requests_per_minute": 10,
+        "concurrent": 1
+      },
+      "agent_spawn": {
+        "requests_per_hour": 10,
+        "concurrent": 1
+      }
+    }
+  }
+}

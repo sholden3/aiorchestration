@@ -1,0 +1,110 @@
+{
+  "$schema": "https://governance.ai/schemas/consensus/v1.0.0",
+  "version": "1.0.0",
+  "last_updated": "2025-01-28T19:00:00Z",
+  "consensus_strategies": {
+    "unanimous": {
+      "id": "unanimous_consensus",
+      "description": "All personas must agree",
+      "requirements": {
+        "agreement_threshold": 1.0,
+        "minimum_participation": 1.0,
+        "abstentions_allowed": false
+      },
+      "timeout_seconds": 60,
+      "use_for": ["critical_security_changes", "production_deployments"]
+    },
+    "majority": {
+      "id": "majority_consensus",
+      "description": "More than 50% must agree",
+      "requirements": {
+        "agreement_threshold": 0.51,
+        "minimum_participation": 0.66,
+        "abstentions_allowed": true
+      },
+      "timeout_seconds": 30,
+      "use_for": ["standard_changes", "feature_additions", "bug_fixes"]
+    },
+    "qualified_majority": {
+      "id": "qualified_majority",
+      "description": "Two-thirds must agree",
+      "requirements": {
+        "agreement_threshold": 0.67,
+        "minimum_participation": 0.75,
+        "abstentions_allowed": true
+      },
+      "timeout_seconds": 45,
+      "use_for": ["architecture_changes", "breaking_changes", "api_modifications"]
+    },
+    "veto_power": {
+      "id": "veto_consensus",
+      "description": "Any persona with veto power can block",
+      "requirements": {
+        "agreement_threshold": 0.51,
+        "minimum_participation": 0.5,
+        "veto_override_threshold": null
+      },
+      "veto_personas": ["jordan_rivera"],
+      "timeout_seconds": 30,
+      "use_for": ["security_changes", "authentication_modifications", "credential_handling"]
+    },
+    "weighted": {
+      "id": "weighted_consensus",
+      "description": "Votes weighted by expertise",
+      "requirements": {
+        "weighted_threshold": 0.7,
+        "minimum_participation": 0.6,
+        "weight_calculation": "expertise_based"
+      },
+      "timeout_seconds": 40,
+      "use_for": ["specialized_changes", "domain_specific_modifications"]
+    },
+    "fast_track": {
+      "id": "fast_track",
+      "description": "Core architects only for quick decisions",
+      "requirements": {
+        "required_personas": ["alex_novak", "sarah_chen"],
+        "agreement_threshold": 1.0,
+        "minimum_participation": 1.0
+      },
+      "timeout_seconds": 10,
+      "use_for": ["emergency_fixes", "hotfixes", "trivial_changes"]
+    }
+  },
+  "conflict_resolution": {
+    "strategies": [
+      {
+        "id": "escalation",
+        "description": "Escalate to higher authority",
+        "trigger": "consensus_not_achieved",
+        "escalation_path": ["core_architects", "team_lead", "manual_review"]
+      },
+      {
+        "id": "negotiation",
+        "description": "Find middle ground between conflicts",
+        "trigger": "minor_conflicts_only",
+        "max_rounds": 3
+      },
+      {
+        "id": "priority_based",
+        "description": "Use domain priority for resolution",
+        "trigger": "domain_conflict",
+        "priority_order": ["security", "performance", "functionality", "documentation"]
+      },
+      {
+        "id": "fallback",
+        "description": "Use safe default option",
+        "trigger": "timeout_or_unavailable",
+        "default_decision": "block"
+      }
+    ]
+  },
+  "consensus_rules": {
+    "default_strategy": "majority",
+    "require_core_architects": true,
+    "allow_async_voting": true,
+    "record_dissenting_opinions": true,
+    "require_justification": true,
+    "audit_all_decisions": true
+  }
+}

@@ -1,0 +1,210 @@
+{
+  "$schema": "https://governance.ai/schemas/rules/v1.0.0",
+  "version": "1.0.0",
+  "last_updated": "2025-01-28T19:00:00Z",
+  "validation_rules": {
+    "documentation": {
+      "id": "doc_validation",
+      "enabled": true,
+      "severity": "error",
+      "description": "Ensures all code files have proper documentation",
+      "applies_to": {
+        "file_patterns": ["*.py", "*.ts", "*.js", "*.java"],
+        "exclude_patterns": ["*.test.*", "*.spec.*", "*_test.py", "test_*.py"]
+      },
+      "requirements": {
+        "file_headers": {
+          "mandatory": [
+            "@fileoverview",
+            "@author",
+            "@architecture",
+            "@responsibility",
+            "@dependencies",
+            "@integration_points",
+            "@testing_strategy",
+            "@governance"
+          ],
+          "optional": [
+            "@version",
+            "@deprecated",
+            "@todo"
+          ]
+        },
+        "class_documentation": {
+          "mandatory": [
+            "@class",
+            "@description",
+            "@architecture_role",
+            "@business_logic"
+          ]
+        },
+        "method_documentation": {
+          "mandatory": [
+            "@method",
+            "@description",
+            "@param",
+            "@returns"
+          ],
+          "optional": [
+            "@throws",
+            "@deprecated",
+            "@example"
+          ]
+        }
+      },
+      "enforcement": {
+        "block_on_missing": true,
+        "auto_fix_available": false,
+        "suggestions_enabled": true
+      }
+    },
+    "testing": {
+      "id": "test_validation",
+      "enabled": true,
+      "severity": "warning",
+      "description": "Ensures code changes have corresponding tests",
+      "applies_to": {
+        "file_patterns": ["*.py", "*.ts", "*.js"],
+        "exclude_patterns": ["*.test.*", "*.spec.*", "*_test.py", "test_*.py", "*.config.*"]
+      },
+      "requirements": {
+        "test_file_patterns": {
+          "python": [
+            "{filename}_test.py",
+            "test_{filename}.py",
+            "tests/{filename}_test.py"
+          ],
+          "typescript": [
+            "{filename}.spec.ts",
+            "{filename}.test.ts"
+          ],
+          "javascript": [
+            "{filename}.spec.js",
+            "{filename}.test.js"
+          ]
+        },
+        "coverage_thresholds": {
+          "lines": 0.9,
+          "functions": 0.9,
+          "branches": 0.85,
+          "statements": 0.9
+        },
+        "test_types_required": [
+          "unit",
+          "integration"
+        ]
+      },
+      "enforcement": {
+        "block_on_missing": false,
+        "warn_on_low_coverage": true,
+        "require_test_in_same_commit": true
+      }
+    },
+    "security": {
+      "id": "security_validation",
+      "enabled": true,
+      "severity": "error",
+      "description": "Scans for security vulnerabilities and patterns",
+      "patterns": {
+        "secrets": {
+          "regex_patterns": [
+            "(?i)(api[_-]?key|apikey|secret|password|pwd|token|auth)\\s*[:=]\\s*['\"][^'\"]+['\"]",
+            "(?i)bearer\\s+[a-zA-Z0-9_\\-\\.]+",
+            "(?i)(aws|amazon)[_-]?(secret|access)[_-]?key\\s*[:=]\\s*['\"][^'\"]+['\"]"
+          ],
+          "entropy_threshold": 4.5,
+          "min_length": 10
+        },
+        "vulnerabilities": {
+          "sql_injection": ["SELECT.*FROM.*WHERE", "DROP TABLE", "'; DROP"],
+          "xss": ["<script", "javascript:", "onerror="],
+          "path_traversal": ["../", "..\\"],
+          "command_injection": ["eval(", "exec(", "system(", "shell_exec("]
+        }
+      },
+      "enforcement": {
+        "block_on_detection": true,
+        "alert_security_team": true,
+        "require_security_review": true
+      }
+    },
+    "code_quality": {
+      "id": "quality_validation",
+      "enabled": true,
+      "severity": "warning",
+      "description": "Enforces code quality standards",
+      "checks": {
+        "complexity": {
+          "cyclomatic_complexity_max": 10,
+          "cognitive_complexity_max": 15,
+          "max_file_length": 500,
+          "max_function_length": 50
+        },
+        "naming": {
+          "enforce_convention": true,
+          "python_convention": "snake_case",
+          "typescript_convention": "camelCase",
+          "class_convention": "PascalCase"
+        },
+        "imports": {
+          "no_circular_dependencies": true,
+          "no_unused_imports": true,
+          "import_order": ["standard", "third_party", "local"]
+        }
+      },
+      "enforcement": {
+        "block_on_critical": false,
+        "auto_fix_available": true,
+        "suggestions_enabled": true
+      }
+    },
+    "performance": {
+      "id": "performance_validation",
+      "enabled": true,
+      "severity": "warning",
+      "description": "Validates performance implications",
+      "checks": {
+        "database_queries": {
+          "n_plus_one_detection": true,
+          "index_usage_validation": true,
+          "query_complexity_limit": 100
+        },
+        "api_responses": {
+          "max_response_size_kb": 1024,
+          "max_response_time_ms": 2000,
+          "pagination_required_above": 100
+        },
+        "frontend": {
+          "bundle_size_limit_kb": 500,
+          "lazy_loading_required": true,
+          "image_optimization_required": true
+        }
+      }
+    },
+    "business_logic": {
+      "id": "business_validation",
+      "enabled": true,
+      "severity": "error",
+      "description": "Validates business rule compliance",
+      "rules": {
+        "audit_trail": {
+          "required_for": ["user_actions", "system_decisions", "data_modifications"],
+          "must_include": ["timestamp", "user_id", "action", "result"]
+        },
+        "data_validation": {
+          "email_format": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+          "phone_format": "^[+]?[1-9]\\d{1,14}$",
+          "date_format": "ISO8601"
+        }
+      }
+    }
+  },
+  "global_settings": {
+    "validation_timeout_ms": 5000,
+    "parallel_validation": true,
+    "cache_validation_results": true,
+    "cache_ttl_seconds": 300,
+    "fail_fast": false,
+    "collect_all_errors": true
+  }
+}

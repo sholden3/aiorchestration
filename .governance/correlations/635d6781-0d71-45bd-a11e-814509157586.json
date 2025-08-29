@@ -1,0 +1,39 @@
+{
+  "correlation_id": "635d6781-0d71-45bd-a11e-814509157586",
+  "parent_correlation_id": null,
+  "session_id": null,
+  "user": "Steven Holden",
+  "operation_type": "git.pre_commit",
+  "operation_name": "pre_commit_validation",
+  "start_time": "2025-08-28T12:25:18.947862",
+  "end_time": "2025-08-28T12:25:18.975789",
+  "status": "completed",
+  "metadata": {
+    "user": "Steven Holden",
+    "branch": "main",
+    "files": [
+      "governance-config/rules/archival-standards.json",
+      "governance-config/rules/data-persistence.json",
+      "governance-config/rules/documentation-standards.json",
+      "governance-config/rules/git-standards.json",
+      "governance-config/rules/performance-standards.json",
+      "governance-config/rules/session-management.json",
+      "governance/docs/governance-expansion-plan.md",
+      "governance/scripts/integrated_pre_commit_hook.py"
+    ],
+    "result": {
+      "approved": true
+    }
+  },
+  "debug_trace": [
+    "[2025-08-28T12:25:18.947862] Correlation created for git.pre_commit:pre_commit_validation",
+    "[2025-08-28T12:25:18.975789] Correlation completed with status completed"
+  ],
+  "events": [],
+  "errors": [],
+  "warnings": [],
+  "checkpoints": {},
+  "metrics": {
+    "total_duration_ms": 27.927
+  }
+}

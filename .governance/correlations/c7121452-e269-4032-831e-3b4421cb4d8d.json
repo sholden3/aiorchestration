@@ -1,0 +1,34 @@
+{
+  "correlation_id": "c7121452-e269-4032-831e-3b4421cb4d8d",
+  "parent_correlation_id": null,
+  "session_id": null,
+  "user": "Steven Holden",
+  "operation_type": "git.pre_commit",
+  "operation_name": "pre_commit_validation",
+  "start_time": "2025-08-28T15:19:13.258375",
+  "end_time": "2025-08-28T15:19:13.271342",
+  "status": "failed",
+  "metadata": {
+    "user": "Steven Holden",
+    "branch": "main",
+    "files": [
+      "governance/core/session_manager.py",
+      "governance/core/todo_tracker.py"
+    ],
+    "result": {
+      "blocked": true,
+      "reason": "Validation failed"
+    }
+  },
+  "debug_trace": [
+    "[2025-08-28T15:19:13.258375] Correlation created for git.pre_commit:pre_commit_validation",
+    "[2025-08-28T15:19:13.271342] Correlation completed with status failed"
+  ],
+  "events": [],
+  "errors": [],
+  "warnings": [],
+  "checkpoints": {},
+  "metrics": {
+    "total_duration_ms": 12.966999999999999
+  }
+}

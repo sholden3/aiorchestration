@@ -1,10 +1,28 @@
 /**
- * Test suite for C1: Terminal Service Memory Leak Fix
- * Validates component-scoped service, cleanup, and IPC listener management
- * Architecture: Alex Novak
+ * @fileoverview Test suite for C1 Terminal Service memory leak fix validation
+ * @author Alex Novak v2.0 - 2025-08-29
+ * @architecture Frontend - Test suite for TerminalService
+ * @responsibility Validate memory leak fix, cleanup, and IPC listener management
+ * @dependencies Angular testing, TestBed, NgZone, mock services
+ * @integration_points TerminalService, TerminalManagerService, IPCService
+ * @testing_strategy Unit tests for lifecycle, memory cleanup, IPC management
+ * @governance Ensures C1 fix is properly implemented and tested
+ * 
+ * Business Logic Summary:
+ * - Test component-scoped service creation
+ * - Validate proper cleanup on destroy
+ * - Test IPC listener management
+ * - Verify memory leak prevention
+ * - Test error handling and fallbacks
+ * 
+ * Architecture Integration:
+ * - Tests C1 critical issue fix
+ * - Validates service lifecycle management
+ * - Ensures proper NgZone integration
+ * - Tests IPC boundary safety
  */
 import { TestBed } from '@angular/core/testing';
-import { NgZone } from '@angular/core';
+import { Component, NgZone, OnDestroy } from '@angular/core';
 import { TerminalService } from './terminal.service';
 import { TerminalManagerService } from './terminal-manager.service';
 import { IPCService } from './ipc.service';
@@ -46,8 +64,8 @@ describe('TerminalService - C1 Memory Leak Fix', () => {
         TerminalService,
         TerminalManagerService,
         IPCService,
-        IPCErrorBoundaryService,
-        NgZone
+        IPCErrorBoundaryService
+        // NgZone is provided by Angular testing module, not manually
       ]
     });
 
@@ -157,18 +175,8 @@ describe('TerminalService - C1 Memory Leak Fix', () => {
       }, 0);
     });
 
-    it('should prevent operations after destroy', async () => {
-      service = TestBed.inject(TerminalService);
-      
-      // Destroy the service
-      service.ngOnDestroy();
-      
-      // Try to use service after destroy
-      const result = await service.createSession();
-      
-      // Should handle gracefully (return empty or null)
-      expect(result).toBeFalsy();
-    });
+    // Note: 'should prevent operations after destroy' test moved to separate describe block
+    // See 'TerminalService - Destroy Behavior Validation' below for comprehensive destroy testing
 
     it('should handle cleanup errors gracefully', () => {
       service = TestBed.inject(TerminalService);
@@ -317,5 +325,272 @@ describe('TerminalManagerService', () => {
     service.cleanup();
     
     expect(cleanupFn).toHaveBeenCalled();
+  });
+});
+
+/**
+ * Separate test suite for destroy behavior validation
+ * Using Option 3 as approved in round table decision
+ * This provides proper test isolation with working mocks
+ */
+describe('TerminalService - Destroy Behavior Validation', () => {
+  let service: TerminalService;
+  let mockIpcService: any;
+  let managerService: TerminalManagerService;
+  
+  beforeEach(() => {
+    // Setup mock IPC service that actually works
+    mockIpcService = {
+      safeInvoke: jest.fn().mockResolvedValue('session-123'),
+      isAvailable: jest.fn().mockReturnValue(true)
+    };
+    
+    // Setup mock electronAPI for this test suite
+    (window as any).electronAPI = {
+      onTerminalOutput: jest.fn((callback) => {
+        return () => { console.log('Output listener cleaned up'); };
+      }),
+      onTerminalExit: jest.fn((callback) => {
+        return () => { console.log('Exit listener cleaned up'); };
+      }),
+      onTerminalSessions: jest.fn((callback) => {
+        return () => { console.log('Sessions listener cleaned up'); };
+      }),
+      createTerminalSession: jest.fn().mockResolvedValue('session-123'),
+      writeToTerminal: jest.fn(),
+      resizeTerminal: jest.fn(),
+      killTerminal: jest.fn()
+    };
+    
+    TestBed.configureTestingModule({
+      providers: [
+        TerminalService,
+        TerminalManagerService,
+        { provide: IPCService, useValue: mockIpcService },
+        IPCErrorBoundaryService
+      ]
+    });
+    
+    managerService = TestBed.inject(TerminalManagerService);
+    service = TestBed.inject(TerminalService);
+  });
+  
+  afterEach(() => {
+    // Clean up
+    if (service && !service['isDestroyed']) {
+      service.ngOnDestroy();
+    }
+    delete (window as any).electronAPI;
+  });
+  
+  it('should allow operations before destroy', async () => {
+    // Verify service works normally before destroy
+    const sessionId = await service.createSession();
+    expect(sessionId).toBe('session-123');
+    expect(mockIpcService.safeInvoke).toHaveBeenCalledWith(
+      'create-terminal-session',
+      expect.any(Object),
+      expect.any(Object)
+    );
+    
+    // Verify service is registered with manager
+    expect(managerService.getActiveCount()).toBeGreaterThan(0);
+  });
+  
+  it('should prevent operations after destroy', async () => {
+    // First verify service works normally
+    const sessionBefore = await service.createSession();
+    expect(sessionBefore).toBe('session-123');
+    expect(mockIpcService.safeInvoke).toHaveBeenCalledTimes(1);
+    
+    // Destroy the service
+    service.ngOnDestroy();
+    
+    // Verify destroyed state
+    expect(service['isDestroyed']).toBe(true);
+    expect(service['cleanupFunctions']).toHaveLength(0);
+    
+    // Verify operations now throw with clear error messages
+    await expect(service.createSession())
+      .rejects
+      .toThrow('Terminal service has been destroyed');
+    
+    await expect(service.createSessionWithId('test-id'))
+      .rejects
+      .toThrow('Terminal service has been destroyed');
+    
+    expect(() => service.writeToSession('test', 'data'))
+      .toThrow('Terminal service has been destroyed');
+    
+    expect(() => service.killSession('test'))
+      .toThrow('Terminal service has been destroyed');
+    
+    expect(() => service.resizeSession('test', 80, 24))
+      .toThrow('Terminal service has been destroyed');
+    
+    // Verify no additional IPC calls were made after destroy
+    expect(mockIpcService.safeInvoke).toHaveBeenCalledTimes(1);
+    
+    // Verify service was unregistered from manager
+    const registerSpy = jest.spyOn(managerService, 'unregister');
+    expect(managerService.getActiveCount()).toBe(0);
+  });
+  
+  it('should handle multiple destroy calls gracefully', () => {
+    // First destroy
+    service.ngOnDestroy();
+    expect(service['isDestroyed']).toBe(true);
+    
+    // Track unregister calls
+    const unregisterSpy = jest.spyOn(managerService, 'unregister');
+    
+    // Second destroy should not throw
+    expect(() => service.ngOnDestroy()).not.toThrow();
+    
+    // Verify unregister not called again (already unregistered)
+    expect(unregisterSpy).not.toHaveBeenCalled();
+  });
+  
+  it('should clean up all IPC listeners on destroy', () => {
+    // Get initial cleanup function count
+    const initialCleanupCount = service['cleanupFunctions'].length;
+    expect(initialCleanupCount).toBeGreaterThan(0);
+    
+    // Destroy service
+    service.ngOnDestroy();
+    
+    // Verify all cleanup functions were called and cleared
+    expect(service['cleanupFunctions']).toHaveLength(0);
+    
+    // Verify electronAPI listeners were cleaned up
+    expect((window as any).electronAPI.onTerminalOutput).toHaveBeenCalled();
+    expect((window as any).electronAPI.onTerminalExit).toHaveBeenCalled();
+    expect((window as any).electronAPI.onTerminalSessions).toHaveBeenCalled();
+  });
+  
+  // Test removed - see separate describe block below for component scope validation
+});
+
+/**
+ * Component Scope Memory Leak Prevention Test Suite
+ * 
+ * This separate test suite validates that the C1 fix properly implements
+ * component-scoped TerminalService instances that are destroyed with their
+ * parent components, preventing memory leaks.
+ * 
+ * Architecture Decision: Alex Novak v3.0 & Dr. Sarah Chen v1.2
+ * Testing Pattern: Sam Martinez v3.2.0
+ * 
+ * This test is isolated in its own describe block to avoid TestBed
+ * configuration conflicts with the main test suite.
+ */
+describe('TerminalService - Component Scope Memory Leak Prevention', () => {
+  afterEach(() => {
+    // Clean up TestBed after each test to ensure isolation
+    TestBed.resetTestingModule();
+    // Clean up any mock electronAPI
+    delete (window as any).electronAPI;
+  });
+
+  it('should create separate instances per component and cleanup on destroy', () => {
+    // Setup mock electronAPI for this specific test
+    (window as any).electronAPI = {
+      onTerminalOutput: jest.fn((callback) => {
+        return () => { /* cleanup */ };
+      }),
+      onTerminalExit: jest.fn((callback) => {
+        return () => { /* cleanup */ };
+      }),
+      onTerminalSessions: jest.fn((callback) => {
+        return () => { /* cleanup */ };
+      }),
+      createTerminalSession: jest.fn().mockResolvedValue('session-123'),
+      writeToTerminal: jest.fn(),
+      resizeTerminal: jest.fn(),
+      killTerminal: jest.fn()
+    };
+
+    // Setup mock IPC service
+    const mockIpcService = {
+      safeInvoke: jest.fn().mockResolvedValue('session-123'),
+      isAvailable: jest.fn().mockReturnValue(true)
+    };
+
+    // Define test component that provides its own TerminalService
+    @Component({
+      template: '',
+      providers: [TerminalService]  // Component-scoped service
+    })
+    class TestComponent implements OnDestroy {
+      constructor(public terminalService: TerminalService) {}
+      
+      ngOnDestroy(): void {
+        // Component cleanup will trigger service cleanup
+      }
+    }
+
+    // Configure TestBed with the test component
+    TestBed.configureTestingModule({
+      declarations: [TestComponent],
+      providers: [
+        TerminalManagerService,
+        { provide: IPCService, useValue: mockIpcService },
+        IPCErrorBoundaryService
+      ]
+    });
+
+    // Get the manager service to track registrations
+    const managerService = TestBed.inject(TerminalManagerService);
+    const initialCount = managerService.getActiveCount();
+
+    // Create multiple component instances, each with its own service
+    const fixtures: any[] = [];
+    const services: TerminalService[] = [];
+    const instanceIds: string[] = [];
+
+    for (let i = 0; i < 5; i++) {
+      const fixture = TestBed.createComponent(TestComponent);
+      fixtures.push(fixture);
+      
+      const service = fixture.componentInstance.terminalService;
+      services.push(service);
+      instanceIds.push(service['instanceId']);
+    }
+
+    // VALIDATION 1: Each component should have its own service instance
+    const uniqueInstances = new Set(instanceIds);
+    expect(uniqueInstances.size).toBe(5);
+    console.log(`✅ Created ${uniqueInstances.size} unique TerminalService instances`);
+
+    // VALIDATION 2: All services should be registered with manager
+    expect(managerService.getActiveCount()).toBe(initialCount + 5);
+    console.log(`✅ All ${services.length} services registered with manager`);
+
+    // VALIDATION 3: Services should be functional before destroy
+    services.forEach((service, index) => {
+      expect(service['isDestroyed']).toBe(false);
+      expect(service['cleanupFunctions'].length).toBeGreaterThan(0);
+      console.log(`✅ Service ${index + 1} is active with ${service['cleanupFunctions'].length} cleanup functions`);
+    });
+
+    // Simulate component lifecycle - destroy all fixtures
+    fixtures.forEach((fixture, index) => {
+      fixture.destroy();
+      console.log(`🧹 Component ${index + 1} destroyed`);
+    });
+
+    // VALIDATION 4: All services should be destroyed after component cleanup
+    services.forEach((service, index) => {
+      expect(service['isDestroyed']).toBe(true);
+      expect(service['cleanupFunctions']).toHaveLength(0);
+      console.log(`✅ Service ${index + 1} properly destroyed`);
+    });
+
+    // VALIDATION 5: Manager should show all services unregistered
+    expect(managerService.getActiveCount()).toBe(initialCount);
+    console.log(`✅ All services unregistered from manager`);
+
+    // VALIDATION 6: Memory leak prevention verified
+    console.log('✅ C1 Fix Validated: Component-scoped services prevent memory leaks');
   });
 });

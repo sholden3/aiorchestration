@@ -304,6 +304,14 @@ class IntegratedGovernanceHook:
             if not file or not Path(file).exists():
                 continue
             
+            # Skip __init__.py files - they're structural markers
+            if file.endswith('__init__.py'):
+                continue
+            
+            # Skip documentation and config files
+            if file.endswith(('.md', '.yml', '.yaml', '.json', '.txt', '.gitignore')):
+                continue
+            
             if file.endswith(('.py', '.ts', '.js')):
                 try:
                     with open(file, 'r', encoding='utf-8', errors='ignore') as f:
@@ -325,6 +333,14 @@ class IntegratedGovernanceHook:
         impl_files = [f for f in files if f and not any(x in f.lower() for x in ['test', 'spec'])]
         
         for impl_file in impl_files:
+            # Skip __init__.py files - they don't need tests
+            if impl_file.endswith('__init__.py'):
+                continue
+            
+            # Skip documentation and config files
+            if impl_file.endswith(('.md', '.yml', '.yaml', '.json', '.txt', '.gitignore')):
+                continue
+            
             if impl_file.endswith(('.py', '.ts', '.js')):
                 # Check for test file
                 test_exists = False
@@ -364,32 +380,18 @@ class IntegratedGovernanceHook:
                 with open(file, 'r', encoding='utf-8', errors='ignore') as f:
                     content = f.read()
                 
-                # Check for dangerous patterns
-                if self.smart_rules.contains_dangerous_patterns({'content': content}):
-                    # Get the actual patterns found
-                    found_patterns = self.smart_rules.get_dangerous_patterns({'content': content})
+                # Check for dangerous patterns (SmartRules handles exemptions internally)
+                if self.smart_rules.contains_dangerous_patterns({'content': content, 'path': file}):
+                    # Get the actual patterns found (already filtered for exemptions)
+                    found_patterns = self.smart_rules.get_dangerous_patterns({'content': content, 'path': file})
                     
-                    # Check each pattern for exemption
-                    non_exempted = []
-                    for pattern in found_patterns:
-                        should_exempt, reason = self.exemption_engine.should_exempt(
-                            file, content, 'dangerous_pattern', pattern
-                        )
-                        if not should_exempt:
-                            non_exempted.append(pattern)
-                    
-                    if non_exempted:
-                        errors.append(f"{file}: Contains dangerous patterns: {', '.join(non_exempted)}")
+                    if found_patterns:
+                        errors.append(f"{file}: Contains dangerous patterns: {', '.join(found_patterns)}")
                 
-                # Check for secrets (rarely exempted)
-                if self.smart_rules.check_for_secrets({'content': content}):
-                    # Check if there's an exemption for secrets (usually there shouldn't be)
-                    should_exempt, reason = self.exemption_engine.should_exempt(
-                        file, content, 'secret', 'credential'
-                    )
-                    
-                    if not should_exempt:
-                        errors.append(f"{file}: Potential secrets detected")
+                # Check for secrets (pass file path for context)
+                if self.smart_rules.check_for_secrets({'content': content, 'path': file}):
+                    # SmartRules already handles exemptions internally
+                    errors.append(f"{file}: Potential secrets detected")
             
             except Exception as e:
                 # Log the error but don't block

@@ -1,0 +1,33 @@
+{
+  "correlation_id": "7cac4631-b095-4bd5-8e95-5c7739afc592",
+  "parent_correlation_id": null,
+  "session_id": null,
+  "user": "Steven Holden",
+  "operation_type": "git.pre_commit",
+  "operation_name": "pre_commit_validation",
+  "start_time": "2025-08-28T01:59:17.722923",
+  "end_time": "2025-08-28T01:59:17.728908",
+  "status": "failed",
+  "metadata": {
+    "user": "Steven Holden",
+    "branch": "main",
+    "files": [
+      "test_hook_blocking.py"
+    ],
+    "result": {
+      "blocked": true,
+      "reason": "Validation failed"
+    }
+  },
+  "debug_trace": [
+    "[2025-08-28T01:59:17.722923] Correlation created for git.pre_commit:pre_commit_validation",
+    "[2025-08-28T01:59:17.728908] Correlation completed with status failed"
+  ],
+  "events": [],
+  "errors": [],
+  "warnings": [],
+  "checkpoints": {},
+  "metrics": {
+    "total_duration_ms": 5.984999999999999
+  }
+}

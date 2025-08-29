@@ -1,4 +1,27 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+/**
+ * @fileoverview Main layout component for AI Assistant application
+ * @author Alex Novak v2.0 - 2025-08-29
+ * @architecture Frontend - Main layout container component
+ * @responsibility Manage application layout, navigation, and service coordination
+ * @dependencies Angular core, Router, RulesService, TerminalService, OrchestrationService
+ * @integration_points All child components, backend services via dependency injection
+ * @testing_strategy Component tests with TestBed, service mock injection
+ * @governance UI state management, component lifecycle, memory cleanup
+ * 
+ * Business Logic Summary:
+ * - Manage application-wide layout
+ * - Coordinate between services
+ * - Handle navigation state
+ * - Manage terminal lifecycle
+ * - Track project status and updates
+ * 
+ * Architecture Integration:
+ * - Central UI orchestration point
+ * - Component-scoped service providers
+ * - Lifecycle management for cleanup
+ * - Event coordination between components
+ */
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { RulesService } from '../../services/rules.service';
 import { TerminalService } from '../../services/terminal.service';
@@ -29,9 +52,10 @@ export interface ChatMessage {
 @Component({
   selector: 'app-main-layout',
   templateUrl: './main-layout.component.html',
-  styleUrls: ['./main-layout.component.scss']
+  styleUrls: ['./main-layout.component.scss'],
+  providers: [TerminalService]  // FIX C1: Component-scoped to prevent memory leak
 })
-export class MainLayoutComponent implements OnInit {
+export class MainLayoutComponent implements OnInit, OnDestroy {
   @ViewChild('chatInput') chatInput!: any;
   @ViewChild('terminalComponent') terminalComponent!: TerminalComponent;
 
@@ -126,6 +150,13 @@ export class MainLayoutComponent implements OnInit {
   ngOnInit(): void {
     this.checkScreenSize();
     this.loadDashboardData();
+  }
+
+  ngOnDestroy(): void {
+    // FIX C1: Log cleanup to verify service destruction
+    console.log('[MainLayout] Component destroying, TerminalService will be cleaned up');
+    // Service automatically destroyed with component
+    // The TerminalService instance will call its own ngOnDestroy
   }
   
   checkScreenSize(): void {

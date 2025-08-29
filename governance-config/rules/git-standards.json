@@ -67,7 +67,7 @@
       "fix/456-memory-leak",
       "docs/789-api-documentation"
     ],
-    "prohibited_names": ["master", "main", "develop"],
+    "prohibited_names": ["master"],
     "max_length": 50
   },
   

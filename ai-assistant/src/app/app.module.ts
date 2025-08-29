@@ -1,3 +1,27 @@
+/**
+ * @fileoverview Root Angular module for AI Assistant application
+ * @author Alex Novak v2.0 - 2025-08-29
+ * @architecture Frontend - Angular root module configuration
+ * @responsibility Bootstrap Angular application with required modules and services
+ * @dependencies Angular core, Material Design, HttpClient, Forms, routing
+ * @integration_points All Angular components, services, backend API via HTTP
+ * @testing_strategy Module testing with TestBed, component integration tests
+ * @governance Frontend security boundaries, XSS protection, CORS handling
+ * 
+ * Business Logic Summary:
+ * - Configure Angular application modules
+ * - Register global services and providers
+ * - Set up Material Design components
+ * - Configure HTTP interceptors
+ * - Bootstrap main application component
+ * 
+ * Architecture Integration:
+ * - Entry point for Angular application
+ * - Configures all UI components
+ * - Sets up service injection
+ * - Manages application-wide providers
+ * - Integrates with Electron via services
+ */
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -42,7 +66,7 @@ import { AgentManagerComponent } from './components/agent-manager/agent-manager.
 
 // Services
 import { OrchestrationService } from './services/orchestration.service';
-import { TerminalService } from './services/terminal.service';
+// TerminalService import removed - now component-scoped per C1 fix
 import { RulesService } from './services/rules.service';
 import { WebSocketService } from './services/websocket.service';
 
@@ -91,7 +115,7 @@ import { WebSocketService } from './services/websocket.service';
   ],
   providers: [
     OrchestrationService,
-    TerminalService,
+    // TerminalService removed - now component-scoped per C1 fix
     RulesService
   ],
   bootstrap: [AppComponent]

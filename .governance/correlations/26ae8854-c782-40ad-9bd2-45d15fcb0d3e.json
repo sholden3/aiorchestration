@@ -1,0 +1,23 @@
+{
+  "correlation_id": "26ae8854-c782-40ad-9bd2-45d15fcb0d3e",
+  "parent_correlation_id": null,
+  "session_id": null,
+  "user": "",
+  "operation_type": "test",
+  "operation_name": "test",
+  "start_time": "2025-08-28T08:04:57.404612",
+  "end_time": "2025-08-28T08:04:57.406607",
+  "status": "cancelled",
+  "metadata": {},
+  "debug_trace": [
+    "[2025-08-28T08:04:57.404612] Correlation created for test:test",
+    "[2025-08-28T08:04:57.406607] Correlation completed with status cancelled"
+  ],
+  "events": [],
+  "errors": [],
+  "warnings": [],
+  "checkpoints": {},
+  "metrics": {
+    "total_duration_ms": 1.9949999999999999
+  }
+}

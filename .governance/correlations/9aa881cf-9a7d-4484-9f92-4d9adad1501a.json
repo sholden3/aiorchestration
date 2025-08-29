@@ -1,0 +1,44 @@
+{
+  "correlation_id": "9aa881cf-9a7d-4484-9f92-4d9adad1501a",
+  "parent_correlation_id": null,
+  "session_id": null,
+  "user": "Steven Holden",
+  "operation_type": "git.pre_commit",
+  "operation_name": "pre_commit_validation",
+  "start_time": "2025-08-28T08:37:23.888052",
+  "end_time": "2025-08-28T08:37:23.917972",
+  "status": "failed",
+  "metadata": {
+    "user": "Steven Holden",
+    "branch": "main",
+    "files": [
+      "governance-config/rules/test-exemptions.json",
+      "governance/rules/smart_rules.py",
+      "governance/rules/test_exemptions.py",
+      "governance/scripts/integrated_pre_commit_hook.py",
+      "governance/tests/__init__.py",
+      "governance/tests/fixtures/__init__.py",
+      "governance/tests/integration/__init__.py",
+      "governance/tests/run_all_tests.py",
+      "governance/tests/test_correlation_tracker.py",
+      "governance/tests/test_integrated_hook.py",
+      "governance/tests/test_smart_rules.py",
+      "governance/tests/unit/__init__.py"
+    ],
+    "result": {
+      "blocked": true,
+      "reason": "Validation failed"
+    }
+  },
+  "debug_trace": [
+    "[2025-08-28T08:37:23.889049] Correlation created for git.pre_commit:pre_commit_validation",
+    "[2025-08-28T08:37:23.917972] Correlation completed with status failed"
+  ],
+  "events": [],
+  "errors": [],
+  "warnings": [],
+  "checkpoints": {},
+  "metrics": {
+    "total_duration_ms": 29.919999999999998
+  }
+}

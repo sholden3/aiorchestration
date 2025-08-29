@@ -1,0 +1,16 @@
+governance:
+  version: "1.0.0"
+  mode: "development"
+  strict: false
+  cache_enabled: true
+  audit_enabled: true
+  
+# Default settings
+defaults:
+  timeout: 30  # seconds
+  max_retries: 3
+  
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s [%(levelname)s] %(name)s - %(message)s"

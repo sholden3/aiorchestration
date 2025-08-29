@@ -1,7 +1,32 @@
 #!/usr/bin/env python3
 """
-Git Pre-Commit Hook with Governance
-This script is called by git before each commit to validate changes
+@fileoverview Git pre-commit hook for enforcing governance rules on commits
+@author Dr. Sarah Chen v1.0 - 2025-08-29
+@architecture Backend - Git integration hook
+@responsibility Validate commits against governance rules before allowing them
+@dependencies subprocess, json, pathlib, governance.core modules
+@integration_points Git hooks, governance engine, smart rules
+@testing_strategy Integration tests with git operations, unit tests for validation
+@governance Enforces governance at the git commit boundary
+
+Business Logic Summary:
+- Intercept git commits for validation
+- Apply governance rules to changed files
+- Check for dangerous patterns
+- Validate documentation requirements
+- Block non-compliant commits
+
+Architecture Integration:
+- Integrates with git hook system
+- Uses governance engine for validation
+- Applies smart rules to changes
+- Returns exit codes to git
+- Logs validation results
+
+Sarah's Framework Check:
+- What breaks first: Large commits with many files timeout
+- How we know: Hook execution time monitoring
+- Plan B: Batch file processing with progress indication
 """
 
 import sys
@@ -53,7 +78,8 @@ def analyze_changes(files):
         'governance_changes': False,
         'documentation_changes': False,
         'file_count': len(files),
-        'file_types': set()
+        'file_types': set(),
+        'file_contents': []  # Store file content for pattern analysis
     }
     
     for file in files:
@@ -79,6 +105,15 @@ def analyze_changes(files):
             analysis['governance_changes'] = True
         if file.endswith('.md') or 'readme' in file_lower:
             analysis['documentation_changes'] = True
+        
+        # Read file contents if it's a code file
+        if file.endswith(('.py', '.js', '.ts', '.java', '.c', '.cpp')):
+            try:
+                with open(file, 'r', encoding='utf-8', errors='ignore') as f:
+                    content = f.read()
+                    analysis['file_contents'].append(content)
+            except Exception:
+                pass  # Skip files we can't read
     
     analysis['file_types'] = list(analysis['file_types'])
     return analysis
@@ -140,11 +175,12 @@ def main():
             'files': git_info['files'],
             'branch': git_info['branch'],
             'analysis': analysis,
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.now().isoformat(),
+            'file_contents': '\n'.join(analysis.get('file_contents', []))  # Include file contents for pattern checking
         }
     )
     
-    # Check for dangerous patterns
+    # Check for dangerous patterns in payload (including file contents)
     dangerous = smart_rules.contains_dangerous_patterns(context.payload)
     if dangerous:
         print(f"\n[WARNING] Dangerous patterns detected: {', '.join(dangerous)}")
@@ -175,12 +211,12 @@ def main():
     if result.evidence:
         print(f"Evidence: {', '.join(result.evidence)}")
     
-    if result.warnings:
+    if hasattr(result, 'warnings') and result.warnings:
         print(f"\nWarnings:")
         for warning in result.warnings:
             print(f"  - {warning}")
     
-    if result.recommendations:
+    if hasattr(result, 'recommendations') and result.recommendations:
         print(f"\nRecommendations:")
         for rec in result.recommendations:
             print(f"  - {rec}")

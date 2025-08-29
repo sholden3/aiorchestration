@@ -1,0 +1,37 @@
+{
+  "correlation_id": "67156fb7-deaa-48f3-b236-fe793dd6c242",
+  "parent_correlation_id": null,
+  "session_id": null,
+  "user": "Steven Holden",
+  "operation_type": "git.pre_commit",
+  "operation_name": "pre_commit_validation",
+  "start_time": "2025-08-28T16:08:22.058108",
+  "end_time": "2025-08-28T16:08:22.081046",
+  "status": "failed",
+  "metadata": {
+    "user": "Steven Holden",
+    "branch": "main",
+    "files": [
+      "CLAUDE.md",
+      "docs/decisions/cross-language-exemption-architecture.md",
+      "governance/core/session_manager.py",
+      "governance/core/todo_tracker.py",
+      "governance/docs/governance-expansion-plan.md"
+    ],
+    "result": {
+      "blocked": true,
+      "reason": "Validation failed"
+    }
+  },
+  "debug_trace": [
+    "[2025-08-28T16:08:22.058108] Correlation created for git.pre_commit:pre_commit_validation",
+    "[2025-08-28T16:08:22.081046] Correlation completed with status failed"
+  ],
+  "events": [],
+  "errors": [],
+  "warnings": [],
+  "checkpoints": {},
+  "metrics": {
+    "total_duration_ms": 22.938
+  }
+}

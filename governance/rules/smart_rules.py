@@ -1,41 +1,286 @@
 #!/usr/bin/env python3
 """
-@fileoverview Smart rules for intelligent governance validation
-@author Dr. Sarah Chen v1.2 - 2025-01-28
-@architecture Backend - Smart rule engine
-@responsibility Apply intelligent context-aware validation rules
-@dependencies datetime, re, typing
-@integration_points Used by governance hooks for validation
-@testing_strategy Unit tests for all rule patterns
-@governance Core component of validation pipeline
+@fileoverview Enhanced smart rules with exemption support for intelligent governance
+@author Dr. Sarah Chen v2.0 & Alex Novak v1.5 - 2025-01-28
+@architecture Backend - Enhanced smart rule engine with context awareness
+@responsibility Apply intelligent context-aware validation with exemption support
+@dependencies datetime, re, typing, yaml, pathlib, fnmatch
+@integration_points Used by governance hooks for multi-language validation
+@testing_strategy Unit tests for all rule patterns and exemptions
+@governance Core component implementing Phase 1.5 architectural change
 
 Business Logic Summary:
-- Detect dangerous code patterns
-- Find potential secrets
-- Analyze code complexity
-- Validate documentation
+- Context-aware pattern detection (not just simple matching)
+- Multi-language exemption support
+- Separate safe operations from dangerous patterns
+- File, class, and context-based exemptions
 
 Architecture Integration:
-- Part of governance validation pipeline
-- Used by pre-commit hooks
-- Provides intelligent pattern matching
+- Implements cross-language exemption architecture
+- Part of Phase 1.5 governance enhancement
+- Used by pre-commit hooks with reduced false positives
+- Supports polyglot codebase governance
+
+Sarah's Framework Check:
+- What breaks first: False positives blocking legitimate code
+- How we know: Exemption logs and pattern tracking
+- Plan B: Override with documented exemptions
 """
 
 from datetime import datetime
 import re
-from typing import Dict, Any, List, Optional
+import yaml
+from pathlib import Path
+from typing import Dict, Any, List, Optional, Set, Tuple
+import fnmatch
+
+# Import hallucination detector if available
+try:
+    from governance.validators.basic_hallucination_detector import (
+        BasicHallucinationDetector,
+        HallucinationSeverity,
+        create_detector_for_smart_rules
+    )
+    HALLUCINATION_DETECTION_AVAILABLE = True
+except ImportError:
+    HALLUCINATION_DETECTION_AVAILABLE = False
+
+
+class ExemptionManager:
+    """
+    @class ExemptionManager
+    @description Manages exemptions for governance rules
+    @architecture_role Handle context-aware exemptions across languages
+    @business_logic Reduce false positives while maintaining security
+    """
+    
+    def __init__(self, exemption_file: Optional[str] = None):
+        """Initialize exemption manager"""
+        self.exemptions = self._load_exemptions(exemption_file)
+        self._cache = {}  # Cache exemption lookups
+        
+    def _load_exemptions(self, exemption_file: Optional[str]) -> Dict[str, Any]:
+        """Load exemption configuration"""
+        if not exemption_file:
+            # Look for default locations
+            search_paths = [
+                Path('.governance/exemptions.yml'),
+                Path('governance-config/exemptions.yml'),
+                Path('exemptions.yml')
+            ]
+            
+            for path in search_paths:
+                if path.exists():
+                    exemption_file = str(path)
+                    break
+        
+        if not exemption_file or not Path(exemption_file).exists():
+            # Return default exemptions if no file found
+            return self._get_default_exemptions()
+        
+        try:
+            with open(exemption_file, 'r') as f:
+                return yaml.safe_load(f)
+        except Exception as e:
+            print(f"Warning: Could not load exemptions from {exemption_file}: {e}")
+            return self._get_default_exemptions()
+    
+    def _get_default_exemptions(self) -> Dict[str, Any]:
+        """Get default exemptions"""
+        return {
+            'global_safe_patterns': {
+                'python': [
+                    're.compile',
+                    'ast.literal_eval', 
+                    'json.loads',
+                    'yaml.safe_load'
+                ],
+                'typescript': [
+                    'JSON.parse',
+                    'RegExp'
+                ],
+                'javascript': [
+                    'JSON.parse',
+                    'RegExp'
+                ]
+            },
+            'file_exemptions': [],
+            'class_exemptions': [],
+            'context_exemptions': [],
+            'temporary_exemptions': []
+        }
+    
+    def is_pattern_exempt(
+        self, 
+        pattern: str, 
+        file_path: str,
+        content: str,
+        language: str = 'python'
+    ) -> Tuple[bool, Optional[str]]:
+        """
+        Check if a pattern is exempt in the given context
+        
+        @param pattern The pattern being checked
+        @param file_path Path to the file
+        @param content File content for context analysis
+        @param language Programming language
+        @returns (is_exempt, reason)
+        """
+        # Check cache first
+        cache_key = f"{pattern}:{file_path}:{language}"
+        if cache_key in self._cache:
+            return self._cache[cache_key]
+        
+        # 1. Check global safe patterns for language
+        safe_patterns = self.exemptions.get('global_safe_patterns', {}).get(language, [])
+        for safe_pattern in safe_patterns:
+            if safe_pattern.lower() in pattern.lower():
+                result = (True, f"Globally safe pattern for {language}: {safe_pattern}")
+                self._cache[cache_key] = result
+                return result
+        
+        # 2. Check file-specific exemptions
+        for exemption in self.exemptions.get('file_exemptions', []):
+            if self._matches_file_pattern(file_path, exemption['path']):
+                if pattern in exemption.get('patterns', []):
+                    # Check expiration
+                    if self._is_exemption_valid(exemption):
+                        result = (True, f"File exemption: {exemption.get('reason', 'No reason provided')}")
+                        self._cache[cache_key] = result
+                        return result
+        
+        # 3. Check class-specific exemptions
+        for exemption in self.exemptions.get('class_exemptions', []):
+            class_name = exemption['name']
+            if f"class {class_name}" in content:
+                if pattern in exemption.get('patterns', []):
+                    result = (True, f"Class exemption for {class_name}: {exemption.get('reason', 'No reason provided')}")
+                    self._cache[cache_key] = result
+                    return result
+        
+        # 4. Check context-based exemptions
+        for exemption in self.exemptions.get('context_exemptions', []):
+            context_pattern = exemption['context']
+            if context_pattern in file_path or context_pattern in content:
+                if pattern in exemption.get('patterns', []):
+                    # Check additional requirements
+                    requires = exemption.get('requires')
+                    if requires and requires not in content:
+                        continue
+                    result = (True, f"Context exemption: {exemption.get('reason', 'No reason provided')}")
+                    self._cache[cache_key] = result
+                    return result
+        
+        # 5. Check temporary exemptions
+        for exemption in self.exemptions.get('temporary_exemptions', []):
+            if self._matches_file_pattern(file_path, exemption['path']):
+                if pattern in exemption.get('patterns', []):
+                    if self._is_exemption_valid(exemption):
+                        result = (True, f"Temporary exemption (expires {exemption.get('expires', 'unknown')}): {exemption.get('reason', 'No reason provided')}")
+                        self._cache[cache_key] = result
+                        return result
+        
+        result = (False, None)
+        self._cache[cache_key] = result
+        return result
+    
+    def _matches_file_pattern(self, file_path: str, pattern: str) -> bool:
+        """Check if file path matches pattern (supports glob)"""
+        # Normalize paths
+        file_path = Path(file_path).as_posix()
+        pattern = pattern.replace('\\', '/')
+        
+        # Direct match
+        if pattern in file_path:
+            return True
+        
+        # Glob match
+        if '*' in pattern or '?' in pattern:
+            return fnmatch.fnmatch(file_path, pattern)
+        
+        return False
+    
+    def _is_exemption_valid(self, exemption: Dict[str, Any]) -> bool:
+        """Check if exemption is still valid (not expired)"""
+        expires = exemption.get('expires')
+        if not expires:
+            return True
+        
+        try:
+            expiry_date = datetime.strptime(expires, '%Y-%m-%d')
+            return datetime.now() < expiry_date
+        except:
+            return True  # If can't parse date, assume valid
+    
+    def get_exemption_stats(self) -> Dict[str, Any]:
+        """Get statistics about exemptions"""
+        stats = {
+            'total_exemptions': 0,
+            'expired_exemptions': [],
+            'expiring_soon': [],
+            'by_type': {}
+        }
+        
+        # Count exemptions by type
+        for exemption_type in ['file_exemptions', 'class_exemptions', 
+                               'context_exemptions', 'temporary_exemptions']:
+            exemptions = self.exemptions.get(exemption_type, [])
+            stats['by_type'][exemption_type] = len(exemptions)
+            stats['total_exemptions'] += len(exemptions)
+            
+            # Check for expired or expiring
+            for exemption in exemptions:
+                expires = exemption.get('expires')
+                if expires:
+                    try:
+                        expiry_date = datetime.strptime(expires, '%Y-%m-%d')
+                        days_until = (expiry_date - datetime.now()).days
+                        
+                        if days_until < 0:
+                            stats['expired_exemptions'].append({
+                                'type': exemption_type,
+                                'path': exemption.get('path', exemption.get('name', 'unknown')),
+                                'expired': expires
+                            })
+                        elif days_until < 30:
+                            stats['expiring_soon'].append({
+                                'type': exemption_type,
+                                'path': exemption.get('path', exemption.get('name', 'unknown')),
+                                'expires': expires,
+                                'days_remaining': days_until
+                            })
+                    except:
+                        pass
+        
+        return stats
 
 
 class SmartRules:
     """
     @class SmartRules
-    @description Intelligent context-aware validation rules
-    @architecture_role Pattern detection and validation
-    @business_logic Security and quality enforcement
+    @description Intelligent context-aware validation rules with exemptions
+    @architecture_role Pattern detection and validation with reduced false positives
+    @business_logic Security and quality enforcement with practical flexibility
+    
+    BACKWARD COMPATIBILITY: This class maintains the same interface as v1
+    while adding enhanced capabilities internally.
     """
     
-    def __init__(self):
-        """Initialize smart rules with patterns"""
+    def __init__(self, exemption_file: Optional[str] = None):
+        """Initialize smart rules with patterns and exemption support"""
+        # Initialize exemption manager
+        self.exemption_manager = ExemptionManager(exemption_file)
+        
+        # Initialize hallucination detector if available
+        self.hallucination_detector = None
+        if HALLUCINATION_DETECTION_AVAILABLE:
+            try:
+                self.hallucination_detector = create_detector_for_smart_rules()
+            except Exception:
+                # Silently fail if detector can't be created
+                pass
+        
+        # Keep backward compatible patterns for legacy code
         self.dangerous_patterns = [
             r'eval\s*\(',
             r'exec\s*\(',
@@ -52,6 +297,22 @@ class SmartRules:
             r'(?i)bearer\s+[a-zA-Z0-9_\-\.]+',
             r'(?i)(aws|amazon)[_-]?(secret|access)[_-]?key\s*[:=]\s*["\'][^"\']+["\']'
         ]
+        
+        # Enhanced pattern dictionaries for context-aware checking
+        self.dangerous_pattern_dict = {
+            'eval': r'eval\s*\(',
+            'exec': r'exec\s*\(',
+            '__import__': r'__import__\s*\(',
+            'globals': r'globals\s*\(\)',
+            'locals': r'locals\s*\(\)'
+        }
+        
+        self.context_dependent_patterns = {
+            'compile': r'compile\s*\(',
+            'setattr': r'setattr\s*\(',
+            'delattr': r'delattr\s*\(',
+            'getattr': r'getattr\s*\('
+        }
     
     @staticmethod
     def is_risky_time() -> bool:
@@ -81,36 +342,32 @@ class SmartRules:
     
     def contains_dangerous_patterns(self, context: Dict[str, Any]) -> bool:
         """
-        Check for dangerous patterns in code
+        Check for dangerous patterns with context awareness
         
-        @param context Code context with 'content' key
+        @param context Code context with 'content' and optionally 'path' keys
         @returns True if dangerous patterns found
+        
+        BACKWARD COMPATIBLE: Works with old code passing just 'content'
         """
         content = context.get('content', '')
+        file_path = context.get('path', 'unknown.py')
         
-        for pattern in self.dangerous_patterns:
-            if re.search(pattern, content):
-                return True
-        
-        return False
+        # Use enhanced checking if possible
+        dangerous, _ = self._check_patterns_with_context(content, file_path)
+        return len(dangerous) > 0
     
     def get_dangerous_patterns(self, context: Dict[str, Any]) -> List[str]:
         """
-        Get list of dangerous patterns found in code
+        Get list of dangerous patterns found with context awareness
         
-        @param context Code context with 'content' key
+        @param context Code context with 'content' and optionally 'path' keys
         @returns List of patterns found
         """
         content = context.get('content', '')
-        found_patterns = []
+        file_path = context.get('path', 'unknown.py')
         
-        for pattern in self.dangerous_patterns:
-            if re.search(pattern, content):
-                # Extract the actual pattern name from regex
-                pattern_name = pattern.replace(r'\s*\(', '').replace('\\', '')
-                found_patterns.append(pattern_name)
-        
-        return found_patterns
+        dangerous, _ = self._check_patterns_with_context(content, file_path)
+        return dangerous
     
     def check_for_secrets(self, context: Dict[str, Any]) -> bool:
         """
@@ -168,6 +425,10 @@ class SmartRules:
         content = context.get('content', '')
         path = context.get('path', '')
         
+        # Skip documentation checks for markdown files
+        if path.endswith('.md'):
+            return None
+        
         # Check for file-level documentation
         if path.endswith(('.py', '.ts', '.js')):
             if '@fileoverview' not in content and '"""' not in content[:200]:
@@ -177,17 +438,25 @@ class SmartRules:
     
     def apply_rules(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Apply all rules to context
+        Apply all rules to context (with hallucination detection)
         
         @param context Code context
-        @returns Results dictionary
+        @returns Results dictionary including hallucination detection
         """
-        return {
+        results = {
             'dangerous_patterns': self.contains_dangerous_patterns(context),
             'secrets_detected': self.check_for_secrets(context),
             'high_complexity': self.check_complexity(context),
             'documentation_issues': self.validate_documentation(context)
         }
+        
+        # Add hallucination detection if available (Phase 1.5b)
+        if self.hallucination_detector:
+            hallucination_results = self.check_for_hallucinations(context)
+            results['hallucinations_detected'] = hallucination_results.get('has_hallucinations', False)
+            results['hallucination_details'] = hallucination_results
+        
+        return results
     
     @staticmethod
     def check_file_patterns(files: List[str]) -> Dict[str, List[str]]:
@@ -273,13 +542,14 @@ class SmartRules:
         if SmartRules.is_risky_time():
             risk_score += 0.3
         
-        # Check payload for dangerous patterns
+        # Check payload for dangerous patterns (if context has appropriate methods)
         if hasattr(context, 'payload'):
-            dangerous = SmartRules.contains_dangerous_patterns(context.payload)
+            smart_rules = SmartRules()  # Create instance for checking
+            dangerous = smart_rules.contains_dangerous_patterns({'content': str(context.payload)})
             if dangerous:
-                risk_score += 0.1 * len(dangerous)
+                risk_score += 0.3
             
-            secrets = SmartRules.check_for_secrets(context.payload)
+            secrets = smart_rules.check_for_secrets({'content': str(context.payload)})
             if secrets:
                 risk_score += 0.5  # High risk for secrets
         
@@ -294,6 +564,215 @@ class SmartRules:
         
         # Cap at 1.0
         return min(risk_score, 1.0)
+    
+    # Enhanced methods (new functionality)
+    
+    def _detect_language(self, file_path: str) -> str:
+        """Detect programming language from file extension"""
+        ext = Path(file_path).suffix.lower()
+        
+        language_map = {
+            '.py': 'python',
+            '.ts': 'typescript',
+            '.js': 'javascript',
+            '.jsx': 'javascript',
+            '.tsx': 'typescript',
+            '.java': 'java',
+            '.go': 'go',
+            '.rs': 'rust',
+            '.cpp': 'cpp',
+            '.c': 'c',
+            '.cs': 'csharp'
+        }
+        
+        return language_map.get(ext, 'unknown')
+    
+    def _check_patterns_with_context(
+        self, 
+        content: str, 
+        file_path: str
+    ) -> Tuple[List[str], List[str]]:
+        """
+        Check for dangerous patterns with context and exemptions
+        
+        @param content File content
+        @param file_path File path for context
+        @returns (dangerous_patterns_found, exemption_reasons)
+        """
+        dangerous = []
+        exemptions = []
+        language = self._detect_language(file_path)
+        
+        # Check truly dangerous patterns
+        for pattern_name, pattern_regex in self.dangerous_pattern_dict.items():
+            if re.search(pattern_regex, content):
+                is_exempt, reason = self.exemption_manager.is_pattern_exempt(
+                    pattern_name, file_path, content, language
+                )
+                
+                if not is_exempt:
+                    dangerous.append(pattern_name)
+                elif reason:
+                    exemptions.append(f"{pattern_name}: {reason}")
+        
+        # Check context-dependent patterns
+        for pattern_name, pattern_regex in self.context_dependent_patterns.items():
+            if re.search(pattern_regex, content):
+                is_exempt, reason = self.exemption_manager.is_pattern_exempt(
+                    pattern_name, file_path, content, language
+                )
+                
+                if not is_exempt:
+                    # Additional context checking
+                    if pattern_name == 'compile' and 're.compile' in content:
+                        exemptions.append(f"{pattern_name}: Regular expression compilation")
+                    elif pattern_name == 'setattr' and '@dataclass' in content:
+                        exemptions.append(f"{pattern_name}: Dataclass attribute update")
+                    else:
+                        dangerous.append(pattern_name)
+                elif reason:
+                    exemptions.append(f"{pattern_name}: {reason}")
+        
+        return dangerous, exemptions
+    
+    def validate_file(
+        self, 
+        file_path: str, 
+        content: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Validate a file with enhanced rules
+        
+        @param file_path Path to file
+        @param content Optional content
+        @returns Validation results
+        """
+        if content is None:
+            try:
+                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    content = f.read()
+            except Exception as e:
+                return {
+                    'valid': False,
+                    'errors': [f"Could not read file: {e}"],
+                    'warnings': [],
+                    'exemptions': []
+                }
+        
+        errors = []
+        warnings = []
+        
+        # Check dangerous patterns with context
+        dangerous, exemptions = self._check_patterns_with_context(content, file_path)
+        
+        if dangerous:
+            errors.append(f"Dangerous patterns found: {', '.join(dangerous)}")
+        
+        # Check for secrets
+        if self.check_for_secrets({'content': content}):
+            errors.append("Potential secrets detected in code")
+        
+        # Documentation checks (skip for markdown)
+        if not file_path.endswith('.md'):
+            doc_issue = self.validate_documentation({'content': content, 'path': file_path})
+            if doc_issue:
+                warnings.append(doc_issue)
+        
+        return {
+            'valid': len(errors) == 0,
+            'errors': errors,
+            'warnings': warnings,
+            'exemptions': exemptions,
+            'dangerous_patterns': dangerous
+        }
+    
+    def check_for_hallucinations(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Check content for potential hallucinations
+        
+        @param context Code context with 'content' and optionally 'path' keys
+        @returns Hallucination detection results
+        
+        Phase 1.5b implementation - basic pattern detection
+        """
+        # Default result if detector not available
+        default_result = {
+            'has_hallucinations': False,
+            'critical_count': 0,
+            'findings': [],
+            'detector_available': False
+        }
+        
+        if not self.hallucination_detector:
+            return default_result
+        
+        content = context.get('content', '')
+        file_path = context.get('path', '')
+        
+        # Skip certain file types
+        if file_path:
+            skip_extensions = ['.json', '.yml', '.yaml', '.lock', '.min.js', '.min.css']
+            if any(file_path.endswith(ext) for ext in skip_extensions):
+                return default_result
+        
+        try:
+            # Detect hallucinations
+            findings = self.hallucination_detector.detect(content, file_path)
+            
+            # Calculate metrics
+            critical_count = sum(
+                1 for f in findings 
+                if f.severity == HallucinationSeverity.CRITICAL
+            )
+            error_count = sum(
+                1 for f in findings 
+                if f.severity == HallucinationSeverity.ERROR
+            )
+            
+            return {
+                'has_hallucinations': len(findings) > 0,
+                'has_critical_hallucinations': critical_count > 0,
+                'critical_count': critical_count,
+                'error_count': error_count,
+                'total_findings': len(findings),
+                'findings': [f.to_dict() for f in findings],
+                'detector_available': True
+            }
+            
+        except Exception as e:
+            # Return default on any error
+            return default_result
+    
+    def get_exemption_report(self) -> str:
+        """Generate exemption status report"""
+        stats = self.exemption_manager.get_exemption_stats()
+        
+        report = ["Exemption Status Report", "=" * 50, ""]
+        report.append(f"Total exemptions: {stats['total_exemptions']}")
+        report.append("")
+        
+        # By type
+        if stats['by_type']:
+            report.append("Exemptions by type:")
+            for exemption_type, count in stats['by_type'].items():
+                report.append(f"  {exemption_type}: {count}")
+            report.append("")
+        
+        # Expired
+        if stats.get('expired_exemptions'):
+            report.append(f"EXPIRED exemptions ({len(stats['expired_exemptions'])}):")
+            for item in stats['expired_exemptions']:
+                report.append(f"  - {item['path']} (expired: {item['expired']})")
+            report.append("")
+        
+        # Expiring soon
+        if stats.get('expiring_soon'):
+            report.append(f"Expiring soon ({len(stats['expiring_soon'])}):")
+            for item in stats['expiring_soon']:
+                report.append(f"  - {item['path']} ({item['days_remaining']} days left)")
+            report.append("")
+        
+        return "\n".join(report)
 
 
 class RuleEnhancer:
@@ -407,14 +886,14 @@ class RuleEnhancer:
         
         # Check for dangerous patterns
         if hasattr(context, 'payload'):
-            dangerous = self.smart_rules.contains_dangerous_patterns(context.payload)
+            dangerous = self.smart_rules.contains_dangerous_patterns({'content': str(context.payload)})
             if dangerous:
                 basic_result.metadata['dangerous_patterns'] = dangerous
                 if not basic_result.warnings:
                     basic_result.warnings = []
-                basic_result.warnings.append(f"Dangerous patterns detected: {', '.join(dangerous)}")
+                basic_result.warnings.append(f"Dangerous patterns detected")
             
-            secrets = self.smart_rules.check_for_secrets(context.payload)
+            secrets = self.smart_rules.check_for_secrets({'content': str(context.payload)})
             if secrets:
                 basic_result.metadata['potential_secrets'] = True
                 # Override to reject if secrets found

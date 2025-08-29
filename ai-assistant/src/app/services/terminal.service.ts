@@ -1,3 +1,26 @@
+/**
+ * @fileoverview Terminal service managing PTY sessions and IPC communication
+ * @author Alex Novak v2.0 - 2025-08-29
+ * @architecture Frontend - Service for terminal emulation and IPC
+ * @responsibility Manage terminal sessions, handle IPC events, prevent memory leaks
+ * @dependencies Angular core, RxJS, TerminalManagerService, IPCService
+ * @integration_points Electron IPC, PTY processes, terminal components
+ * @testing_strategy Component-scoped testing, lifecycle validation, memory leak detection
+ * @governance Memory management, IPC security, process isolation
+ * 
+ * Business Logic Summary:
+ * - Create and manage terminal sessions
+ * - Handle IPC communication with Electron
+ * - Prevent memory leaks through proper cleanup
+ * - Manage terminal output and input
+ * - Track session lifecycle
+ * 
+ * Architecture Integration:
+ * - Component-scoped to prevent memory leaks (C1 fix)
+ * - Proper cleanup in OnDestroy lifecycle
+ * - NgZone integration for change detection
+ * - IPC boundary security enforcement
+ */
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import { TerminalManagerService } from './terminal-manager.service';
@@ -164,11 +187,23 @@ export class TerminalService implements OnDestroy {
   }
 
   async createSession(shell?: string, cwd?: string): Promise<string> {
+    // FIX C1: Check if service is destroyed before operations
+    if (this.isDestroyed) {
+      console.warn(`[${this.instanceId}] Cannot create session - service destroyed`);
+      throw new Error('Terminal service has been destroyed');
+    }
+    
     const sessionId = `session-${Date.now()}`;
     return this.createSessionWithId(sessionId, shell, cwd);
   }
 
   async createSessionWithId(sessionId: string, shell?: string, cwd?: string): Promise<string> {
+    // FIX C1: Check if service is destroyed before operations
+    if (this.isDestroyed) {
+      console.warn(`[${this.instanceId}] Cannot create session - service destroyed`);
+      throw new Error('Terminal service has been destroyed');
+    }
+    
     if (!this.isElectron()) {
       // Mock session for development without Electron
       console.log('Created mock terminal session:', sessionId);
@@ -211,6 +246,12 @@ export class TerminalService implements OnDestroy {
   }
 
   writeToSession(sessionId: string, data: string): void {
+    // FIX C1: Check if service is destroyed before operations
+    if (this.isDestroyed) {
+      console.warn(`[${this.instanceId}] Cannot write to session - service destroyed`);
+      throw new Error('Terminal service has been destroyed');
+    }
+    
     console.log(`[${this.instanceId}] Writing to terminal session:`, { sessionId, data: data.substring(0, 100) });
     
     if (!this.isElectron()) {
@@ -245,6 +286,11 @@ export class TerminalService implements OnDestroy {
   }
 
   resizeSession(sessionId: string, cols: number, rows: number): void {
+    // FIX C1: Check if service is destroyed before operations
+    if (this.isDestroyed) {
+      console.warn(`[${this.instanceId}] Cannot resize session - service destroyed`);
+      throw new Error('Terminal service has been destroyed');
+    }
     if (!this.isElectron()) {
       console.log('Mock terminal resize:', { cols, rows });
       return;
@@ -263,6 +309,11 @@ export class TerminalService implements OnDestroy {
   }
 
   killSession(sessionId: string): void {
+    // FIX C1: Check if service is destroyed before operations
+    if (this.isDestroyed) {
+      console.warn(`[${this.instanceId}] Cannot kill session - service destroyed`);
+      throw new Error('Terminal service has been destroyed');
+    }
     if (!this.isElectron()) {
       console.log('Mock terminal kill:', sessionId);
       this.exitSubject.next({ sessionId, exitCode: 0 });

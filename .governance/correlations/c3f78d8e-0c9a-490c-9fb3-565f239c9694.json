@@ -1,0 +1,33 @@
+{
+  "correlation_id": "c3f78d8e-0c9a-490c-9fb3-565f239c9694",
+  "parent_correlation_id": null,
+  "session_id": null,
+  "user": "Steven Holden",
+  "operation_type": "git.pre_commit",
+  "operation_name": "pre_commit_validation",
+  "start_time": "2025-08-28T01:27:41.250988",
+  "end_time": "2025-08-28T01:27:41.255974",
+  "status": "failed",
+  "metadata": {
+    "user": "Steven Holden",
+    "branch": "main",
+    "files": [
+      "test_governance_hook.py",
+      "test_validation.py"
+    ],
+    "result": {
+      "error": "'charmap' codec can't encode character '\\u274c' in position 0: character maps to <undefined>"
+    }
+  },
+  "debug_trace": [
+    "[2025-08-28T01:27:41.250988] Correlation created for git.pre_commit:pre_commit_validation",
+    "[2025-08-28T01:27:41.255974] Correlation completed with status failed"
+  ],
+  "events": [],
+  "errors": [],
+  "warnings": [],
+  "checkpoints": {},
+  "metrics": {
+    "total_duration_ms": 4.986
+  }
+}

@@ -1,8 +1,31 @@
 """
-Business Context: Backend service for AI orchestration and intelligent caching
-Architecture Pattern: FastAPI with async operations for high performance
-Performance Requirements: 90% cache hit rate, <500ms response time
-Business Assumptions: Local PostgreSQL, existing Claude Code setup
+@fileoverview FastAPI backend service for AI orchestration with intelligent caching and governance
+@author Dr. Sarah Chen v2.0 & Alex Novak v1.5 - 2025-08-29
+@architecture Backend - FastAPI async service with WebSocket support
+@responsibility Orchestrate AI agents, manage caching, enforce governance, provide API endpoints
+@dependencies FastAPI, asyncpg, websockets, governance system, persona managers
+@integration_points Frontend via REST/WebSocket, PostgreSQL database, Claude CLI, governance hooks
+@testing_strategy Integration tests for API endpoints, unit tests for cache/personas, stress tests for WebSocket
+@governance Runtime governance with pre/post agent hooks, persona validation, rate limiting
+
+Business Logic Summary:
+- Two-tier intelligent caching (hot/warm) with 90% target hit rate
+- Multi-persona AI orchestration with consensus mechanisms
+- Real-time WebSocket broadcasting for live updates
+- Database integration with PostgreSQL and fallback to mock
+- Runtime governance enforcement on all AI operations
+
+Architecture Integration:
+- Central hub for all backend operations
+- Integrates with governance system for AI safety
+- Provides REST and WebSocket APIs for frontend
+- Manages database connections and caching layers
+- Orchestrates multiple AI personas and agents
+
+Sarah's Framework Check:
+- What breaks first: Database connection or cache overflow
+- How we know: Health endpoints and metrics monitoring
+- Plan B: Mock database fallback and memory-only cache mode
 """
 
 import asyncio
@@ -23,6 +46,8 @@ import asyncpg
 
 # Add backend modules to path
 sys.path.append(str(Path(__file__).parent))
+# Add governance modules to path
+sys.path.append(str(Path(__file__).parent.parent / "governance"))
 
 from cache_manager import IntelligentCache
 from persona_manager import PersonaManager, PersonaType
@@ -42,6 +67,19 @@ from database_service import db_service
 from websocket_manager import ws_manager, EventType
 from agent_terminal_manager import agent_terminal_manager, AgentType
 from claude_terminal import claude_terminal
+
+# Import governance system
+from governance.core.runtime_governance import (
+    RuntimeGovernanceSystem,
+    HookType,
+    GovernanceLevel,
+    AgentContext,
+    DecisionContext
+)
+from governance.middleware.ai_decision_injector import (
+    AIDecisionInjector,
+    DecisionType
+)
 
 # Configure logging
 logging.basicConfig(
@@ -110,6 +148,12 @@ class AIBackendService:
         self.persona_orchestration = PersonaOrchestrationEnhanced(self.governance_orchestrator)
         self.conversation_manager = ConversationManager(self.ai_orchestrator)
         
+        # Initialize runtime governance system
+        self.runtime_governance = RuntimeGovernanceSystem()
+        
+        # Initialize AI decision injector
+        self.decision_injector = AIDecisionInjector()
+        
         self.setup_middleware()
         self.setup_routes()
         self.setup_websocket_routes()
@@ -144,11 +188,14 @@ class AIBackendService:
                 try:
                     # Initialize real database service with credentials
                     from credentials_manager import credentials_manager
+                    # GOVERNANCE: No hardcoded secrets - use environment variables
+                    # This is a development fallback only - production uses real credentials
+                    db_password = os.getenv('DB_PASSWORD', 'changeme_in_production')
                     db_url = credentials_manager.get_database_url(
                         host='localhost',
                         port=5432,
                         database='ai_assistant',
-                        default_password='root'
+                        default_password=db_password
                     )
                     await db_service.connect(db_url)
                     logger.info(f"Database service connected: {db_service.is_connected}")
@@ -175,6 +222,18 @@ class AIBackendService:
                     
                     # Persona orchestration is ready (no async initialization needed)
                     logger.info("Persona Orchestration ready with assumption fighting")
+                    
+                    # Initialize runtime governance hooks
+                    await self._setup_governance_hooks()
+                    logger.info("Runtime governance hooks registered")
+                    
+                    # Set governance level based on environment
+                    governance_level = os.getenv('GOVERNANCE_LEVEL', 'STRICT').upper()
+                    if governance_level in ['STRICT', 'WARNING', 'MONITOR', 'BYPASS']:
+                        self.runtime_governance.set_governance_level(
+                            GovernanceLevel[governance_level]
+                        )
+                    logger.info(f"Governance level set to: {governance_level}")
                     
                     # FIX H3: Mark initialization as complete
                     self._initialization_complete = True
@@ -225,6 +284,63 @@ class AIBackendService:
                 status_code=503,
                 detail="Backend services are still initializing. Please try again in a few seconds."
             )
+    
+    async def _setup_governance_hooks(self):
+        """Setup governance hooks for runtime monitoring"""
+        
+        # Register agent spawn hook
+        async def pre_spawn_hook(context: AgentContext):
+            """Log and validate agent spawn attempts"""
+            logger.info(f"Pre-spawn hook: Validating agent {context.agent_type}")
+            # Additional custom validation can go here
+            return {"approved": True, "reason": "Pre-spawn validation passed"}
+        
+        self.runtime_governance.register_hook(HookType.PRE_AGENT_SPAWN, pre_spawn_hook)
+        
+        # Register post-spawn hook
+        async def post_spawn_hook(context: AgentContext):
+            """Track spawned agents"""
+            logger.info(f"Post-spawn hook: Agent {context.agent_name} spawned successfully")
+            # Send metrics or notifications
+            await ws_manager.broadcast({
+                'type': 'governance_event',
+                'event': 'agent_spawned',
+                'agent_id': context.agent_id,
+                'agent_type': context.agent_type
+            })
+        
+        self.runtime_governance.register_hook(HookType.POST_AGENT_SPAWN, post_spawn_hook)
+        
+        # Register execution hooks
+        async def pre_execute_hook(context: dict):
+            """Validate commands before execution"""
+            command = context.get('command', '')
+            logger.info(f"Pre-execute hook: Validating command for agent {context.get('agent', {}).get('agent_id')}")
+            # Could add command filtering here
+            return {"approved": True}
+        
+        self.runtime_governance.register_hook(HookType.PRE_AGENT_EXECUTE, pre_execute_hook)
+        
+        # Register decision validation hook
+        async def pre_decision_hook(context: DecisionContext):
+            """Validate AI decisions"""
+            logger.info(f"Pre-decision hook: Validating decision {context.decision_type}")
+            # Could invoke additional personas here
+            return {
+                "approved": True,
+                "risk_score": 0.2,
+                "reason": "Decision validation passed"
+            }
+        
+        self.runtime_governance.register_hook(HookType.PRE_DECISION, pre_decision_hook)
+        
+        # Register audit log hook
+        async def audit_hook(event: dict):
+            """Handle audit events"""
+            # Could send to external logging system
+            logger.info(f"Audit event: {event.get('event')} at {event.get('timestamp')}")
+        
+        self.runtime_governance.register_hook(HookType.AUDIT_LOG, audit_hook)
     
     def setup_routes(self):
         """Define API endpoints"""
@@ -523,26 +639,60 @@ class AIBackendService:
         
         @self.app.post("/agents/spawn")
         async def spawn_agent(request_data: dict):
-            """Spawn a new AI agent with its own terminal"""
+            """Spawn a new AI agent with its own terminal - WITH GOVERNANCE"""
             # FIX H3: Agent spawning requires full initialization
             await self._ensure_initialized()
             
             agent_type_str = request_data.get('type', 'claude_assistant')
+            agent_name = request_data.get('name', None)
+            metadata = request_data.get('metadata', {})
+            
             try:
+                # GOVERNANCE: Validate agent spawn request
+                governance_result = await self.runtime_governance.validate_agent_spawn(
+                    agent_type=agent_type_str,
+                    agent_name=agent_name,
+                    metadata=metadata
+                )
+                
+                if not governance_result.approved:
+                    logger.warning(f"Agent spawn rejected: {governance_result.reason}")
+                    return {
+                        'success': False,
+                        'error': f"Governance rejected: {governance_result.reason}",
+                        'risk_level': governance_result.risk_level,
+                        'recommendations': governance_result.recommendations
+                    }
+                
+                # Proceed with spawn if approved
                 agent_type = AgentType(agent_type_str)
                 agent = await agent_terminal_manager.spawn_agent(agent_type)
+                
+                # GOVERNANCE: Register the spawned agent
+                await self.runtime_governance.register_agent(
+                    agent_id=agent.id,
+                    agent_type=agent_type_str,
+                    agent_name=agent.name,
+                    metadata=metadata
+                )
                 
                 # Broadcast agent creation
                 await ws_manager.broadcast({
                     'type': 'agent_spawned',
-                    'agent': agent.to_dict()
+                    'agent': agent.to_dict(),
+                    'governance_approved': True
                 })
                 
                 return {
                     'success': True,
-                    'agent': agent.to_dict()
+                    'agent': agent.to_dict(),
+                    'governance': {
+                        'approved': True,
+                        'risk_level': governance_result.risk_level
+                    }
                 }
             except Exception as e:
+                logger.error(f"Agent spawn error: {e}")
                 return {
                     'success': False,
                     'error': str(e)
@@ -550,24 +700,189 @@ class AIBackendService:
         
         @self.app.post("/agents/{agent_id}/execute")
         async def execute_on_agent(agent_id: str, request_data: dict):
-            """Send command to specific agent"""
+            """Send command to specific agent - WITH GOVERNANCE"""
             # FIX H3: Agent execution requires full initialization
             await self._ensure_initialized()
             
             command = request_data.get('command', '')
+            context = request_data.get('context', {})
+            
             try:
+                # GOVERNANCE: Validate execution request
+                governance_result = await self.runtime_governance.validate_agent_execution(
+                    agent_id=agent_id,
+                    command=command,
+                    context=context
+                )
+                
+                if not governance_result.approved:
+                    logger.warning(f"Command execution rejected for agent {agent_id}: {governance_result.reason}")
+                    return {
+                        'success': False,
+                        'error': f"Governance rejected: {governance_result.reason}",
+                        'risk_level': governance_result.risk_level,
+                        'recommendations': governance_result.recommendations
+                    }
+                
+                # Execute if approved
                 response = await agent_terminal_manager.send_to_agent(agent_id, command)
-                return {
-                    'success': True,
-                    'response': response,
-                    'timestamp': datetime.now().isoformat()
-                }
+                
+                # For AI-generated responses, validate the decision
+                if response and isinstance(response, str):
+                    decision_validation = await self.decision_injector.intercept_decision(
+                        agent_id=agent_id,
+                        decision_type=DecisionType.USER_INTERACTION,
+                        input_context={'command': command, 'context': context},
+                        proposed_output=response
+                    )
+                    
+                    # Apply modifications if any
+                    if decision_validation.modifications:
+                        response = decision_validation.modifications.get('modified', response)
+                        logger.info(f"Response modified by governance for agent {agent_id}")
+                    
+                    # Include governance metadata in response
+                    return {
+                        'success': True,
+                        'response': response,
+                        'timestamp': datetime.now().isoformat(),
+                        'governance': {
+                            'decision_approved': decision_validation.approved,
+                            'risk_level': decision_validation.risk_level.value,
+                            'confidence': decision_validation.confidence_score,
+                            'modified': bool(decision_validation.modifications),
+                            'warnings': decision_validation.warnings
+                        }
+                    }
+                else:
+                    return {
+                        'success': True,
+                        'response': response,
+                        'timestamp': datetime.now().isoformat()
+                    }
+                    
             except Exception as e:
+                logger.error(f"Agent execution error: {e}")
                 return {'success': False, 'error': str(e)}
         
         @self.app.delete("/agents/{agent_id}")
         async def terminate_agent(agent_id: str):
-            """Terminate an agent"""
+            """Terminate an agent - WITH GOVERNANCE"""
+            await self._ensure_initialized()
+            
+            try:
+                # GOVERNANCE: Record termination
+                await self.runtime_governance.terminate_agent(
+                    agent_id=agent_id,
+                    reason="User requested termination"
+                )
+                
+                # Actually terminate the agent
+                result = await agent_terminal_manager.terminate_agent(agent_id)
+                
+                return {
+                    'success': True,
+                    'message': f"Agent {agent_id} terminated"
+                }
+            except Exception as e:
+                return {'success': False, 'error': str(e)}
+        
+        # ========== GOVERNANCE MONITORING ENDPOINTS ==========
+        
+        @self.app.get("/governance/status")
+        async def get_governance_status():
+            """Get current governance system status"""
+            await self._ensure_initialized()
+            
+            metrics = self.runtime_governance.get_metrics()
+            active_agents = len(self.runtime_governance.active_agents)
+            
+            return {
+                "status": "active",
+                "governance_level": self.runtime_governance.governance_level.value,
+                "metrics": metrics,
+                "active_agents": active_agents,
+                "resource_limits": self.runtime_governance.resource_limits
+            }
+        
+        @self.app.get("/governance/audit-log")
+        async def get_audit_log(limit: int = 100):
+            """Get recent audit log entries"""
+            await self._ensure_initialized()
+            
+            logs = self.runtime_governance.get_audit_log(limit)
+            return {
+                "total_entries": len(self.runtime_governance.audit_log),
+                "returned": len(logs),
+                "logs": logs
+            }
+        
+        @self.app.get("/governance/agents/{agent_id}")
+        async def get_agent_governance(agent_id: str):
+            """Get governance details for specific agent"""
+            await self._ensure_initialized()
+            
+            if agent_id not in self.runtime_governance.active_agents:
+                raise HTTPException(status_code=404, detail="Agent not found")
+            
+            agent_context = self.runtime_governance.active_agents[agent_id]
+            return {
+                "agent_id": agent_id,
+                "agent_type": agent_context.agent_type,
+                "agent_name": agent_context.agent_name,
+                "spawn_time": agent_context.spawn_time.isoformat(),
+                "resource_usage": agent_context.resource_usage,
+                "task_count": len(agent_context.task_history),
+                "violations": agent_context.violations,
+                "metadata": agent_context.metadata
+            }
+        
+        @self.app.post("/governance/level")
+        async def set_governance_level(request_data: dict):
+            """Change governance enforcement level"""
+            await self._ensure_initialized()
+            
+            level_str = request_data.get('level', 'STRICT').upper()
+            
+            if level_str not in ['STRICT', 'WARNING', 'MONITOR', 'BYPASS']:
+                return {
+                    'success': False,
+                    'error': 'Invalid governance level. Must be STRICT, WARNING, MONITOR, or BYPASS'
+                }
+            
+            self.runtime_governance.set_governance_level(GovernanceLevel[level_str])
+            
+            return {
+                'success': True,
+                'new_level': level_str,
+                'message': f"Governance level changed to {level_str}"
+            }
+        
+        @self.app.post("/governance/resource-limits")
+        async def update_resource_limits(request_data: dict):
+            """Update resource limits"""
+            await self._ensure_initialized()
+            
+            try:
+                self.runtime_governance.update_resource_limits(request_data)
+                return {
+                    'success': True,
+                    'new_limits': self.runtime_governance.resource_limits
+                }
+            except Exception as e:
+                return {'success': False, 'error': str(e)}
+        
+        @self.app.get("/governance/decision-metrics")
+        async def get_decision_metrics():
+            """Get AI decision injection metrics"""
+            await self._ensure_initialized()
+            
+            return self.decision_injector.get_metrics()
+        
+        # Continue with original terminate_agent implementation if needed
+        @self.app.delete("/agents/{agent_id}/original")
+        async def terminate_agent_original(agent_id: str):
+            """Terminate an agent (original version)"""
             await agent_terminal_manager.terminate_agent(agent_id)
             return {'success': True}
         

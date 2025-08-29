@@ -177,41 +177,69 @@ class TodoTracker:
 
 ---
 
-## 📊 Implementation Priority Matrix
+## 🔄 ARCHITECTURAL CHANGE NOTICE
 
-| Feature | Impact | Effort | Priority | Timeline |
-|---------|--------|--------|----------|----------|
-| Documentation Validation | High | Low | P0 | Today |
-| Git Standards | High | Low | P0 | Today |
-| Archival Rules | High | Low | P0 | Today |
-| Session Management | High | Medium | P1 | This Week |
-| Database Integration | High | High | P1 | Next Sprint |
-| Caching Integration | Medium | Medium | P2 | Next Sprint |
-| Event Bus | Medium | High | P2 | Future |
-| AI Agent Hooks | High | High | P1 | Next Sprint |
-| Monitoring Dashboard | Medium | High | P3 | Future |
+### Phase 1.5: Cross-Language Exemption Architecture (NEW)
+**Added**: 2025-01-28  
+**Reason**: Discovered need for context-aware pattern detection to eliminate false positives  
+**Impact**: Enhances flexibility for multi-language governance  
+**Duration**: 2-3 days  
+
+This architectural change addresses the immediate need for more intelligent pattern detection that can distinguish between dangerous code execution patterns and safe operations like regex compilation. See [cross-language-exemption-architecture.md](../../docs/decisions/cross-language-exemption-architecture.md) for full details.
+
+## 📊 Implementation Priority Matrix (UPDATED 2025-01-28)
+
+| Feature | Impact | Effort | Priority | Timeline | Status |
+|---------|--------|--------|----------|----------|---------|
+| Pattern Refinement | High | Low | P0 | Phase 1.5 | ✅ Complete |
+| Exemption System | High | Medium | P0 | Phase 1.5 | ✅ Complete |
+| Hallucination Detection | High | Medium | P0 | Phase 1.5b | ✅ Complete |
+| Documentation Validation | High | Low | P0 | Immediate | ✅ Complete |
+| Git Standards | High | Low | P0 | Immediate | ✅ Complete |
+| Archival Rules | High | Low | P0 | Immediate | ✅ Complete |
+| Session Management | High | Medium | P1 | This Week | ✅ Complete |
+| TodoTracker | High | Medium | P1 | This Week | ✅ Complete |
+| Database Integration | High | High | P1 | Next Sprint | 🔄 Pending |
+| Caching Integration | Medium | Medium | P2 | Next Sprint | 🔄 Pending |
+| Event Bus | Medium | High | P2 | Future | 📋 Planned |
+| AI Agent Hooks | High | High | P1 | Next Sprint | 🔄 Pending |
+| Monitoring Dashboard | Medium | High | P3 | Future | 📋 Planned |
 
 ---
 
-## 🚀 Immediate Action Items
+## 🚀 Immediate Action Items (COMPLETED 2025-01-28)
 
-### Today (Can implement now):
-1. ✅ Load new JSON configurations in ConfigLoader
-2. ✅ Add validation methods for each new rule type
-3. ✅ Test with example commits
-4. ✅ Update documentation
+### Phase 1.5 - Pattern Refinement (✅ COMPLETE):
+1. ✅ Implement refined pattern detection to eliminate false positives
+2. ✅ Separate safe operations (re.compile) from dangerous patterns
+3. ✅ Add context analysis for ambiguous patterns
+4. ✅ Create exemptions.yml structure
+5. ✅ Update SmartRules class with semantic analysis
 
-### This Week:
-1. [ ] Implement SessionManager class
-2. [ ] Add TodoTracker functionality
-3. [ ] Create database migration scripts
-4. [ ] Add performance benchmarks
+### Phase 1.5b - Hallucination Detection (✅ COMPLETE):
+1. ✅ Create basic hallucination detector
+2. ✅ Add fact-checking specialist persona
+3. ✅ Create hallucination patterns configuration
+4. ✅ Document round table decision
+5. ✅ Update CLAUDE.md with new phase
 
-### Next Sprint:
-1. [ ] PostgreSQL integration
-2. [ ] Cache layer enhancement
-3. [ ] AI agent hooks
-4. [ ] Basic monitoring
+### Completed This Week:
+1. ✅ Implement SessionManager class
+2. ✅ Add TodoTracker functionality
+3. ✅ Create all governance configurations
+4. ✅ Document all architectural decisions
+
+### Next Steps (Priority Order):
+1. [ ] Integration testing of all components
+2. [ ] Performance benchmarking (<500ms for hooks)
+3. [ ] False positive rate measurement
+4. [ ] Create comprehensive test suites
+
+### Next Sprint (Database Phase):
+1. [ ] PostgreSQL integration for governance data
+2. [ ] Cache layer enhancement with governance metrics
+3. [ ] AI agent hooks with hallucination detection
+4. [ ] Basic monitoring dashboard
 
 ---
 

@@ -1,0 +1,39 @@
+{
+  "correlation_id": "f1a92792-485b-49d9-8940-d8ec41b65678",
+  "parent_correlation_id": null,
+  "session_id": null,
+  "user": "Steven Holden",
+  "operation_type": "git.pre_commit",
+  "operation_name": "pre_commit_validation",
+  "start_time": "2025-08-29T17:03:56.532660",
+  "end_time": "2025-08-29T17:03:56.665338",
+  "status": "failed",
+  "metadata": {
+    "user": "Steven Holden",
+    "branch": "main",
+    "files": [
+      ".governance/correlations/f7953c07-5bdb-445b-9550-c572ec063604.json",
+      "ai-assistant/package-lock.json",
+      "ai-assistant/package.json",
+      "ai-assistant/src/app/app.module.ts",
+      "ai-assistant/src/app/components/terminal/xterm-terminal.component.ts",
+      "docs/decisions/pty-terminal-integration-round-table.md",
+      "docs/implementation/phase-2-status-h1-h2-h3-complete.md",
+      "docs/implementation/pty-terminal-integration-complete.md"
+    ],
+    "result": {
+      "error": "'IntegratedGovernanceHook' object has no attribute 'correlation_id'"
+    }
+  },
+  "debug_trace": [
+    "[2025-08-29T17:03:56.532660] Correlation created for git.pre_commit:pre_commit_validation",
+    "[2025-08-29T17:03:56.665338] Correlation completed with status failed"
+  ],
+  "events": [],
+  "errors": [],
+  "warnings": [],
+  "checkpoints": {},
+  "metrics": {
+    "total_duration_ms": 132.678
+  }
+}

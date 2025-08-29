@@ -1,0 +1,38 @@
+{
+  "correlation_id": "5d4ec6a7-8950-414f-a5e5-9b9e43cf9ca1",
+  "parent_correlation_id": null,
+  "session_id": null,
+  "user": "Steven Holden",
+  "operation_type": "git.pre_commit",
+  "operation_name": "pre_commit_validation",
+  "start_time": "2025-08-29T15:46:11.364360",
+  "end_time": "2025-08-29T15:46:11.380315",
+  "status": "completed",
+  "metadata": {
+    "user": "Steven Holden",
+    "branch": "main",
+    "files": [
+      ".governance/correlations/4018e185-d0ad-4382-91cf-3224b61fcdfd.json",
+      "docs/decisions/mandatory-living-documents-round-table.md",
+      "docs/living/ACTIVE_MOCKS.md",
+      "docs/living/CURRENT_ARCHITECTURE.md",
+      "docs/living/IMPLEMENTED_FEATURES.md",
+      "docs/living/PHASE_PLAN.md",
+      "docs/living/UPCOMING_FEATURES.md"
+    ],
+    "result": {
+      "approved": true
+    }
+  },
+  "debug_trace": [
+    "[2025-08-29T15:46:11.364360] Correlation created for git.pre_commit:pre_commit_validation",
+    "[2025-08-29T15:46:11.380315] Correlation completed with status completed"
+  ],
+  "events": [],
+  "errors": [],
+  "warnings": [],
+  "checkpoints": {},
+  "metrics": {
+    "total_duration_ms": 15.955
+  }
+}

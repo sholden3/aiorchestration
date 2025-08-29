@@ -42,6 +42,7 @@ from governance.core.engine import GovernanceEngine
 from governance.core.context import GovernanceContext
 from governance.rules.smart_rules import SmartRules, RuleEnhancer
 from governance.rules.test_exemptions import TestExemptionRules, SmartExemptionEngine
+from governance.validators.document_validator import DocumentValidator, update_document_correlation_ids
 
 
 class ConfigLoader:
@@ -227,6 +228,7 @@ class IntegratedGovernanceHook:
         self.smart_rules = SmartRules()
         self.rule_enhancer = RuleEnhancer()
         self.exemption_engine = SmartExemptionEngine()
+        self.document_validator = DocumentValidator()
         
         # Get event mapping for pre-commit
         self.event_config = self.config_loader.get_event_mapping('git.pre_commit')
@@ -288,6 +290,17 @@ class IntegratedGovernanceHook:
         git_warnings = self._validate_git_standards(context)
         if git_warnings:
             warnings.extend(git_warnings)
+        
+        # Add living document validation
+        doc_valid, doc_errors, doc_warnings = self.document_validator.validate_all_documents()
+        if not doc_valid:
+            errors.extend([f"Living Docs: {err}" for err in doc_errors])
+        if doc_warnings:
+            warnings.extend([f"Living Docs: {warn}" for warn in doc_warnings])
+        
+        # Update correlation IDs in living documents
+        if self.correlation_id:
+            update_document_correlation_ids(self.correlation_id)
         
         return {'errors': errors, 'warnings': warnings}
     

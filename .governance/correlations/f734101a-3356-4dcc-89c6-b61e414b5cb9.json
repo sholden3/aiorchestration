@@ -1,0 +1,36 @@
+{
+  "correlation_id": "f734101a-3356-4dcc-89c6-b61e414b5cb9",
+  "parent_correlation_id": null,
+  "session_id": null,
+  "user": "Steven Holden",
+  "operation_type": "git.pre_commit",
+  "operation_name": "pre_commit_validation",
+  "start_time": "2025-08-29T16:30:37.892155",
+  "end_time": "2025-08-29T16:30:37.912100",
+  "status": "failed",
+  "metadata": {
+    "user": "Steven Holden",
+    "branch": "main",
+    "files": [
+      ".governance/correlations/fed4a5b9-8c47-494f-bd39-23b0954e4917.json",
+      "ai-assistant/src/app/services/ipc-error-boundary.service.ts",
+      "docs/decisions/h2-ipc-error-boundaries-round-table.md",
+      "docs/living/IMPLEMENTED_FEATURES.md",
+      "docs/living/PHASE_PLAN.md"
+    ],
+    "result": {
+      "error": "'IntegratedGovernanceHook' object has no attribute 'correlation_id'"
+    }
+  },
+  "debug_trace": [
+    "[2025-08-29T16:30:37.892155] Correlation created for git.pre_commit:pre_commit_validation",
+    "[2025-08-29T16:30:37.912100] Correlation completed with status failed"
+  ],
+  "events": [],
+  "errors": [],
+  "warnings": [],
+  "checkpoints": {},
+  "metrics": {
+    "total_duration_ms": 19.945
+  }
+}

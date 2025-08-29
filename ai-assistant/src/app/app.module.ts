@@ -58,6 +58,7 @@ import { AppComponent } from './app.component';
 import { ToolbarComponent } from './components/toolbar/toolbar.component';
 import { StatusIndicatorsComponent } from './components/status-indicators/status-indicators.component';
 import { TerminalComponent } from './components/terminal/terminal.component';
+import { XtermTerminalComponent } from './components/terminal/xterm-terminal.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { LayoutComponent } from './components/layout/layout.component';
 import { MainLayoutComponent } from './components/main-layout/main-layout.component';
@@ -76,6 +77,7 @@ import { WebSocketService } from './services/websocket.service';
     ToolbarComponent,
     StatusIndicatorsComponent,
     TerminalComponent,
+    XtermTerminalComponent,
     DashboardComponent,
     LayoutComponent,
     MainLayoutComponent,

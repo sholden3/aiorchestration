@@ -1,0 +1,38 @@
+{
+  "correlation_id": "f7953c07-5bdb-445b-9550-c572ec063604",
+  "parent_correlation_id": null,
+  "session_id": null,
+  "user": "Steven Holden",
+  "operation_type": "git.pre_commit",
+  "operation_name": "pre_commit_validation",
+  "start_time": "2025-08-29T16:45:51.109955",
+  "end_time": "2025-08-29T16:45:51.161817",
+  "status": "failed",
+  "metadata": {
+    "user": "Steven Holden",
+    "branch": "main",
+    "files": [
+      ".governance/correlations/f734101a-3356-4dcc-89c6-b61e414b5cb9.json",
+      "ai-assistant/backend/database_manager_fixed.py",
+      "ai-assistant/backend/tests/test_h3_concurrent_init.py",
+      "docs/decisions/h3-database-race-condition-round-table.md",
+      "docs/implementation/phase-2-progress-report.md",
+      "docs/living/IMPLEMENTED_FEATURES.md",
+      "docs/living/PHASE_PLAN.md"
+    ],
+    "result": {
+      "error": "'IntegratedGovernanceHook' object has no attribute 'correlation_id'"
+    }
+  },
+  "debug_trace": [
+    "[2025-08-29T16:45:51.109955] Correlation created for git.pre_commit:pre_commit_validation",
+    "[2025-08-29T16:45:51.161817] Correlation completed with status failed"
+  ],
+  "events": [],
+  "errors": [],
+  "warnings": [],
+  "checkpoints": {},
+  "metrics": {
+    "total_duration_ms": 51.862
+  }
+}

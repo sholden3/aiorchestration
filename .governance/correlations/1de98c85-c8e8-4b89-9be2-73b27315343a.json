@@ -1,0 +1,35 @@
+{
+  "correlation_id": "1de98c85-c8e8-4b89-9be2-73b27315343a",
+  "parent_correlation_id": null,
+  "session_id": null,
+  "user": "Steven Holden",
+  "operation_type": "git.pre_commit",
+  "operation_name": "pre_commit_validation",
+  "start_time": "2025-08-29T17:20:30.332621",
+  "end_time": "2025-08-29T17:20:30.351569",
+  "status": "failed",
+  "metadata": {
+    "user": "Steven Holden",
+    "branch": "main",
+    "files": [
+      ".governance/correlations/dc379ae3-eb6f-4e91-a6e9-9fe2d2515680.json",
+      ".governance/correlations/f1a92792-485b-49d9-8940-d8ec41b65678.json",
+      "ai-assistant/src/app/services/terminal.service.extended.spec.ts",
+      "docs/implementation/phase-2-test-coverage-milestone.md"
+    ],
+    "result": {
+      "error": "'IntegratedGovernanceHook' object has no attribute 'correlation_id'"
+    }
+  },
+  "debug_trace": [
+    "[2025-08-29T17:20:30.332621] Correlation created for git.pre_commit:pre_commit_validation",
+    "[2025-08-29T17:20:30.352567] Correlation completed with status failed"
+  ],
+  "events": [],
+  "errors": [],
+  "warnings": [],
+  "checkpoints": {},
+  "metrics": {
+    "total_duration_ms": 18.948
+  }
+}

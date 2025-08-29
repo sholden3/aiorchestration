@@ -262,3 +262,5 @@ nul*
 
 # No executables
 *.exe
+# Archive directory - contains submodules and old code
+archive/

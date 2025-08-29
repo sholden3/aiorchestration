@@ -1,6 +1,0 @@
-crisis_input = "Harbor Freight and Home Depot delivery systems are returning NULL for all shipments. The VRO timing calculations have circular dependencies causing infinite loops. System claims nothing is deliverable. Complete business shutdown. Need immediate fix. Path to top level folder that holds folder for project: C:\Users\wesho\Desktop\WorkProjects\ClaudeCodeEnhancements\cache_optimizer_project\test_projects Path for the actual solution level for the project: C:\Users\wesho\Desktop\WorkProjects\ClaudeCodeEnhancements\cache_optimizer_project\test_projects\vro Entry point to solution that we must build from (circular project dependencies): C:\Users\wesho\Desktop\WorkProjects\ClaudeCodeEnhancements\cache_optimizer_project\test_projects\vro\VRO for a look into what we are tackling, look at the PROJECT_FILES_SUMMARY_VRO.md file located within this directory."
-analysis = VRO_CRISIS_ORCHESTRATOR.analyze_vro_request(crisis_input)
-
-# 3. Generate Management Review
-enhanced_prompt = VRO_CRISIS_ORCHESTRATOR._generate_vro_orchestration_prompt(analysis)
-print(enhanced_prompt)

@@ -230,6 +230,9 @@ class IntegratedGovernanceHook:
         self.exemption_engine = SmartExemptionEngine()
         self.document_validator = DocumentValidator()
         
+        # Initialize correlation_id to None (will be set during run)
+        self.correlation_id = None
+        
         # Get event mapping for pre-commit
         self.event_config = self.config_loader.get_event_mapping('git.pre_commit')
     
@@ -502,6 +505,9 @@ class IntegratedGovernanceHook:
             user=git_info['user'],
             metadata=git_info
         )
+        
+        # Store correlation ID for use in other methods
+        self.correlation_id = correlation
         
         print(f"\nCorrelation ID: {correlation.correlation_id}")
         print(f"User: {git_info['user']}")

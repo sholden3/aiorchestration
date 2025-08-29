@@ -1,0 +1,37 @@
+{
+  "correlation_id": "fed4a5b9-8c47-494f-bd39-23b0954e4917",
+  "parent_correlation_id": null,
+  "session_id": null,
+  "user": "Steven Holden",
+  "operation_type": "git.pre_commit",
+  "operation_name": "pre_commit_validation",
+  "start_time": "2025-08-29T16:11:47.438693",
+  "end_time": "2025-08-29T16:11:47.466617",
+  "status": "failed",
+  "metadata": {
+    "user": "Steven Holden",
+    "branch": "main",
+    "files": [
+      ".governance/correlations/5d4ec6a7-8950-414f-a5e5-9b9e43cf9ca1.json",
+      "docs/decisions/h1-websocket-limits-round-table.md",
+      "docs/living/IMPLEMENTED_FEATURES.md",
+      "docs/living/PHASE_PLAN.md",
+      "governance/scripts/integrated_pre_commit_hook.py",
+      "governance/validators/document_validator.py"
+    ],
+    "result": {
+      "error": "'IntegratedGovernanceHook' object has no attribute 'correlation_id'"
+    }
+  },
+  "debug_trace": [
+    "[2025-08-29T16:11:47.438693] Correlation created for git.pre_commit:pre_commit_validation",
+    "[2025-08-29T16:11:47.466617] Correlation completed with status failed"
+  ],
+  "events": [],
+  "errors": [],
+  "warnings": [],
+  "checkpoints": {},
+  "metrics": {
+    "total_duration_ms": 27.924
+  }
+}

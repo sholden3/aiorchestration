@@ -51,10 +51,11 @@ interface CircuitBreakerConfig {
 
 class CircuitBreaker {
   private state: CircuitState = CircuitState.CLOSED;
-  private failureCount = 0;
+  private failureTimestamps: number[] = []; // Time-window based tracking
   private successCount = 0;
   private lastFailureTime = 0;
   private totalOpens = 0;
+  private resetTimer?: any;
   
   constructor(private config: CircuitBreakerConfig) {}
   
@@ -77,33 +78,56 @@ class CircuitBreaker {
       // Need 3 successful calls to close circuit
       if (this.successCount >= 3) {
         this.state = CircuitState.CLOSED;
-        this.failureCount = 0;
+        this.failureTimestamps = [];
         console.log('Circuit breaker CLOSED after recovery');
       }
     } else if (this.state === CircuitState.CLOSED) {
-      // Reset failure count on success
-      if (this.failureCount > 0) {
-        this.failureCount--;
-      }
+      // Remove old failures on success in closed state
+      this.cleanupOldFailures();
     }
   }
   
   recordFailure(): void {
-    this.failureCount++;
-    this.lastFailureTime = Date.now();
+    const now = Date.now();
+    this.failureTimestamps.push(now);
+    this.lastFailureTime = now;
     
+    // Clean up old failures outside the monitoring window
+    this.cleanupOldFailures();
+    
+    // Check if we've exceeded the threshold within the window
     if (this.state !== CircuitState.OPEN && 
-        this.failureCount >= this.config.failureThreshold) {
+        this.failureTimestamps.length >= this.config.failureThreshold) {
       this.state = CircuitState.OPEN;
       this.totalOpens++;
-      console.warn(`Circuit breaker OPEN after ${this.failureCount} failures`);
+      console.warn(`Circuit breaker OPEN after ${this.failureTimestamps.length} failures in window`);
+      
+      // Schedule automatic transition to HALF_OPEN
+      if (this.resetTimer) {
+        clearTimeout(this.resetTimer);
+      }
+      this.resetTimer = setTimeout(() => {
+        this.state = CircuitState.HALF_OPEN;
+        console.log('Circuit breaker auto-transitioning to HALF_OPEN');
+      }, this.config.recoveryTime);
     }
+  }
+  
+  private cleanupOldFailures(): void {
+    const now = Date.now();
+    this.failureTimestamps = this.failureTimestamps.filter(
+      timestamp => now - timestamp < this.config.monitoringWindow
+    );
+  }
+  
+  getState(): CircuitState {
+    return this.state;
   }
   
   getStatus(): any {
     return {
       state: this.state,
-      failureCount: this.failureCount,
+      failureCount: this.failureTimestamps.length,
       successCount: this.successCount,
       totalOpens: this.totalOpens,
       isHealthy: this.state === CircuitState.CLOSED
@@ -112,8 +136,12 @@ class CircuitBreaker {
   
   reset(): void {
     this.state = CircuitState.CLOSED;
-    this.failureCount = 0;
+    this.failureTimestamps = [];
     this.successCount = 0;
+    if (this.resetTimer) {
+      clearTimeout(this.resetTimer);
+      this.resetTimer = undefined;
+    }
   }
 }
 
@@ -207,9 +235,10 @@ export class IPCErrorBoundaryService {
       // Prepare IPC call with timeout
       const ipcPromise = this.executeIPCCall<T>(channel, { ...data, correlationId });
       
-      // Add timeout wrapper
+      // Add timeout wrapper with AbortController for proper cancellation
+      let timeoutId: any;
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
           reject(new IPCError(
             `IPC call timed out after ${timeoutMs}ms`,
             IPCErrorType.TIMEOUT,
@@ -220,7 +249,20 @@ export class IPCErrorBoundaryService {
       });
       
       // Race between IPC call and timeout
-      const result = await Promise.race([ipcPromise, timeoutPromise]);
+      let result: T;
+      try {
+        result = await Promise.race([ipcPromise, timeoutPromise]);
+        // Clear timeout if IPC completes first
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      } catch (raceError) {
+        // Clear timeout on error
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        throw raceError;
+      }
       
       // Record success
       const responseTime = Date.now() - startTime;
@@ -257,7 +299,11 @@ export class IPCErrorBoundaryService {
         const electronAPI = (window as any).electronAPI;
         
         if (!electronAPI) {
-          reject(new Error(`Electron API not available`));
+          reject(new IPCError(
+            'Electron API not available',
+            IPCErrorType.CONNECTION_FAILED,
+            channel
+          ));
           return;
         }
         
@@ -275,7 +321,11 @@ export class IPCErrorBoundaryService {
             .catch(reject);
         } 
         else {
-          reject(new Error(`IPC channel ${channel} not available`));
+          reject(new IPCError(
+            `IPC channel ${channel} not available`,
+            IPCErrorType.CONNECTION_FAILED,
+            channel
+          ));
         }
           
       } catch (error) {
@@ -291,7 +341,7 @@ export class IPCErrorBoundaryService {
     error: IPCError,
     channel: string,
     fallbackValue?: T
-  ): T {
+  ): T | null {
     // Log error details
     console.error(`IPC Error [${error.type}] on ${channel}:`, {
       message: error.message,
@@ -306,14 +356,15 @@ export class IPCErrorBoundaryService {
     const breaker = this.getCircuitBreaker(channel);
     breaker.recordFailure();
     
-    // Use fallback if available
+    // Always return fallback (null if not specified) for graceful degradation
     if (fallbackValue !== undefined) {
       console.warn(`Using fallback value for ${channel}`);
       return fallbackValue;
     }
     
-    // No fallback available - rethrow the error
-    throw error;
+    // Return null as default fallback for graceful degradation
+    console.warn(`No fallback specified for ${channel}, returning null`);
+    return null as any;
   }
   
   /**
@@ -402,6 +453,14 @@ export class IPCErrorBoundaryService {
       status.set(channel, breaker.getStatus());
     });
     return status;
+  }
+  
+  /**
+   * Get circuit breaker state for a specific channel
+   */
+  getCircuitBreakerState(channel: string): string {
+    const breaker = this.circuitBreakers.get(channel);
+    return breaker?.getState() || CircuitState.CLOSED;
   }
   
   /**

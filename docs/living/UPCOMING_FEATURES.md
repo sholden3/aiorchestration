@@ -240,19 +240,25 @@ Team Capacity: 100
 
 ## Backlog Features (Priority 4+)
 
-### Near-term (Phase 3)
-- Performance optimization (caching, query optimization)
-- Multi-tenant support
-- API versioning
-- Plugin architecture
-- Advanced governance rules
+### Near-term (Phase 3 - Angular Material Frontend)
+- Enhanced navigation system with Material components
+- Responsive dashboard with real-time metrics
+- Agent management UI with wizards
+- Terminal tabs and split views
+- Settings and configuration pages
+- Dark mode and theme customization
+- Common components library
+- Accessibility compliance (WCAG 2.1 AA)
 
-### Medium-term (Phase 4-5)
+### Medium-term (Phase 4 - AI Integration & Production)
+- Claude API integration with UI
+- Token management interface
+- Real AI agent responses
+- CI/CD pipeline (GitHub Actions)
 - Kubernetes deployment
-- Multi-region support
-- Real AI agent integration
-- Advanced analytics
-- Mobile application
+- Monitoring & observability (Prometheus/Grafana)
+- Security audit and hardening
+- Performance optimization
 
 ### Long-term (Phase 6+)
 - Machine learning optimization

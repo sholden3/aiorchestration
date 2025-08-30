@@ -1,0 +1,264 @@
+# Living Documentation Validation Configuration
+# Based on Round Table Decision 2025-08-29
+# Mode: Advisory (Phase 2)
+
+version: "2.0"
+last_updated: "2025-08-29"
+author: "Round Table Consensus"
+enforcement_phase: 2  # Current project phase
+
+# Validation Settings
+validation:
+  mode: "advisory"  # strict|advisory|disabled
+  
+  # What blocks commits (almost nothing in Phase 2)
+  blocking:
+    enabled: false  # Don't block commits
+    exceptions:
+      - "Contains secrets or credentials"
+      - "Contains malicious code patterns"
+      - "Broken critical system references"
+  
+  # Progressive requirements by phase
+  requirements:
+    phase_2:  # Current - Very Lenient
+      title: required
+      last_updated: required  # Any format accepted
+      content: required  # Must have some content
+      yaml_frontmatter: optional
+      specific_sections: optional
+      timestamp_format: optional  # Any date format
+      structure_validation: advisory
+      
+    phase_3:  # Next Quarter - Gradually Stricter
+      title: required
+      last_updated: required
+      yaml_frontmatter: recommended  # Warn if missing
+      sections:
+        - name: "Status"
+          required: true
+        - name: "Dependencies"
+          required: false
+          recommended: true
+      timestamp_format: "ISO 8601 recommended"
+      structure_validation: partial
+      
+    phase_5:  # Production - Full Enforcement
+      title: required
+      last_updated: required
+      yaml_frontmatter: required
+      all_sections: required
+      timestamp_format: "ISO 8601 required"
+      structure_validation: strict
+
+# Content Validation (What Really Matters)
+content_validation:
+  enabled: true
+  
+  # Staleness checks
+  staleness:
+    check_enabled: true
+    max_days_stale: 30
+    warning_days: 14
+    action: "warn"  # warn|error|block
+    
+  # Accuracy checks
+  accuracy:
+    check_version_numbers: true
+    check_feature_status: true
+    check_urls: false  # Phase 3+
+    check_code_references: true
+    
+  # Reference validation
+  references:
+    check_internal_links: true
+    check_external_links: false  # Phase 3+
+    check_code_references: true
+    check_image_references: false
+    
+  # Contradiction detection
+  contradictions:
+    check_enabled: true
+    check_against_code: true
+    check_against_other_docs: false  # Phase 3+
+
+# Sections Configuration
+sections:
+  # Flexible section definitions
+  current_architecture:
+    required_phase_2: ["title", "content"]
+    recommended_phase_2: ["status", "last_updated"]
+    required_phase_3: ["title", "status", "components", "last_updated"]
+    required_phase_5: ["title", "status", "components", "integration_points", "metrics", "last_updated"]
+    
+  implemented_features:
+    required_phase_2: ["title", "content"]
+    recommended_phase_2: ["features_list", "status"]
+    required_phase_3: ["title", "core_features", "status", "coverage"]
+    required_phase_5: ["title", "core_features", "feature_flags", "coverage", "stability_matrix"]
+    
+  upcoming_features:
+    required_phase_2: ["title", "content"]
+    recommended_phase_2: ["priority_list"]
+    required_phase_3: ["title", "sprint_summary", "priorities"]
+    required_phase_5: ["title", "sprint_summary", "priorities", "risk_assessment", "dependencies"]
+    
+  active_mocks:
+    required_phase_2: ["title", "content"]
+    recommended_phase_2: ["mock_list"]
+    required_phase_3: ["title", "active_mocks", "migration_plan"]
+    required_phase_5: ["title", "mock_inventory", "technical_debt", "migration_timeline"]
+    
+  phase_plan:
+    required_phase_2: ["title", "content"]
+    recommended_phase_2: ["current_phase", "next_steps"]
+    required_phase_3: ["title", "phase_summary", "milestones"]
+    required_phase_5: ["title", "phase_group_summary", "success_metrics", "risk_register"]
+
+# Reporting Configuration
+reporting:
+  # How to display validation results
+  display:
+    show_errors: true
+    show_warnings: true
+    show_suggestions: true
+    show_info: true
+    group_by_severity: true
+    
+  # Where to log results
+  logging:
+    enabled: true
+    log_file: ".governance/living-docs-validation.log"
+    log_suggestions: ".governance/living-docs-suggestions.log"
+    
+  # Console output format
+  console:
+    use_colors: true
+    show_emoji: true
+    verbose: false
+    summary_only: false
+    
+  # Metrics tracking
+  metrics:
+    track_validation_runs: true
+    track_staleness: true
+    track_compliance_score: true
+    export_to: ".governance/metrics/living-docs.json"
+
+# Advisory Mode Messages
+messages:
+  header: |
+    ================================================================
+    LIVING DOCUMENTATION VALIDATION (Advisory Mode - Phase 2)
+    ================================================================
+    
+  footer: |
+    ----------------------------------------------------------------
+    This is ADVISORY only. Your commit will proceed.
+    To see suggestions: cat .governance/living-docs-suggestions.log
+    ================================================================
+    
+  no_blocking: |
+    ✅ No blocking issues found (advisory mode)
+    
+  has_warnings: |
+    ⚠️  Warnings found (non-blocking):
+    
+  has_suggestions: |
+    💡 Suggestions for improvement:
+
+# Exemptions
+exemptions:
+  # Files that don't need validation
+  skip_files:
+    - "README.md"
+    - "CHANGELOG.md"
+    - "LICENSE.md"
+    - "*.template.md"
+    
+  # Sections that are always optional
+  always_optional:
+    - "Appendix"
+    - "Glossary"
+    - "References"
+    - "Acknowledgments"
+
+# Integration Settings
+integration:
+  # Git hooks
+  git_hooks:
+    pre_commit:
+      enabled: true
+      blocking: false  # Never block in Phase 2
+      show_report: true
+      
+    pre_push:
+      enabled: false
+      
+  # CI/CD Pipeline
+  ci_pipeline:
+    enabled: false  # Phase 3+
+    fail_on_errors: false
+    generate_report: true
+    
+  # IDE Integration
+  ide:
+    vscode:
+      enabled: false  # Future
+      real_time: false
+      show_hints: true
+
+# Phase Transition Settings
+phase_transition:
+  # Automatic phase detection
+  auto_detect:
+    enabled: true
+    indicators:
+      - "test_coverage > 80%"  # Phase 3
+      - "production_ready: true"  # Phase 5
+      
+  # Manual override
+  override:
+    enabled: true
+    env_var: "GOVERNANCE_PHASE"
+    
+  # Notification on phase change
+  notify:
+    enabled: true
+    message: "Governance phase changed from {old} to {new}"
+
+# Developer Experience
+developer_experience:
+  # Make it helpful, not annoying
+  principles:
+    - "Guide, don't block"
+    - "Educate, don't punish"
+    - "Suggest, don't demand"
+    - "Progressive, not sudden"
+    
+  # Helpful features
+  features:
+    auto_fix_suggestions: true
+    template_generation: true
+    example_docs: true
+    quick_fix_commands: true
+
+# Notes
+notes: |
+  This configuration implements the round table consensus from 2025-08-29.
+  
+  Key decisions:
+  - Advisory mode only (no blocking)
+  - Content validation over format
+  - Progressive enforcement by phase
+  - Focus on helping developers
+  
+  All 6 participants agreed:
+  - Alex Novak: Relax requirements (85% confidence)
+  - Dr. Sarah Chen: Flexible standards (90% confidence)
+  - Marcus Rodriguez: Content validation (88% confidence)
+  - Priya Sharma: Progressive enforcement (92% confidence)
+  - Jordan Kim: Content over form (95% confidence)
+  - Dr. Elena Vasquez: Accuracy focus (87% confidence)
+  
+  Review date: 2025-09-29

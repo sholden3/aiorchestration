@@ -1,11 +1,12 @@
 /**
  * IPC Security Service Tests - Comprehensive Security Boundary Validation
  * 
- * Testing Lead: Sam Martinez v3.2.0 - Comprehensive Security Testing
- * Security Specialist: Morgan Hayes v2.0 - Security Attack Simulation
- * Core Architect: Alex Novak v3.0 - Integration & Error Boundary Testing
+ * @author Sam Martinez v3.2.0 - Testing Lead - Comprehensive Security Testing
+ * @author Morgan Hayes v2.0 - Security Specialist - Security Attack Simulation
+ * @author Alex Novak v3.0 - Core Architect - Integration & Error Boundary Testing
  * 
  * @fileoverview Complete test suite for IPC security boundaries
+ * @architecture Frontend - IPC Security Testing Layer
  * @testing_strategy
  *   - Unauthorized channel access attempts
  *   - Oversized message rejection
@@ -46,8 +47,11 @@ describe('IPCService - Security Boundary Tests', () => {
   let mockBoundaryService: any;
   
   beforeEach(() => {
-    // Create spy for IPC Error Boundary Service
-    const spy = jasmine.createSpyObj('IPCErrorBoundaryService', ['safeIPCInvoke']);
+    // Create mock for IPC Error Boundary Service using Jest
+    const mockSafeIPCInvoke = jest.fn();
+    const spy = {
+      safeIPCInvoke: mockSafeIPCInvoke
+    };
     
     // Setup Electron API mock
     if (!(window as any).electronAPI) {
@@ -66,7 +70,7 @@ describe('IPCService - Security Boundary Tests', () => {
     mockBoundaryService = TestBed.inject(IPCErrorBoundaryService) as any;
     
     // Default mock response
-    mockBoundaryService.safeIPCInvoke.and.returnValue(Promise.resolve({ success: true }));
+    mockBoundaryService.safeIPCInvoke.mockResolvedValue({ success: true });
   });
   
   describe('SECURITY LAYER 1: Channel Whitelist Validation', () => {
@@ -143,8 +147,8 @@ describe('IPCService - Security Boundary Tests', () => {
         expect(result).toBeTruthy();
         expect(mockBoundaryService.safeIPCInvoke).toHaveBeenCalledWith(
           scenario.channel,
-          jasmine.objectContaining({ correlationId: jasmine.any(String) }),
-          jasmine.any(Object)
+          expect.objectContaining({ correlationId: expect.any(String) }),
+          expect.any(Object)
         );
       });
     });
@@ -452,16 +456,16 @@ describe('IPCService - Security Boundary Tests', () => {
       
       expect(mockBoundaryService.safeIPCInvoke).toHaveBeenCalledWith(
         'get-cache-metrics',
-        jasmine.objectContaining({ 
+        expect.objectContaining({ 
           test: 'data',
-          correlationId: jasmine.any(String)
+          correlationId: expect.any(String)
         }),
-        jasmine.any(Object)
+        expect.any(Object)
       );
     });
     
     it('should handle error boundary service failures', async () => {
-      mockBoundaryService.safeIPCInvoke.and.rejectValue(new Error('Boundary service failed'));
+      mockBoundaryService.safeIPCInvoke.mockRejectedValue(new Error('Boundary service failed'));
       
       try {
         await service.safeInvoke('get-cache-metrics');
@@ -479,8 +483,8 @@ describe('IPCService - Security Boundary Tests', () => {
       
       expect(mockBoundaryService.safeIPCInvoke).toHaveBeenCalledWith(
         'get-cache-metrics',
-        jasmine.objectContaining({ correlationId: customCorrelationId }),
-        jasmine.any(Object)
+        expect.objectContaining({ correlationId: customCorrelationId }),
+        expect.any(Object)
       );
     });
   });
@@ -542,12 +546,12 @@ describe('IPCService - Security Boundary Tests', () => {
     it('should provide comprehensive security metrics', () => {
       const metrics = service.getSecurityMetrics();
       
-      expect(metrics).toEqual(jasmine.objectContaining({
-        config: jasmine.any(Object),
-        auditEvents: jasmine.any(Number),
-        rateLimitTrackers: jasmine.any(Number),
-        recentRejections: jasmine.any(Array),
-        channelWhitelist: jasmine.any(Number)
+      expect(metrics).toEqual(expect.objectContaining({
+        config: expect.any(Object),
+        auditEvents: expect.any(Number),
+        rateLimitTrackers: expect.any(Number),
+        recentRejections: expect.any(Array),
+        channelWhitelist: expect.any(Number)
       }));
       
       expect(metrics.channelWhitelist).toBeGreaterThan(0);

@@ -1,6 +1,19 @@
+/**
+ * @fileoverview Global test setup configuration for Jest and Angular testing
+ * @author Dr. Sarah Chen v1.0 & Alex Novak v1.0 - Core Architects
+ * @architecture Testing Infrastructure - Global Setup
+ */
+
 // src/test-setup.ts - Sarah's comprehensive test setup
 import 'jest-preset-angular/setup-jest';
 import { TestBed } from '@angular/core/testing';
+
+// Add TextEncoder/TextDecoder polyfill for Node.js environment
+import { TextEncoder, TextDecoder } from 'util';
+if (typeof global !== 'undefined') {
+  (global as any).TextEncoder = TextEncoder;
+  (global as any).TextDecoder = TextDecoder;
+}
 
 // Global test timeout - prevent hanging tests
 jest.setTimeout(30000);

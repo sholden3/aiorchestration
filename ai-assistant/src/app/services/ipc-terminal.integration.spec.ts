@@ -1,6 +1,7 @@
 /**
  * @fileoverview IPC-Terminal Integration Tests
  * @author Sam Martinez v3.2.0 & Alex Novak v3.0 - 2025-01-27
+ * @architecture Frontend - Terminal/IPC Integration Testing
  * @testing_type Integration
  * @focus Security boundaries don't break functionality
  * @governance Full correlation ID tracking, error propagation verification
@@ -32,16 +33,16 @@ describe('IPC-Terminal Integration Tests', () => {
     
     // Mock Electron API
     mockElectronAPI = {
-      createTerminalSession: jasmine.createSpy('createTerminalSession'),
-      writeToTerminal: jasmine.createSpy('writeToTerminal'),
-      resizeTerminal: jasmine.createSpy('resizeTerminal'),
-      killTerminal: jasmine.createSpy('killTerminal'),
-      getTerminalSessions: jasmine.createSpy('getTerminalSessions').and.returnValue(Promise.resolve([])),
-      getTerminalOutput: jasmine.createSpy('getTerminalOutput').and.returnValue(Promise.resolve([])),
-      onTerminalOutput: jasmine.createSpy('onTerminalOutput').and.returnValue(() => {}),
-      onTerminalExit: jasmine.createSpy('onTerminalExit').and.returnValue(() => {}),
-      onTerminalSessions: jasmine.createSpy('onTerminalSessions').and.returnValue(() => {}),
-      invoke: jasmine.createSpy('invoke').and.callFake((channel: string, data: any) => {
+      createTerminalSession: jest.fn(),
+      writeToTerminal: jest.fn(),
+      resizeTerminal: jest.fn(),
+      killTerminal: jest.fn(),
+      getTerminalSessions: jest.fn().mockResolvedValue([]),
+      getTerminalOutput: jest.fn().mockResolvedValue([]),
+      onTerminalOutput: jest.fn().mockReturnValue(() => {}),
+      onTerminalExit: jest.fn().mockReturnValue(() => {}),
+      onTerminalSessions: jest.fn().mockReturnValue(() => {}),
+      invoke: jest.fn().mockImplementation((channel: string, data: any) => {
         // Track correlation IDs through IPC
         console.log(`[${correlationId}] IPC invoke: ${channel}`, data);
         return Promise.resolve({ success: true, correlationId });
@@ -90,7 +91,7 @@ describe('IPC-Terminal Integration Tests', () => {
       expect(ipcService.safeInvoke).toHaveBeenCalledWith(
         'create-terminal-session',
         { sessionId, shell, cwd },
-        jasmine.objectContaining({ timeout: 10000, retries: 1 })
+        expect.objectContaining({ timeout: 10000, retries: 1 })
       );
     });
     
@@ -125,7 +126,7 @@ describe('IPC-Terminal Integration Tests', () => {
       expect(ipcService.safeInvoke).toHaveBeenCalledTimes(2);
       expect(ipcService.safeInvoke).toHaveBeenCalledWith(
         'terminal-write',
-        jasmine.objectContaining({ sessionId, data: normalData })
+        expect.objectContaining({ sessionId, data: normalData })
       );
     });
     
@@ -145,8 +146,9 @@ describe('IPC-Terminal Integration Tests', () => {
       
       // THEN: Error logged but service continues
       expect(console.error).toHaveBeenCalled();
-      const errorCall = (console.error as jasmine.Spy).calls.mostRecent();
-      expect(errorCall.args[0]).toContain('Failed to write to terminal');
+      const mockError = console.error as jest.Mock;
+      const errorCall = mockError.mock.calls[mockError.mock.calls.length - 1];
+      expect(errorCall[0]).toContain('Failed to write to terminal');
       expect(errorCall.args[1]).toBe(ipcError);
     });
   });
@@ -166,7 +168,7 @@ describe('IPC-Terminal Integration Tests', () => {
       // THEN: Dynamic channel allowed by security
       expect(ipcService.safeInvoke).toHaveBeenCalledWith(
         dynamicChannel,
-        jasmine.objectContaining({ data: 'test output' })
+        expect.objectContaining({ data: 'test output' })
       );
     });
     
@@ -190,8 +192,8 @@ describe('IPC-Terminal Integration Tests', () => {
       sessions.forEach(sessionId => {
         expect(ipcService.safeInvoke).toHaveBeenCalledWith(
           'create-terminal-session',
-          jasmine.objectContaining({ sessionId }),
-          jasmine.any(Object)
+          expect.objectContaining({ sessionId }),
+          expect.any(Object)
         );
       });
     });
@@ -199,7 +201,7 @@ describe('IPC-Terminal Integration Tests', () => {
     it('should cleanup dynamic channels on session termination', () => {
       // GIVEN: Active terminal session with listeners
       const sessionId = `session-${correlationId}`;
-      const outputCallback = jasmine.createSpy('outputCallback');
+      const outputCallback = jest.fn();
       
       // Mock listener registration
       mockElectronAPI.onTerminalOutput.and.returnValue(() => {
@@ -269,8 +271,9 @@ describe('IPC-Terminal Integration Tests', () => {
       
       // THEN: Size limit enforced
       expect(console.error).toHaveBeenCalled();
-      const errorCall = (console.error as jasmine.Spy).calls.mostRecent();
-      expect(errorCall.args[0]).toContain('Failed to write to terminal');
+      const mockError = console.error as jest.Mock;
+      const errorCall = mockError.mock.calls[mockError.mock.calls.length - 1];
+      expect(errorCall[0]).toContain('Failed to write to terminal');
     });
   });
   
@@ -394,13 +397,14 @@ describe('IPC-Terminal Integration Tests', () => {
       
       // THEN: Operations blocked with warning
       expect(console.warn).toHaveBeenCalled();
-      const warnCall = (console.warn as jasmine.Spy).calls.mostRecent();
-      expect(warnCall.args[0]).toContain('Ignoring output - service destroyed');
+      const mockWarn = console.warn as jest.Mock;
+      const warnCall = mockWarn.mock.calls[mockWarn.mock.calls.length - 1];
+      expect(warnCall[0]).toContain('Ignoring output - service destroyed');
     });
     
     it('should handle cleanup errors gracefully', () => {
       // GIVEN: Cleanup function that throws
-      const errorCleanup = jasmine.createSpy('errorCleanup').and.throwError('Cleanup failed');
+      const errorCleanup = jest.fn().mockImplementation(() => { throw new Error('Cleanup failed'); });
       (terminalService as any).cleanupFunctions.push(errorCleanup);
       
       // WHEN: Cleanup executed
@@ -409,8 +413,9 @@ describe('IPC-Terminal Integration Tests', () => {
       
       // THEN: Error logged but cleanup continues
       expect(console.error).toHaveBeenCalled();
-      const errorCall = (console.error as jasmine.Spy).calls.mostRecent();
-      expect(errorCall.args[0]).toContain('Cleanup error');
+      const mockError = console.error as jest.Mock;
+      const errorCall = mockError.mock.calls[mockError.mock.calls.length - 1];
+      expect(errorCall[0]).toContain('Cleanup error');
       expect(terminalService.getDebugInfo().isDestroyed).toBe(true);
     });
     

@@ -24,6 +24,23 @@ from core.auth import get_current_user
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
+def session_to_dict(session: DBSession) -> dict:
+    """Convert Session model to dict for SessionResponse validation"""
+    return {
+        'id': session.id,
+        'session_id': session.session_id,
+        'architects': session.architects,
+        'status': session.status,
+        'environment': session.environment,
+        'metadata': session.session_metadata,  # Map session_metadata to metadata
+        'start_time': session.start_time,
+        'end_time': session.end_time,
+        'duration_minutes': session.duration_minutes,
+        'metrics': session.metrics,
+        'created_at': session.created_at,
+        'updated_at': session.updated_at
+    }
+
 @router.get("/", response_model=SessionListResponse)
 async def list_sessions(
     skip: int = Query(0, ge=0),
@@ -50,7 +67,7 @@ async def list_sessions(
     sessions = query.offset(skip).limit(limit).all()
     
     return SessionListResponse(
-        sessions=[SessionResponse.from_orm(s) for s in sessions],
+        sessions=[SessionResponse.model_validate(session_to_dict(s)) for s in sessions],
         total=total,
         skip=skip,
         limit=limit
@@ -67,7 +84,7 @@ async def get_active_sessions(
     ).all()
     
     return {
-        "active_sessions": [SessionResponse.from_orm(s) for s in active_sessions],
+        "active_sessions": [SessionResponse.model_validate(session_to_dict(s)) for s in active_sessions],
         "count": len(active_sessions)
     }
 
@@ -122,7 +139,7 @@ async def get_session(
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
-    return SessionResponse.from_orm(session)
+    return SessionResponse.model_validate(session_to_dict(session))
 
 @router.post("/", response_model=SessionResponse)
 async def create_session(
@@ -132,7 +149,7 @@ async def create_session(
 ):
     """Create a new development session"""
     db_session = DBSession(
-        **session.dict(),
+        **session.model_dump(),
         start_time=datetime.utcnow()
     )
     
@@ -160,7 +177,7 @@ async def create_session(
     db.add(audit)
     db.commit()
     
-    return SessionResponse.from_orm(db_session)
+    return SessionResponse.model_validate(session_to_dict(db_session))
 
 @router.put("/{session_id}", response_model=SessionResponse)
 async def update_session(
@@ -178,7 +195,7 @@ async def update_session(
     before_state = session.to_dict()
     
     # Update fields
-    update_data = session_update.dict(exclude_unset=True)
+    update_data = session_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(session, field, value)
     
@@ -203,7 +220,7 @@ async def update_session(
     db.add(audit)
     db.commit()
     
-    return SessionResponse.from_orm(session)
+    return SessionResponse.model_validate(session_to_dict(session))
 
 @router.post("/{session_id}/end", response_model=SessionResponse)
 async def end_session(
@@ -247,7 +264,23 @@ async def end_session(
     db.add(audit)
     db.commit()
     
-    return SessionResponse.from_orm(session)
+    # Convert to dict and handle the metadata field mapping
+    session_dict = {
+        'id': session.id,
+        'session_id': session.session_id,
+        'architects': session.architects,
+        'status': session.status,
+        'environment': session.environment,
+        'metadata': session.session_metadata,  # Map session_metadata to metadata
+        'start_time': session.start_time,
+        'end_time': session.end_time,
+        'duration_minutes': session.duration_minutes,
+        'metrics': session.metrics,
+        'created_at': session.created_at,
+        'updated_at': session.updated_at
+    }
+    
+    return SessionResponse.model_validate(session_dict)
 
 @router.get("/{session_id}/audit-logs")
 async def get_session_audit_logs(

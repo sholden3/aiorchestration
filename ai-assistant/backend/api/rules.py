@@ -60,7 +60,7 @@ async def list_rules(
     db.commit()
     
     return RuleListResponse(
-        rules=[RuleResponse.from_orm(rule) for rule in rules],
+        rules=[RuleResponse.model_validate(rule) for rule in rules],
         total=total,
         skip=skip,
         limit=limit
@@ -121,7 +121,7 @@ async def get_rule(
     db.add(audit)
     db.commit()
     
-    return RuleResponse.from_orm(rule)
+    return RuleResponse.model_validate(rule)
 
 @router.post("/", response_model=RuleResponse)
 async def create_rule(
@@ -136,7 +136,7 @@ async def create_rule(
         raise HTTPException(status_code=400, detail=f"Invalid rule condition: {error}")
     
     db_rule = Rule(
-        **rule.dict(),
+        **rule.model_dump(),
         author=current_user.get("name", "system"),
         version=1
     )
@@ -161,7 +161,7 @@ async def create_rule(
     db.add(audit)
     db.commit()
     
-    return RuleResponse.from_orm(db_rule)
+    return RuleResponse.model_validate(db_rule)
 
 @router.put("/{rule_id}", response_model=RuleResponse)
 async def update_rule(
@@ -212,7 +212,7 @@ async def update_rule(
     db.add(audit)
     db.commit()
     
-    return RuleResponse.from_orm(rule)
+    return RuleResponse.model_validate(rule)
 
 @router.delete("/{rule_id}")
 async def delete_rule(

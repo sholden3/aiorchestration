@@ -40,8 +40,17 @@ class TemplateUpdate(BaseModel):
     metadata: Optional[Dict[str, Any]] = None
     tags: Optional[List[str]] = None
 
-class TemplateResponse(TemplateBase):
+class TemplateResponse(BaseModel):
     id: UUID
+    name: str
+    type: TemplateType
+    category: Optional[str] = None
+    template_content: str
+    description: Optional[str] = None
+    example_usage: Optional[Dict[str, Any]] = None
+    variables: Optional[Dict[str, Any]] = {}
+    validation_rules: Optional[Dict[str, Any]] = None
+    tags: Optional[List[str]] = []
     author: Optional[str] = None
     version: int = 1
     parent_id: Optional[UUID] = None
@@ -51,7 +60,7 @@ class TemplateResponse(TemplateBase):
     updated_at: datetime
     
     class Config:
-        orm_mode = True
+        from_attributes = True
     
     @validator('variables', pre=True)
     def parse_variables(cls, v):

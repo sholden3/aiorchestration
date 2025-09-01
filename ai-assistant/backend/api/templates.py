@@ -49,7 +49,7 @@ async def list_templates(
     templates = query.offset(skip).limit(limit).all()
     
     return TemplateListResponse(
-        templates=[TemplateResponse.from_orm(t) for t in templates],
+        templates=[TemplateResponse.model_validate(t) for t in templates],
         total=total,
         skip=skip,
         limit=limit
@@ -80,7 +80,7 @@ async def get_template(
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
     
-    return TemplateResponse.from_orm(template)
+    return TemplateResponse.model_validate(template)
 
 @router.post("/", response_model=TemplateResponse)
 async def create_template(
@@ -90,7 +90,7 @@ async def create_template(
 ):
     """Create a new template"""
     # Convert variables dict to JSON string for storage
-    template_dict = template.dict()
+    template_dict = template.model_dump()
     if template_dict.get('variables'):
         template_dict['variables'] = json.dumps(template_dict['variables'])
     
@@ -120,7 +120,7 @@ async def create_template(
     db.add(audit)
     db.commit()
     
-    return TemplateResponse.from_orm(db_template)
+    return TemplateResponse.model_validate(db_template)
 
 @router.put("/{template_id}", response_model=TemplateResponse)
 async def update_template(
@@ -138,7 +138,7 @@ async def update_template(
     before_state = template.to_dict()
     
     # Update fields
-    update_data = template_update.dict(exclude_unset=True)
+    update_data = template_update.model_dump(exclude_unset=True)
     
     # Convert variables dict to JSON string if provided
     if 'variables' in update_data and update_data['variables'] is not None:
@@ -170,7 +170,7 @@ async def update_template(
     db.add(audit)
     db.commit()
     
-    return TemplateResponse.from_orm(template)
+    return TemplateResponse.model_validate(template)
 
 @router.delete("/{template_id}")
 async def delete_template(
@@ -312,4 +312,4 @@ async def clone_template(
         db.rollback()
         raise HTTPException(status_code=400, detail="Template clone failed")
     
-    return TemplateResponse.from_orm(new_template)
+    return TemplateResponse.model_validate(new_template)

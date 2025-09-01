@@ -46,7 +46,7 @@ async def list_practices(
     practices = query.offset(skip).limit(limit).all()
     
     return PracticeListResponse(
-        practices=[PracticeResponse.from_orm(p) for p in practices],
+        practices=[PracticeResponse.model_validate(p) for p in practices],
         total=total,
         skip=skip,
         limit=limit
@@ -63,7 +63,7 @@ async def get_practice(
     if not practice:
         raise HTTPException(status_code=404, detail="Practice not found")
     
-    return PracticeResponse.from_orm(practice)
+    return PracticeResponse.model_validate(practice)
 
 @router.post("/", response_model=PracticeResponse)
 async def create_practice(
@@ -73,7 +73,7 @@ async def create_practice(
 ):
     """Create a new best practice"""
     db_practice = Practice(
-        **practice.dict(),
+        **practice.model_dump(),
         author=current_user.get("name", "system"),
         effectiveness_score=0.5  # Start with neutral score
     )
@@ -98,7 +98,7 @@ async def create_practice(
     db.add(audit)
     db.commit()
     
-    return PracticeResponse.from_orm(db_practice)
+    return PracticeResponse.model_validate(db_practice)
 
 @router.put("/{practice_id}", response_model=PracticeResponse)
 async def update_practice(
@@ -116,7 +116,7 @@ async def update_practice(
     before_state = practice.to_dict()
     
     # Update fields
-    update_data = practice_update.dict(exclude_unset=True)
+    update_data = practice_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(practice, field, value)
     
@@ -140,7 +140,7 @@ async def update_practice(
     db.add(audit)
     db.commit()
     
-    return PracticeResponse.from_orm(practice)
+    return PracticeResponse.model_validate(practice)
 
 @router.delete("/{practice_id}")
 async def delete_practice(
@@ -231,7 +231,7 @@ async def apply_practice(
     # Create application record
     db_application = PracticeAppModel(
         practice_id=practice_id,
-        **application.dict()
+        **application.model_dump()
     )
     
     db.add(db_application)

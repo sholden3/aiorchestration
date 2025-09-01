@@ -28,8 +28,13 @@ class SessionUpdate(BaseModel):
     environment: Optional[Dict[str, Any]] = None
     metadata: Optional[Dict[str, Any]] = None
 
-class SessionResponse(SessionBase):
+class SessionResponse(BaseModel):
     id: UUID
+    session_id: str
+    architects: List[str]
+    status: SessionStatus
+    environment: Optional[Dict[str, Any]] = {}
+    metadata: Optional[Dict[str, Any]] = {}
     start_time: datetime
     end_time: Optional[datetime] = None
     duration_minutes: Optional[int] = None
@@ -38,7 +43,7 @@ class SessionResponse(SessionBase):
     updated_at: datetime
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class SessionListResponse(BaseModel):
     sessions: List[SessionResponse]

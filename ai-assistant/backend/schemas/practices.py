@@ -46,7 +46,7 @@ class PracticeResponse(PracticeBase):
     updated_at: datetime
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class PracticeListResponse(BaseModel):
     practices: List[PracticeResponse]
@@ -55,7 +55,7 @@ class PracticeListResponse(BaseModel):
     limit: int
 
 class PracticeVote(BaseModel):
-    vote_type: str = Field(..., regex="^(up|down)$")
+    vote_type: str = Field(..., pattern="^(up|down)$")
     comment: Optional[str] = None
 
 class PracticeApplication(BaseModel):

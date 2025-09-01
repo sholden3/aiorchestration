@@ -1,0 +1,100 @@
+<!-- Error Boundary Component Template -->
+<div class="error-boundary-container" *ngIf="currentError" @slideIn>
+  <mat-card [ngClass]="getSeverityClass(currentError.severity)" class="error-card">
+    <!-- Error Header -->
+    <mat-card-header>
+      <mat-icon mat-card-avatar [color]="currentError.severity === ErrorSeverity.CRITICAL ? 'warn' : 'accent'">
+        {{ getSeverityIcon(currentError.severity) }}
+      </mat-icon>
+      <mat-card-title>
+        {{ currentError.severity === ErrorSeverity.CRITICAL ? 'Critical Error' : 
+           currentError.severity === ErrorSeverity.ERROR ? 'Error Occurred' :
+           currentError.severity === ErrorSeverity.WARNING ? 'Warning' : 'Information' }}
+      </mat-card-title>
+      <mat-card-subtitle>
+        {{ formatTime(currentError.timestamp) }}
+        <span class="error-category"> | {{ currentError.category }}</span>
+      </mat-card-subtitle>
+      
+      <!-- Close Button -->
+      <button mat-icon-button class="close-button" (click)="dismiss()" 
+              [disabled]="currentError.severity === ErrorSeverity.CRITICAL">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-card-header>
+
+    <!-- Error Message -->
+    <mat-card-content>
+      <p class="error-message">{{ currentError.message }}</p>
+      
+      <!-- Recovery Status -->
+      <div class="error-status" *ngIf="currentError.recoverable">
+        <mat-chip-list>
+          <mat-chip color="primary" selected>
+            <mat-icon class="status-icon">autorenew</mat-icon>
+            Recoverable
+          </mat-chip>
+          <mat-chip *ngIf="currentError.retryable" color="accent" selected>
+            <mat-icon class="status-icon">replay</mat-icon>
+            Retryable
+          </mat-chip>
+        </mat-chip-list>
+      </div>
+
+      <!-- Error Details (Expandable) -->
+      <div class="error-details-toggle" *ngIf="currentError.details || currentError.stack">
+        <button mat-button (click)="toggleDetails()">
+          <mat-icon>{{ detailsExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+          {{ detailsExpanded ? 'Hide' : 'Show' }} Details
+        </button>
+        <button mat-icon-button (click)="copyErrorDetails()" matTooltip="Copy error details">
+          <mat-icon>content_copy</mat-icon>
+        </button>
+      </div>
+
+      <div class="error-details" [@expand]="detailsExpanded ? 'expanded' : 'collapsed'">
+        <!-- Error ID -->
+        <div class="detail-item" *ngIf="currentError.id">
+          <strong>Error ID:</strong> {{ currentError.id }}
+        </div>
+
+        <!-- Component -->
+        <div class="detail-item" *ngIf="currentError.component">
+          <strong>Component:</strong> {{ currentError.component }}
+        </div>
+
+        <!-- Additional Details -->
+        <div class="detail-item" *ngIf="currentError.details">
+          <strong>Details:</strong>
+          <pre class="detail-json">{{ currentError.details | json }}</pre>
+        </div>
+
+        <!-- Stack Trace -->
+        <div class="detail-item" *ngIf="currentError.stack">
+          <strong>Stack Trace:</strong>
+          <pre class="stack-trace">{{ currentError.stack }}</pre>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <!-- Error Actions -->
+    <mat-card-actions *ngIf="currentError.userActions && currentError.userActions.length > 0">
+      <button mat-button 
+              *ngFor="let action of currentError.userActions"
+              [color]="action.primary ? 'primary' : ''"
+              [disabled]="processingAction"
+              (click)="executeAction(action)">
+        <mat-icon *ngIf="action.icon">{{ action.icon }}</mat-icon>
+        {{ action.label }}
+      </button>
+      
+      <!-- Processing Indicator -->
+      <mat-spinner diameter="20" *ngIf="processingAction"></mat-spinner>
+    </mat-card-actions>
+  </mat-card>
+</div>
+
+<!-- Connection Status Indicator (Always Visible) -->
+<div class="connection-status-indicator">
+  <!-- This will be implemented with the connection status component -->
+</div>

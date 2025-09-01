@@ -1,0 +1,345 @@
+/**
+ * Error Boundary Component Styles
+ * @author Alex Novak v2.0
+ * Using shared design system variables and mixins for consistency
+ */
+
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.error-boundary-container {
+  position: fixed;
+  top: $space-5;
+  right: $space-5;
+  z-index: $z-notification;
+  max-width: 500px;
+  width: calc(100vw - #{$space-10});
+  
+  @include respond-to(sm) {
+    top: $space-3;
+    right: $space-3;
+    left: $space-3;
+    width: auto;
+  }
+}
+
+.error-card {
+  @include card;
+  border-left: 4px solid;
+  position: relative;
+  transition: all $transition-base;
+  
+  // Critical error styling
+  &.error-critical {
+    border-left-color: $color-error;
+    background: linear-gradient(135deg, 
+      rgba($color-error, 0.05) 0%, 
+      $color-surface 100%);
+    
+    .mat-card-header {
+      background-color: rgba($color-error, 0.05);
+    }
+  }
+  
+  // Error styling
+  &.error-error {
+    border-left-color: $color-warning;
+    background: linear-gradient(135deg, 
+      rgba($color-warning, 0.05) 0%, 
+      $color-surface 100%);
+    
+    .mat-card-header {
+      background-color: rgba($color-warning, 0.05);
+    }
+  }
+  
+  // Warning styling
+  &.error-warning {
+    border-left-color: darken($color-warning, 10%);
+    background: linear-gradient(135deg, 
+      rgba($color-warning, 0.03) 0%, 
+      $color-surface 100%);
+    
+    .mat-card-header {
+      background-color: rgba($color-warning, 0.03);
+    }
+  }
+  
+  // Info styling
+  &.error-info {
+    border-left-color: $color-info;
+    background: linear-gradient(135deg, 
+      rgba($color-info, 0.05) 0%, 
+      $color-surface 100%);
+    
+    .mat-card-header {
+      background-color: rgba($color-info, 0.05);
+    }
+  }
+}
+
+.mat-card-header {
+  padding: $space-4;
+  border-bottom: $border-width solid $color-border;
+  position: relative;
+  
+  .mat-card-title {
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
+    margin-bottom: $space-1;
+    color: $color-text-primary;
+  }
+  
+  .mat-card-subtitle {
+    font-size: $font-size-xs;
+    color: $color-text-secondary;
+    
+    .error-category {
+      text-transform: uppercase;
+      font-weight: $font-weight-medium;
+      opacity: 0.8;
+    }
+  }
+}
+
+.close-button {
+  position: absolute;
+  top: $space-2;
+  right: $space-2;
+  
+  @include interactive-states($color-hover, $color-active);
+  @include focus-ring;
+}
+
+.mat-card-content {
+  padding: $space-4;
+  
+  .error-message {
+    margin: 0 0 $space-3 0;
+    font-size: $font-size-sm;
+    line-height: 1.5;
+    color: $color-text-primary;
+  }
+  
+  .error-status {
+    margin: $space-3 0;
+    
+    .mat-chip-list {
+      margin: 0;
+    }
+    
+    .mat-chip {
+      font-size: $font-size-xs;
+      padding: $space-1 $space-2;
+      min-height: 24px;
+      
+      .status-icon {
+        font-size: $icon-size-md;
+        width: $icon-size-md;
+        height: $icon-size-md;
+        margin-right: $space-1;
+      }
+    }
+  }
+  
+  .error-details-toggle {
+    margin: $space-3 0;
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    
+    button {
+      font-size: $font-size-sm;
+      @include interactive-states;
+      @include focus-ring;
+    }
+  }
+  
+  .error-details {
+    overflow: hidden;
+    margin-top: $space-3;
+    padding: $space-3;
+    background-color: $color-hover;
+    border-radius: $radius-sm;
+    
+    .detail-item {
+      margin-bottom: $space-3;
+      font-size: $font-size-xs;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      strong {
+        display: inline-block;
+        margin-bottom: $space-1;
+        color: $color-text-secondary;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.5px;
+        font-weight: $font-weight-medium;
+      }
+      
+      .detail-json,
+      .stack-trace {
+        margin: $space-1 0 0 0;
+        padding: $space-2;
+        background-color: $color-background;
+        border-radius: $radius-sm;
+        font-family: $font-family-mono;
+        font-size: 11px;
+        line-height: 1.4;
+        overflow-x: auto;
+        max-height: 200px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        border: $border-width solid $color-border;
+      }
+      
+      .stack-trace {
+        color: $color-error;
+      }
+    }
+  }
+}
+
+.mat-card-actions {
+  padding: $space-2 $space-4;
+  border-top: $border-width solid $color-border;
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  
+  button {
+    @include button-base;
+    font-size: $font-size-sm;
+    padding: $space-2 $space-3;
+    
+    .mat-icon {
+      font-size: $icon-size-lg;
+      width: $icon-size-lg;
+      height: $icon-size-lg;
+      margin-right: $space-1;
+    }
+    
+    &[color="primary"] {
+      @include ensure-contrast($color-primary, $color-surface);
+      
+      &:hover:not(:disabled) {
+        background: darken($color-primary, 10%);
+      }
+    }
+  }
+  
+  .mat-spinner {
+    margin-left: auto;
+  }
+}
+
+// Animation classes
+.error-boundary-container {
+  animation: slideDown $transition-slow;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-$space-5);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// Dark theme support
+@media (prefers-color-scheme: dark) {
+  .error-card {
+    @include dark-theme;
+    box-shadow: $shadow-xl;
+    
+    &.error-critical {
+      background: linear-gradient(135deg, 
+        rgba($color-error, 0.1) 0%, 
+        $color-dark-surface 100%);
+        
+      .mat-card-header {
+        background-color: rgba($color-error, 0.1);
+      }
+    }
+    
+    &.error-error {
+      background: linear-gradient(135deg, 
+        rgba($color-warning, 0.1) 0%, 
+        $color-dark-surface 100%);
+        
+      .mat-card-header {
+        background-color: rgba($color-warning, 0.1);
+      }
+    }
+    
+    &.error-warning {
+      background: linear-gradient(135deg, 
+        rgba($color-warning, 0.08) 0%, 
+        $color-dark-surface 100%);
+        
+      .mat-card-header {
+        background-color: rgba($color-warning, 0.08);
+      }
+    }
+    
+    &.error-info {
+      background: linear-gradient(135deg, 
+        rgba($color-info, 0.1) 0%, 
+        $color-dark-surface 100%);
+        
+      .mat-card-header {
+        background-color: rgba($color-info, 0.1);
+      }
+    }
+    
+    .mat-card-header {
+      border-bottom-color: $color-dark-border;
+      
+      .mat-card-title {
+        color: $color-dark-text-primary;
+      }
+      
+      .mat-card-subtitle {
+        color: $color-dark-text-secondary;
+      }
+    }
+    
+    .mat-card-content {
+      .error-message {
+        color: $color-dark-text-primary;
+      }
+      
+      .error-details {
+        background-color: rgba($color-dark-background, 0.5);
+        
+        .detail-item {
+          strong {
+            color: $color-dark-text-secondary;
+          }
+          
+          .detail-json,
+          .stack-trace {
+            background-color: $color-dark-background;
+            border-color: $color-dark-border;
+            color: $color-dark-text-primary;
+          }
+          
+          .stack-trace {
+            color: lighten($color-error, 20%);
+          }
+        }
+      }
+    }
+    
+    .mat-card-actions {
+      border-top-color: $color-dark-border;
+    }
+  }
+}

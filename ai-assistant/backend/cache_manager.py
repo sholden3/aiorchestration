@@ -3,6 +3,10 @@ Business Context: Intelligent caching system to reduce token usage by 65%
 Architecture Pattern: Two-tier cache (hot memory, warm disk) with TTL
 Performance Requirements: 90% cache hit rate, <10ms hot access, <100ms warm access
 Business Assumptions: Local storage, persistent cache across restarts
+
+@author Dr. Sarah Chen v1.2 - Backend Systems & Cache Architecture
+@architecture Two-tier caching with hot (memory) and warm (disk) layers
+@business_logic Token optimization through intelligent caching with 65% reduction target
 """
 
 import os
@@ -110,8 +114,12 @@ class IntelligentCache:
         self.warm_index = {}
         self._load_warm_index()
         
-        # FIX C2: Start disk health monitoring
-        asyncio.create_task(self._periodic_disk_health_check())
+        # FIX C2: Start disk health monitoring only if event loop exists
+        try:
+            asyncio.create_task(self._periodic_disk_health_check())
+        except RuntimeError:
+            # No event loop running, skip background task (e.g., during testing)
+            pass
         
         logger.info(f"Cache initialized: {hot_size_mb}MB hot, {warm_size_mb}MB warm")
     

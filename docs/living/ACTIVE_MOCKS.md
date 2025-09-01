@@ -1,8 +1,8 @@
 ---
 governance:
-  correlation_id: 4018e185-d0ad-4382-91cf-3224b61fcdfd
-  last_updated: 2025-08-29T15:35:33Z
-  update_required_by: 2025-09-05T15:35:33Z
+  correlation_id: CorrelationContext(correlation_id='c97b0a58-4020-4eb8-a91c-1b5d8ffbc6f2', parent_correlation_id=None, session_id=None, user='Steven Holden', operation_type='git.pre_commit', operation_name='pre_commit_validation', start_time=datetime.datetime(2025, 8, 29, 18, 52, 4, 328681), end_time=None, status=<OperationStatus.IN_PROGRESS: 'in_progress'>, metadata={'user': 'Steven Holden', 'branch': 'main', 'files': ['governance-config/governance-rules.yml', 'governance/scripts/integrated_pre_commit_hook.py', 'governance/validators/domain_validators.py']}, debug_trace=['[2025-08-29T18:52:04.328681] Correlation created for git.pre_commit:pre_commit_validation'], events=[], errors=[], warnings=[], checkpoints={}, metrics={})
+  P25-08-29T18:50:54.654952Z
+  P25-09-05T18:50:54.654952Z
   validation_schema: v1.0
   auto_sections: [mock_inventory, performance_comparison]
   manual_sections: [migration_plans, technical_debt]

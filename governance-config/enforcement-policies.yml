@@ -1,0 +1,351 @@
+# Governance Enforcement Policies
+# Defines what gets enforced at each phase and severity level
+# Version: 1.0 - Created by Dr. Sarah Chen & Alex Novak
+
+version: "1.0"
+last_updated: "2025-01-30"
+
+# Phase-based enforcement progression
+phases:
+  phase_1:
+    name: "Learning Phase"
+    description: "Gathering data, minimal enforcement"
+    enforcement_level: 0.1
+    duration_days: 7
+    
+    blocking_violations:
+      - sql_injection_direct
+      - hardcoded_production_secrets
+      - rm_rf_root
+      
+    warning_violations:
+      - magic_numbers
+      - missing_documentation
+      - no_tests
+      
+    ignored_violations:
+      - code_style
+      - naming_conventions
+      - comment_formatting
+    
+    metrics_collected:
+      - violation_frequency
+      - false_positive_rate
+      - developer_friction
+      - common_patterns
+  
+  phase_2:
+    name: "Advisory Phase"
+    description: "Current phase - warnings but allows commits"
+    enforcement_level: 0.5
+    duration_days: 14
+    current: true
+    
+    blocking_violations:
+      - sql_injection_all
+      - hardcoded_secrets
+      - dangerous_eval_exec
+      - cross_site_scripting
+      - command_injection
+      
+    warning_violations:
+      - magic_numbers_critical
+      - missing_critical_documentation
+      - no_test_coverage
+      - deprecated_patterns
+      - performance_issues
+      - cache_no_ttl
+      - n_plus_one_queries
+      
+    info_violations:
+      - style_inconsistencies
+      - minor_documentation
+      - test_coverage_below_target
+    
+    auto_fix_enabled:
+      - trailing_whitespace
+      - import_sorting
+      - basic_formatting
+  
+  phase_3:
+    name: "Enforcement Phase"
+    description: "Strict enforcement with some flexibility"
+    enforcement_level: 0.9
+    duration_days: 30
+    
+    blocking_violations:
+      - all_security_issues
+      - magic_numbers_all
+      - missing_required_documentation
+      - test_coverage_below_minimum
+      - breaking_api_changes
+      - database_migrations_unsafe
+      - memory_leaks_detected
+      
+    warning_violations:
+      - performance_degradation
+      - complexity_exceeded
+      - duplicate_code
+      - unused_imports
+      
+    require_justification:
+      - emergency_commits
+      - hotfixes
+      - exemption_requests
+    
+    review_required:
+      - critical_path_changes
+      - security_boundary_changes
+      - api_contract_changes
+  
+  phase_4:
+    name: "Mature Phase"
+    description: "Full enforcement with intelligent exemptions"
+    enforcement_level: 1.0
+    duration_days: null  # Permanent
+    
+    blocking_violations:
+      - all_violations_except_exempted
+      
+    intelligent_exemptions:
+      - context_aware
+      - history_based
+      - team_specific
+      - project_specific
+    
+    continuous_improvement:
+      - pattern_learning
+      - false_positive_reduction
+      - developer_feedback_loop
+
+# Severity-based policies
+severity_policies:
+  critical:
+    description: "Security vulnerabilities, data loss risks"
+    action: "BLOCK"
+    notification: "immediate"
+    escalation: "team_lead"
+    require_fix: true
+    bypass_allowed: false
+    
+    examples:
+      - sql_injection
+      - command_injection
+      - hardcoded_credentials
+      - encryption_disabled
+      - authentication_bypass
+  
+  high:
+    description: "Significant bugs, performance issues"
+    action: "BLOCK_IN_PHASE_3"
+    notification: "pr_comment"
+    escalation: "code_review"
+    require_fix: true
+    bypass_allowed: "with_justification"
+    
+    examples:
+      - memory_leak
+      - infinite_loop
+      - race_condition
+      - api_breaking_change
+      - data_corruption_risk
+  
+  medium:
+    description: "Code quality, maintainability issues"
+    action: "WARN"
+    notification: "commit_comment"
+    escalation: "weekly_report"
+    require_fix: false
+    bypass_allowed: true
+    
+    examples:
+      - magic_numbers
+      - missing_tests
+      - complex_functions
+      - duplicate_code
+      - outdated_dependencies
+  
+  low:
+    description: "Style, formatting, minor issues"
+    action: "INFO"
+    notification: "dashboard_only"
+    escalation: "monthly_report"
+    require_fix: false
+    bypass_allowed: true
+    
+    examples:
+      - naming_convention
+      - comment_style
+      - import_order
+      - whitespace_issues
+  
+  info:
+    description: "Suggestions, best practices"
+    action: "LOG_ONLY"
+    notification: "none"
+    escalation: "none"
+    require_fix: false
+    bypass_allowed: true
+
+# Special policies
+special_policies:
+  emergency_mode:
+    description: "Production emergency bypass"
+    activation: "EMERGENCY=true"
+    duration_minutes: 60
+    
+    requirements:
+      - incident_ticket_required: true
+      - post_mortem_required: true
+      - review_within_hours: 24
+    
+    allowed_bypasses:
+      - all_non_critical_violations
+      - documentation_requirements
+      - test_requirements
+    
+    still_blocked:
+      - sql_injection
+      - hardcoded_secrets
+      - rm_rf_root
+  
+  new_developer_mode:
+    description: "Onboarding period for new team members"
+    duration_days: 30
+    
+    relaxed_requirements:
+      - documentation_depth
+      - test_coverage_target
+      - performance_benchmarks
+    
+    enhanced_guidance:
+      - detailed_suggestions
+      - example_fixes
+      - learning_resources
+  
+  legacy_code_mode:
+    description: "Working with legacy codebases"
+    activation: "path_contains('legacy')"
+    
+    relaxed_requirements:
+      - modern_patterns
+      - latest_dependencies
+      - full_test_coverage
+    
+    focus_on:
+      - security_fixes
+      - critical_bugs
+      - gradual_improvement
+
+# Metrics and reporting
+metrics_collection:
+  events_tracked:
+    - violation_detected
+    - violation_fixed
+    - violation_bypassed
+    - exemption_used
+    - auto_fix_applied
+    - commit_blocked
+    - commit_allowed
+  
+  aggregation_periods:
+    - hourly
+    - daily
+    - weekly
+    - monthly
+  
+  reports_generated:
+    daily:
+      - violation_summary
+      - developer_impact
+      - trending_issues
+    
+    weekly:
+      - team_compliance_score
+      - improvement_areas
+      - exemption_analysis
+    
+    monthly:
+      - governance_health_score
+      - phase_progression_readiness
+      - policy_effectiveness
+
+# Notification channels
+notifications:
+  channels:
+    terminal:
+      enabled: true
+      verbosity: "medium"
+      color_coding: true
+    
+    slack:
+      enabled: false
+      webhook_url: "${SLACK_WEBHOOK_URL}"
+      channels:
+        critical: "#security-alerts"
+        high: "#code-quality"
+        daily_summary: "#team-standup"
+    
+    email:
+      enabled: false
+      smtp_config: "${SMTP_CONFIG}"
+      recipients:
+        critical: ["security@company.com"]
+        weekly_report: ["team@company.com"]
+    
+    github:
+      enabled: true
+      pr_comments: true
+      commit_status: true
+      issue_creation: false
+
+# Continuous improvement
+improvement_cycle:
+  feedback_collection:
+    - developer_surveys: "monthly"
+    - false_positive_reporting: "continuous"
+    - exemption_request_analysis: "weekly"
+  
+  pattern_refinement:
+    - review_frequency: "bi-weekly"
+    - approval_required: ["sarah_chen", "alex_novak"]
+    - testing_period: 7  # days
+  
+  phase_progression_criteria:
+    - false_positive_rate: "< 10%"
+    - developer_satisfaction: "> 70%"
+    - compliance_rate: "> 85%"
+    - critical_violations: "0 in last 7 days"
+
+# Audit and compliance
+audit_trail:
+  retention_days: 365
+  
+  tracked_events:
+    - policy_changes
+    - exemption_grants
+    - emergency_bypasses
+    - phase_transitions
+    - configuration_updates
+  
+  compliance_reports:
+    - sox_compliance: "quarterly"
+    - security_audit: "monthly"
+    - code_quality_metrics: "weekly"
+
+# Notes for administrators
+admin_notes: |
+  Policy Administration:
+  1. Changes require approval from both architects
+  2. Phase transitions are automatic based on criteria
+  3. Emergency mode auto-expires after 60 minutes
+  4. All bypasses are logged for audit
+  
+  To change phase manually:
+    export GOVERNANCE_PHASE=3
+  
+  To activate emergency mode:
+    export EMERGENCY=true
+  
+  To check current policies:
+    python gov.py policies

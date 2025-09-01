@@ -2,6 +2,10 @@
 Cache Manager Unit Tests - Phase 2.5 Implementation
 ====================================================
 
+@author Sam Martinez v3.2.0 - Testing Lead & Quality Assurance
+@architecture Test coverage for two-tier cache system validation
+@business_logic Validates 65% token reduction and 90% hit rate requirements
+
 File Type: Test Implementation
 Documentation Standard: v2.0 (CLAUDE.md § Standards)
 Orchestrated Implementation: Phase 2.5 Day 1
@@ -158,7 +162,7 @@ class TestIntelligentCache:
     """Test IntelligentCache two-tier operations and behavior"""
     
     @pytest.fixture
-    async def cache(self):
+    def cache(self):
         """Create isolated cache instance with temporary directory"""
         # Create temporary directory for test isolation
         test_dir = tempfile.mkdtemp(prefix="cache_test_")
@@ -172,8 +176,10 @@ class TestIntelligentCache:
             
             yield cache
             
-            # Cleanup
-            await cache.clear()
+            # Cleanup - run async cleanup synchronously
+            loop = asyncio.new_event_loop()
+            loop.run_until_complete(cache.clear())
+            loop.close()
             shutil.rmtree(test_dir, ignore_errors=True)
     
     @pytest.mark.asyncio
@@ -474,7 +480,7 @@ class TestCacheErrorHandling:
     """Test cache error handling and defensive error boundaries"""
     
     @pytest.fixture
-    async def cache_with_temp_dir(self):
+    def cache_with_temp_dir(self):
         """Create cache with controlled temporary directory"""
         test_dir = tempfile.mkdtemp(prefix="error_test_")
         cache = IntelligentCache(hot_size_mb=1, warm_size_mb=5)
@@ -483,7 +489,10 @@ class TestCacheErrorHandling:
         
         yield cache, test_dir
         
-        await cache.clear()
+        # Cleanup - run async cleanup synchronously
+        loop = asyncio.new_event_loop()
+        loop.run_until_complete(cache.clear())
+        loop.close()
         shutil.rmtree(test_dir, ignore_errors=True)
     
     @pytest.mark.asyncio
@@ -574,7 +583,7 @@ class TestCachePerformance:
     """Test cache performance requirements and baselines"""
     
     @pytest.fixture
-    async def performance_cache(self):
+    def performance_cache(self):
         """Create cache optimized for performance testing"""
         cache = IntelligentCache(hot_size_mb=10, warm_size_mb=50)
         temp_dir = tempfile.mkdtemp(prefix="perf_test_")
@@ -583,7 +592,10 @@ class TestCachePerformance:
         
         yield cache
         
-        await cache.clear()
+        # Cleanup - run async cleanup synchronously
+        loop = asyncio.new_event_loop()
+        loop.run_until_complete(cache.clear())
+        loop.close()
         shutil.rmtree(temp_dir, ignore_errors=True)
     
     @pytest.mark.asyncio
@@ -643,7 +655,7 @@ class TestCacheConcurrency:
     """Test cache behavior under concurrent access patterns"""
     
     @pytest.fixture
-    async def concurrent_cache(self):
+    def concurrent_cache(self):
         """Create cache for concurrency testing"""
         cache = IntelligentCache(hot_size_mb=5, warm_size_mb=20)
         temp_dir = tempfile.mkdtemp(prefix="concurrent_test_")
@@ -652,7 +664,10 @@ class TestCacheConcurrency:
         
         yield cache
         
-        await cache.clear()
+        # Cleanup - run async cleanup synchronously
+        loop = asyncio.new_event_loop()
+        loop.run_until_complete(cache.clear())
+        loop.close()
         shutil.rmtree(temp_dir, ignore_errors=True)
     
     @pytest.mark.asyncio
@@ -719,7 +734,7 @@ class TestCacheObservability:
     """Test cache observability and metrics integration"""
     
     @pytest.fixture
-    async def monitored_cache(self):
+    def monitored_cache(self):
         """Create cache with observability features"""
         cache = IntelligentCache(hot_size_mb=2, warm_size_mb=10, target_hit_rate=0.9)
         temp_dir = tempfile.mkdtemp(prefix="monitor_test_")
@@ -728,7 +743,10 @@ class TestCacheObservability:
         
         yield cache
         
-        await cache.clear()
+        # Cleanup - run async cleanup synchronously
+        loop = asyncio.new_event_loop()
+        loop.run_until_complete(cache.clear())
+        loop.close()
         shutil.rmtree(temp_dir, ignore_errors=True)
     
     @pytest.mark.asyncio

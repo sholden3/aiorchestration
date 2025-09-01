@@ -15,7 +15,7 @@ from sqlalchemy import (
     DateTime, JSON, ForeignKey, Table, Index, UniqueConstraint
 )
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy.sql import func
 
@@ -164,9 +164,11 @@ class Practice(Base):
     
     def calculate_effectiveness(self) -> float:
         """Calculate effectiveness based on votes and applications"""
-        if self.votes_up + self.votes_down == 0:
+        votes_up = self.votes_up or 0
+        votes_down = self.votes_down or 0
+        if votes_up + votes_down == 0:
             return 0.5
-        return self.votes_up / (self.votes_up + self.votes_down)
+        return votes_up / (votes_up + votes_down)
     
     def to_dict(self) -> Dict:
         return {
@@ -198,7 +200,7 @@ class Template(Base):
     # Variables and validation
     variables = Column(JSON)  # List of variable definitions
     validation_rules = Column(JSON)
-    metadata = Column(JSON)
+    template_metadata = Column(JSON, name='metadata')
     
     # Versioning
     version = Column(Integer, default=1)
@@ -264,7 +266,7 @@ class Session(Base):
     duration_minutes = Column(Integer)
     
     # Metadata
-    metadata = Column(JSON)
+    session_metadata = Column(JSON, name='metadata')
     metrics = Column(JSON)  # Performance metrics
     
     # Timestamps
@@ -374,7 +376,7 @@ class AuditLog(Base):
     # Data
     before_state = Column(JSON)
     after_state = Column(JSON)
-    metadata = Column(JSON)
+    audit_metadata = Column(JSON, name='metadata')
     
     # Linkages
     session_id = Column(UUID(as_uuid=True), ForeignKey('sessions.id'))

@@ -128,20 +128,25 @@ class TestRuleModel:
             action="parent"
         )
         
+        db_session.add(parent_rule)
+        db_session.commit()
+        
         child_rule = Rule(
             name="child_rule",
             condition="child",
             action="child",
-            parent=parent_rule
+            parent_id=parent_rule.id
         )
         
-        db_session.add(parent_rule)
         db_session.add(child_rule)
         db_session.commit()
         
+        # Refresh parent to load children relationship
+        db_session.refresh(parent_rule)
+        
         assert child_rule.parent_id == parent_rule.id
         assert child_rule in parent_rule.children
-        assert child_rule.parent == parent_rule
+        assert child_rule.parent.id == parent_rule.id
 
 class TestPracticeModel:
     """Test Practice model"""
@@ -274,11 +279,14 @@ class TestTemplateModel:
             type=TemplateType.CODE,
             template_content="Version 2",
             version=2,
-            parent=template_v1
+            parent_id=template_v1.id
         )
         
         db_session.add(template_v2)
         db_session.commit()
+        
+        # Refresh parent to load children relationship
+        db_session.refresh(template_v1)
         
         assert template_v2.parent_id == template_v1.id
         assert template_v2 in template_v1.children

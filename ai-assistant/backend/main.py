@@ -163,9 +163,11 @@ class AIBackendService:
         # add_additional_routes(self.app)
         
         # Add real database-backed endpoints
-        self.app.include_router(rules_router)
-        self.app.include_router(practices_router) 
-        self.app.include_router(templates_router)
+        from api import rules, practices, templates, sessions
+        self.app.include_router(rules.router)
+        self.app.include_router(practices.router) 
+        self.app.include_router(templates.router)
+        self.app.include_router(sessions.router)
         
     def setup_middleware(self):
         """Configure CORS for Electron app"""

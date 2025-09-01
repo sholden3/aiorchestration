@@ -23,6 +23,22 @@ import {
 } from 'rxjs/operators';
 
 /**
+ * Type declaration for the electronAPI exposed by preload script
+ */
+declare global {
+  interface Window {
+    electronAPI?: {
+      ipcRenderer?: {
+        invoke: (channel: string, ...args: any[]) => Promise<any>;
+        send: (channel: string, ...args: any[]) => void;
+        on: (channel: string, listener: (event: any, ...args: any[]) => void) => void;
+        removeListener: (channel: string, listener: (event: any, ...args: any[]) => void) => void;
+      };
+    };
+  }
+}
+
+/**
  * Connection state enumeration
  * @enum {string}
  */
@@ -246,13 +262,13 @@ export class ResilientIPCService {
    * @param args Arguments to send
    */
   public send(channel: string, ...args: any[]): void {
-    if (!window.electron?.ipcRenderer) {
+    if (!window.electronAPI?.ipcRenderer) {
       console.error('[ResilientIPC] IPC not available');
       return;
     }
     
     try {
-      window.electron.ipcRenderer.send(channel, ...args);
+      window.electronAPI.ipcRenderer.send(channel, ...args);
     } catch (error) {
       console.error('[ResilientIPC] Send error:', error);
       this.handleConnectionError(error);
@@ -267,7 +283,7 @@ export class ResilientIPCService {
   public on<T = any>(channel: string): Observable<T> {
     const subject = new Subject<T>();
     
-    if (!window.electron?.ipcRenderer) {
+    if (!window.electronAPI?.ipcRenderer) {
       console.error('[ResilientIPC] IPC not available');
       return subject.asObservable();
     }
@@ -278,7 +294,7 @@ export class ResilientIPCService {
       });
     };
     
-    window.electron.ipcRenderer.on(channel, listener);
+    window.electronAPI.ipcRenderer.on(channel, listener);
     
     // Return observable with cleanup
     return new Observable(observer => {
@@ -286,7 +302,7 @@ export class ResilientIPCService {
       
       return () => {
         subscription.unsubscribe();
-        window.electron?.ipcRenderer?.removeListener(channel, listener);
+        window.electronAPI?.ipcRenderer?.removeListener(channel, listener);
       };
     });
   }
@@ -299,7 +315,7 @@ export class ResilientIPCService {
     this.connectionState$.next(ConnectionState.CONNECTING);
     
     // Check if IPC is available
-    if (!window.electron?.ipcRenderer) {
+    if (!window.electronAPI?.ipcRenderer) {
       console.error('[ResilientIPC] Electron IPC not available');
       this.connectionState$.next(ConnectionState.ERROR);
       return;
@@ -370,7 +386,7 @@ export class ResilientIPCService {
    * @private
    */
   private async performHealthCheck(): Promise<void> {
-    if (!window.electron?.ipcRenderer) {
+    if (!window.electronAPI?.ipcRenderer) {
       throw new Error('IPC not available');
     }
     
@@ -381,7 +397,7 @@ export class ResilientIPCService {
         reject(new Error('Health check timeout'));
       }, timeout);
       
-      window.electron.ipcRenderer.invoke('health:check')
+      window.electronAPI.ipcRenderer.invoke('health:check')
         .then(() => {
           clearTimeout(timer);
           resolve();
@@ -439,11 +455,11 @@ export class ResilientIPCService {
    * @private
    */
   private async executeIPCCall<T>(channel: string, ...args: any[]): Promise<T> {
-    if (!window.electron?.ipcRenderer) {
+    if (!window.electronAPI?.ipcRenderer) {
       throw new Error('IPC not available');
     }
     
-    return window.electron.ipcRenderer.invoke(channel, ...args);
+    return window.electronAPI.ipcRenderer.invoke(channel, ...args);
   }
 
   /**

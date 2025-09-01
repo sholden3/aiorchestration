@@ -190,11 +190,32 @@ export class XtermTerminalComponent implements OnInit, AfterViewInit, OnDestroy 
   private webLinksAddon?: WebLinksAddon;
   private outputSubscription?: Subscription;
   private exitSubscription?: Subscription;
-  private currentSessionId?: string;
+  private _currentSessionId?: string;
   private resizeObserver?: ResizeObserver;
   
   isSessionActive: boolean = false;
   statusMessage: string = 'Initializing...';
+  
+  /**
+   * Public accessor for current session ID - used in template binding
+   * @returns Current session ID or undefined if no active session
+   */
+  public get currentSessionId(): string | undefined {
+    return this._currentSessionId;
+  }
+  
+  /**
+   * Updates current session with validation
+   * @param sessionId - New session identifier
+   * @business_rule Session ID must be non-empty string
+   */
+  private setSession(sessionId: string | undefined): void {
+    if (sessionId && sessionId.trim().length === 0) {
+      console.warn('[XTerm] Invalid session ID: empty string');
+      return;
+    }
+    this._currentSessionId = sessionId;
+  }
   
   constructor(private terminalService: TerminalService) {}
   
@@ -208,14 +229,14 @@ export class XtermTerminalComponent implements OnInit, AfterViewInit, OnDestroy 
     
     // Subscribe to terminal output from PTY
     this.outputSubscription = this.terminalService.output$.subscribe(output => {
-      if (output.sessionId === this.currentSessionId) {
+      if (output.sessionId === this._currentSessionId) {
         this.handleTerminalOutput(output);
       }
     });
     
     // Subscribe to session exit events
     this.exitSubscription = this.terminalService.exit$.subscribe(exitData => {
-      if (exitData.sessionId === this.currentSessionId) {
+      if (exitData.sessionId === this._currentSessionId) {
         this.handleSessionExit(exitData);
       }
     });
@@ -273,18 +294,18 @@ export class XtermTerminalComponent implements OnInit, AfterViewInit, OnDestroy 
     
     // Handle terminal input
     this.terminal.onData((data: string) => {
-      if (this.currentSessionId && this.isSessionActive) {
+      if (this._currentSessionId && this.isSessionActive) {
         // Send input to PTY via IPC
-        this.terminalService.writeToSession(this.currentSessionId, data);
+        this.terminalService.writeToSession(this._currentSessionId, data);
       }
     });
     
     // Handle terminal resize
     this.terminal.onResize((dimensions: { cols: number; rows: number }) => {
-      if (this.currentSessionId && this.isSessionActive) {
+      if (this._currentSessionId && this.isSessionActive) {
         // Send resize to PTY
         this.terminalService.resizeSession(
-          this.currentSessionId,
+          this._currentSessionId,
           dimensions.cols,
           dimensions.rows
         );
@@ -310,16 +331,16 @@ export class XtermTerminalComponent implements OnInit, AfterViewInit, OnDestroy 
     try {
       // Create PTY session
       if (this.sessionId) {
-        this.currentSessionId = this.sessionId;
+        this.setSession(this.sessionId);
         await this.terminalService.createSessionWithId(this.sessionId, this.shell, this.cwd);
       } else {
-        this.currentSessionId = await this.terminalService.createSession(this.shell, this.cwd);
+        this.setSession(await this.terminalService.createSession(this.shell, this.cwd));
       }
       
-      console.log('[XTerm] Session created:', this.currentSessionId);
+      console.log('[XTerm] Session created:', this._currentSessionId);
       
       // Get any existing output
-      const existingOutput = await this.terminalService.getSessionOutput(this.currentSessionId);
+      const existingOutput = await this.terminalService.getSessionOutput(this._currentSessionId);
       existingOutput.forEach(output => {
         if (this.terminal && output.data) {
           this.terminal.write(output.data);
@@ -402,9 +423,9 @@ export class XtermTerminalComponent implements OnInit, AfterViewInit, OnDestroy 
     }
     
     // Send clear command to PTY
-    if (this.currentSessionId && this.isSessionActive) {
+    if (this._currentSessionId && this.isSessionActive) {
       const clearCommand = this.shell?.includes('powershell') ? 'cls' : 'clear';
-      this.terminalService.writeToSession(this.currentSessionId, clearCommand + '\r');
+      this.terminalService.writeToSession(this._currentSessionId, clearCommand + '\r');
     }
   }
   
@@ -414,7 +435,7 @@ export class XtermTerminalComponent implements OnInit, AfterViewInit, OnDestroy 
    * @business_rule Kill current session and create new one
    */
   public async restart(): Promise<void> {
-    if (this.currentSessionId) {
+    if (this._currentSessionId) {
       this.kill();
     }
     
@@ -435,9 +456,9 @@ export class XtermTerminalComponent implements OnInit, AfterViewInit, OnDestroy 
    * @business_rule Terminate PTY process
    */
   public kill(): void {
-    if (this.currentSessionId) {
-      this.terminalService.killSession(this.currentSessionId);
-      this.currentSessionId = undefined;
+    if (this._currentSessionId) {
+      this.terminalService.killSession(this._currentSessionId);
+      this.setSession(undefined);
       this.isSessionActive = false;
       this.statusMessage = 'Session killed';
     }
@@ -461,8 +482,8 @@ export class XtermTerminalComponent implements OnInit, AfterViewInit, OnDestroy 
     }
     
     // Kill session if we created it
-    if (this.currentSessionId && !this.sessionId) {
-      this.terminalService.killSession(this.currentSessionId);
+    if (this._currentSessionId && !this.sessionId) {
+      this.terminalService.killSession(this._currentSessionId);
     }
     
     // Dispose terminal

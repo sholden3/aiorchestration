@@ -39,14 +39,14 @@
         <mat-panel-title>
           <div class="rule-header">
             <mat-slide-toggle 
-              [(ngModel)]="rule.enabled" 
+              [checked]="isRuleActive(rule)" 
               (click)="$event.stopPropagation()"
               (change)="toggleRule(rule)">
             </mat-slide-toggle>
             <span class="rule-name">{{ rule.name }}</span>
             <div class="rule-tags">
-              <mat-chip [color]="rule.priority <= 2 ? 'warn' : 'primary'" selected>
-                Priority {{ rule.priority }}
+              <mat-chip [color]="getSeverityColor(rule.severity)" selected>
+                {{ rule.severity }}
               </mat-chip>
               <mat-chip>{{ rule.category }}</mat-chip>
             </div>
@@ -55,12 +55,16 @@
         <mat-panel-description>
           <div class="rule-stats">
             <span class="stat">
-              <mat-icon>play_circle</mat-icon>
-              {{ rule.executionCount }} executions
+              <mat-icon>check_circle</mat-icon>
+              {{ rule.enforcement_count || 0 }} enforcements
+            </span>
+            <span class="stat">
+              <mat-icon>warning</mat-icon>
+              {{ rule.violation_count || 0 }} violations
             </span>
             <span class="stat">
               <mat-icon>update</mat-icon>
-              {{ rule.lastModified | date:'short' }}
+              {{ rule.updated_at | date:'short' }}
             </span>
           </div>
         </mat-panel-description>
@@ -132,8 +136,10 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Priority</mat-label>
-            <input matInput type="number" [(ngModel)]="selectedRule.priority" min="1" max="10">
+            <mat-label>Severity</mat-label>
+            <mat-select [(ngModel)]="selectedRule.severity">
+              <mat-option *ngFor="let sev of severities" [value]="sev">{{ sev }}</mat-option>
+            </mat-select>
           </mat-form-field>
         </div>
 

@@ -40,7 +40,7 @@
   <div class="templates-grid" *ngIf="!isLoading">
     <mat-card *ngFor="let template of filteredTemplates" class="template-card" 
               (click)="selectTemplate(template)"
-              [class.selected]="selectedTemplate?.template_id === template.template_id">
+              [class.selected]="selectedTemplate?.id === template.id">
       <mat-card-header>
         <mat-card-title>{{ template.name }}</mat-card-title>
         <mat-card-subtitle>
@@ -61,9 +61,9 @@
           </span>
         </div>
 
-        <div class="variables" *ngIf="template.variables.length > 0">
+        <div class="variables" *ngIf="template.variables && getVariableKeys(template.variables).length > 0">
           <strong>Variables:</strong>
-          <span class="variable" *ngFor="let variable of template.variables">
+          <span class="variable" *ngFor="let variable of getVariableKeys(template.variables)">
             {{ variable }}
           </span>
         </div>
@@ -115,11 +115,11 @@
           <strong>Category:</strong> {{ selectedTemplate.category }}
         </div>
         <div class="metadata-item">
-          <strong>Created by:</strong> {{ selectedTemplate.created_by }}
+          <strong>Author:</strong> {{ selectedTemplate.author || 'Unknown' }}
         </div>
-        <div class="metadata-item" *ngIf="selectedTemplate.variables.length > 0">
+        <div class="metadata-item" *ngIf="selectedTemplate.variables && getVariableKeys(selectedTemplate.variables).length > 0">
           <strong>Variables:</strong>
-          <span class="variable" *ngFor="let variable of selectedTemplate.variables">
+          <span class="variable" *ngFor="let variable of getVariableKeys(selectedTemplate.variables)">
             {{ '{' + '{' + variable + '}' + '}' }}
           </span>
         </div>

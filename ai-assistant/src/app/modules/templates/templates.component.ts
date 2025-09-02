@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TemplatesApiService } from '../../services/api/templates-api.service';
-import { Template, TemplateType } from '../../models/backend-api.models';
+import { TemplateResponse, TemplateCreate, TemplateUpdate, TemplateType } from '../../models/backend-api.models';
 
 @Component({
   selector: 'app-templates',
@@ -10,17 +10,17 @@ import { Template, TemplateType } from '../../models/backend-api.models';
 })
 export class TemplatesComponent implements OnInit {
   title = 'Templates Library';
-  templates: Template[] = [];
-  filteredTemplates: Template[] = [];
+  templates: TemplateResponse[] = [];
+  filteredTemplates: TemplateResponse[] = [];
   templateTypes = Object.values(TemplateType);
   categories: string[] = ['code', 'documentation', 'configuration', 'testing', 'deployment'];
   selectedCategory = '';
   selectedType: TemplateType | '' = '';
   searchTerm = '';
-  selectedTemplate: Template | null = null;
+  selectedTemplate: TemplateResponse | null = null;
   isLoading = false;
   editMode = false;
-  templateForm: Partial<Template> = {};
+  templateForm: Partial<TemplateCreate> = {};
   renderVariables: Record<string, string> = {};
   renderedContent = '';
 
@@ -56,25 +56,27 @@ export class TemplatesComponent implements OnInit {
       const matchesType = !this.selectedType || template.type === this.selectedType;
       const matchesSearch = !this.searchTerm || 
         template.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        template.description.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        template.tags.some(tag => tag.toLowerCase().includes(this.searchTerm.toLowerCase()));
+        (template.description?.toLowerCase().includes(this.searchTerm.toLowerCase()) || false) ||
+        (template.tags?.some(tag => tag.toLowerCase().includes(this.searchTerm.toLowerCase())) || false);
       
       return matchesCategory && matchesType && matchesSearch;
     });
   }
 
-  selectTemplate(template: Template): void {
+  selectTemplate(template: TemplateResponse): void {
     this.selectedTemplate = template;
     this.editMode = false;
     this.renderedContent = '';
     // Initialize render variables
     this.renderVariables = {};
-    template.variables.forEach(v => {
-      this.renderVariables[v] = '';
-    });
+    if (template.variables) {
+      Object.keys(template.variables).forEach(v => {
+        this.renderVariables[v] = '';
+      });
+    }
   }
 
-  editTemplate(template: Template): void {
+  editTemplate(template: TemplateResponse): void {
     this.selectedTemplate = template;
     this.templateForm = { ...template };
     this.editMode = true;
@@ -86,8 +88,8 @@ export class TemplatesComponent implements OnInit {
       description: '',
       type: TemplateType.CODE,
       category: 'code',
-      content: '',
-      variables: [],
+      template_content: '',
+      variables: {},
       tags: []
     };
     this.editMode = true;
@@ -95,14 +97,14 @@ export class TemplatesComponent implements OnInit {
   }
 
   saveTemplate(): void {
-    if (!this.templateForm.name || !this.templateForm.content) {
+    if (!this.templateForm.name || !this.templateForm.template_content) {
       this.snackBar.open('Name and content are required', 'OK', { duration: 3000 });
       return;
     }
 
     if (this.selectedTemplate?.id) {
       // Update existing
-      this.templatesApi.updateTemplate(this.selectedTemplate.id, this.templateForm).subscribe({
+      this.templatesApi.updateTemplate(this.selectedTemplate.id, this.templateForm as TemplateUpdate).subscribe({
         next: (updated) => {
           const index = this.templates.findIndex(t => t.id === updated.id);
           if (index > -1) {
@@ -119,7 +121,7 @@ export class TemplatesComponent implements OnInit {
       });
     } else {
       // Create new
-      this.templatesApi.createTemplate(this.templateForm).subscribe({
+      this.templatesApi.createTemplate(this.templateForm as TemplateCreate).subscribe({
         next: (created) => {
           this.templates.push(created);
           this.filterTemplates();
@@ -134,7 +136,7 @@ export class TemplatesComponent implements OnInit {
     }
   }
 
-  deleteTemplate(template: Template): void {
+  deleteTemplate(template: TemplateResponse): void {
     if (confirm(`Are you sure you want to delete "${template.name}"?`)) {
       this.templatesApi.deleteTemplate(template.id).subscribe({
         next: () => {
@@ -168,7 +170,7 @@ export class TemplatesComponent implements OnInit {
     });
   }
 
-  cloneTemplate(template: Template): void {
+  cloneTemplate(template: TemplateResponse): void {
     this.templatesApi.cloneTemplate(template.id, {
       new_name: `${template.name} (Copy)`
     }).subscribe({
@@ -198,6 +200,20 @@ export class TemplatesComponent implements OnInit {
     }
   }
 
+  useTemplate(template: TemplateResponse): void {
+    // Use the template - increment usage count and copy content
+    this.templatesApi.renderTemplate(template.id, {}).subscribe({
+      next: (result) => {
+        this.copyToClipboard(result.rendered_content);
+        this.snackBar.open('Template copied to clipboard', 'OK', { duration: 3000 });
+      },
+      error: (error) => {
+        console.error('Error using template:', error);
+        this.snackBar.open('Failed to use template', 'OK', { duration: 3000 });
+      }
+    });
+  }
+
   onCategoryChange(): void {
     this.filterTemplates();
   }
@@ -208,5 +224,9 @@ export class TemplatesComponent implements OnInit {
 
   onSearchChange(): void {
     this.filterTemplates();
+  }
+
+  getVariableKeys(variables: Record<string, any> | undefined): string[] {
+    return variables ? Object.keys(variables) : [];
   }
 }

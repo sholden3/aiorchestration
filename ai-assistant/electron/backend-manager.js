@@ -212,14 +212,42 @@ class BackendManager {
         cwd: path.dirname(this.backendPath)
       });
 
-      // Handle stdout
+      // Handle stdout with error protection
       this.backendProcess.stdout.on('data', (data) => {
-        console.log(`Backend: ${data.toString()}`);
+        try {
+          const output = data.toString();
+          if (output.trim()) {
+            console.log(`Backend: ${output}`);
+          }
+        } catch (e) {
+          // Ignore pipe errors during shutdown
+          if (e.code !== 'EPIPE') {
+            console.error('Backend stdout error:', e.message);
+          }
+        }
       });
 
-      // Handle stderr
+      // Handle stderr with error protection
       this.backendProcess.stderr.on('data', (data) => {
-        console.error(`Backend Error: ${data.toString()}`);
+        try {
+          const output = data.toString();
+          if (output.trim()) {
+            console.error(`Backend Error: ${output}`);
+          }
+        } catch (e) {
+          // Ignore pipe errors during shutdown
+          if (e.code !== 'EPIPE') {
+            console.error('Backend stderr error:', e.message);
+          }
+        }
+      });
+
+      // Handle process errors
+      this.backendProcess.on('error', (error) => {
+        console.error('Backend process error:', error);
+        this.isRunning = false;
+        this.isStarting = false;
+        this.backendProcess = null;
       });
 
       // Handle process exit
@@ -229,6 +257,17 @@ class BackendManager {
         this.backendProcess = null;
         this.stopHealthCheck();
         this.saveState();
+        if (this.onShutdownCallback) {
+          this.onShutdownCallback();
+        }
+      });
+
+      // Handle process close
+      this.backendProcess.on('close', (code, signal) => {
+        console.log(`Backend process closed with code ${code}, signal ${signal}`);
+        if (this.backendProcess) {
+          this.backendProcess = null;
+        }
       });
 
       // Wait for backend to be ready

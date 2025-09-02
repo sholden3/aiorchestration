@@ -411,5 +411,42 @@ class AIAssistantApp {
   }
 }
 
+// Global error handlers to prevent crashes
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // Log to file for debugging
+  const errorLog = `[${new Date().toISOString()}] Uncaught Exception: ${error.stack}\n`;
+  try {
+    const logPath = path.join(app.getPath('userData'), 'error.log');
+    fs.appendFileSync(logPath, errorLog);
+  } catch (e) {
+    // Ignore logging errors
+  }
+  
+  // Don't exit on EPIPE errors
+  if (error.code === 'EPIPE') {
+    console.log('Ignoring EPIPE error - likely backend shutdown');
+    return;
+  }
+  
+  // For other critical errors, show dialog and exit
+  if (app.isReady()) {
+    dialog.showErrorBox('Critical Error', error.message);
+  }
+  app.quit();
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Log to file for debugging
+  const errorLog = `[${new Date().toISOString()}] Unhandled Rejection: ${reason}\n`;
+  try {
+    const logPath = path.join(app.getPath('userData'), 'error.log');
+    fs.appendFileSync(logPath, errorLog);
+  } catch (e) {
+    // Ignore logging errors
+  }
+});
+
 // Start the application
 new AIAssistantApp();

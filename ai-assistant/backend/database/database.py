@@ -19,7 +19,7 @@ from .models import Base
 # Database configuration
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5432/ai_assistant"
+    "postgresql://postgres:root@localhost:5432/ai_assistant"
 )
 
 # For testing, use SQLite

@@ -102,25 +102,26 @@ class DatabaseService:
             return self._get_mock_rules()
             
         query = """
-            SELECT r.*, c.name as category_name
+            SELECT r.*, r.category as category_name
             FROM rules r
-            JOIN categories c ON r.category = c.id
-            WHERE ($1::boolean IS NULL OR r.active = $1)
+            WHERE ($1::varchar IS NULL OR r.status = $1)
               AND ($2::varchar IS NULL OR r.category = $2)
               AND ($3::varchar IS NULL OR r.severity = $3)
             ORDER BY 
                 CASE severity
-                    WHEN 'critical' THEN 1
-                    WHEN 'high' THEN 2
-                    WHEN 'medium' THEN 3
-                    WHEN 'low' THEN 4
+                    WHEN 'CRITICAL' THEN 1
+                    WHEN 'ERROR' THEN 2
+                    WHEN 'WARNING' THEN 3
+                    WHEN 'INFO' THEN 4
                 END,
                 r.created_at DESC
         """
         
         try:
             async with self.pool.acquire() as conn:
-                rows = await conn.fetch(query, active_only, category, severity)
+                # Map active_only to status
+                status = 'ACTIVE' if active_only else None
+                rows = await conn.fetch(query, status, category, severity)
                 jsonb_fields = ['examples', 'anti_patterns']
                 return [self._parse_jsonb_fields(row, jsonb_fields) for row in rows]
         except Exception as e:
@@ -210,26 +211,19 @@ class DatabaseService:
             return self._get_mock_best_practices()
             
         query = """
-            SELECT bp.*, c.name as category_name
-            FROM best_practices bp
-            JOIN categories c ON bp.category = c.id
-            WHERE bp.is_active = true
-              AND ($1::varchar IS NULL OR bp.category = $1)
-              AND ($2::boolean IS FALSE OR bp.is_required = true)
+            SELECT p.*, p.category as category_name
+            FROM practices p
+            WHERE ($1::varchar IS NULL OR p.category = $1)
             ORDER BY 
-                CASE priority
-                    WHEN 'P0-CRITICAL' THEN 1
-                    WHEN 'P1-HIGH' THEN 2
-                    WHEN 'P2-MEDIUM' THEN 3
-                    WHEN 'P3-LOW' THEN 4
-                    ELSE 5
-                END,
-                bp.created_at DESC
+                p.effectiveness_score DESC NULLS LAST,
+                p.adoption_rate DESC NULLS LAST,
+                p.created_at DESC
         """
         
         try:
             async with self.pool.acquire() as conn:
-                rows = await conn.fetch(query, category, required_only)
+                # Only pass category parameter since required_only is not used in the new query
+                rows = await conn.fetch(query, category)
                 jsonb_fields = ['benefits', 'anti_patterns', 'references', 'examples']
                 return [self._parse_jsonb_fields(row, jsonb_fields) for row in rows]
         except Exception as e:
@@ -283,22 +277,9 @@ class DatabaseService:
             return self._get_mock_templates()
             
         query = """
-            SELECT t.*, c.name as category_name,
-                   array_agg(
-                       json_build_object(
-                           'name', tv.variable_name,
-                           'type', tv.variable_type,
-                           'required', tv.is_required,
-                           'default', tv.default_value,
-                           'options', tv.options
-                       )
-                   ) FILTER (WHERE tv.variable_name IS NOT NULL) as variables_detail
+            SELECT t.*, t.category as category_name
             FROM templates t
-            JOIN categories c ON t.category = c.id
-            LEFT JOIN template_variables tv ON t.template_id = tv.template_id
-            WHERE t.is_active = true
-              AND ($1::varchar IS NULL OR t.category = $1)
-            GROUP BY t.template_id, c.name
+            WHERE ($1::varchar IS NULL OR t.category = $1)
             ORDER BY t.usage_count DESC, t.created_at DESC
         """
         

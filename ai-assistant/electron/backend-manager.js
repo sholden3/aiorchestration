@@ -23,6 +23,9 @@ class BackendManager {
     this.startupTimeout = 30000; // 30 seconds
     this.healthCheckInterval = null;
     this.shutdownHandlers = [];
+    this.debugMode = process.env.DEBUG_BACKEND === 'true';
+    this.logBuffer = [];
+    this.maxLogBufferSize = 100; // Keep last 100 log entries
   }
 
   /**
@@ -212,12 +215,18 @@ class BackendManager {
         cwd: path.dirname(this.backendPath)
       });
 
-      // Handle stdout with error protection
+      // Handle stdout with error protection and filtering
       this.backendProcess.stdout.on('data', (data) => {
         try {
-          const output = data.toString();
-          if (output.trim()) {
-            console.log(`Backend: ${output}`);
+          const output = data.toString().trim();
+          if (output) {
+            // Buffer logs for debugging
+            this.addToLogBuffer(output);
+            
+            // Only log important messages to reduce console spam
+            if (this.shouldLogOutput(output)) {
+              console.log(`Backend: ${this.filterOutput(output)}`);
+            }
           }
         } catch (e) {
           // Ignore pipe errors during shutdown
@@ -227,12 +236,24 @@ class BackendManager {
         }
       });
 
-      // Handle stderr with error protection
+      // Handle stderr with error protection and filtering
       this.backendProcess.stderr.on('data', (data) => {
         try {
-          const output = data.toString();
-          if (output.trim()) {
-            console.error(`Backend Error: ${output}`);
+          const output = data.toString().trim();
+          if (output) {
+            // Buffer logs for debugging
+            this.addToLogBuffer(`ERROR: ${output}`);
+            
+            // Filter out non-critical warnings to reduce console spam
+            if (!this.isRoutineWarning(output)) {
+              // Only show first line of error for readability
+              const firstLine = output.split('\n')[0];
+              if (firstLine.length > 200) {
+                console.error(`Backend Error: ${firstLine.substring(0, 200)}...`);
+              } else {
+                console.error(`Backend Error: ${firstLine}`);
+              }
+            }
           }
         } catch (e) {
           // Ignore pipe errors during shutdown
@@ -449,6 +470,97 @@ class BackendManager {
     } catch (error) {
       console.error('Failed to clean up port file:', error);
     }
+  }
+
+  /**
+   * Determine if output should be logged to console
+   */
+  shouldLogOutput(output) {
+    // Always log in debug mode
+    if (this.debugMode) return true;
+    
+    // Skip JSON structured logs
+    if (output.startsWith('{') && output.includes('"timestamp"')) {
+      return false;
+    }
+    
+    // Skip routine INFO logs
+    if (output.includes('INFO:') || output.includes('[INFO]')) {
+      return false;
+    }
+    
+    // Log important messages
+    if (output.includes('ERROR') || 
+        output.includes('CRITICAL') ||
+        output.includes('started on port') ||
+        output.includes('shutdown') ||
+        output.includes('failed')) {
+      return true;
+    }
+    
+    // Log startup messages
+    if (output.includes('Uvicorn running') || 
+        output.includes('Application startup')) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Filter output for cleaner display
+   */
+  filterOutput(output) {
+    // Remove excessive whitespace
+    output = output.replace(/\s+/g, ' ').trim();
+    
+    // Truncate very long lines
+    if (output.length > 500) {
+      return output.substring(0, 500) + '...';
+    }
+    
+    return output;
+  }
+
+  /**
+   * Check if stderr output is a routine warning
+   */
+  isRoutineWarning(output) {
+    const routineWarnings = [
+      'UserWarning:',
+      'RuntimeWarning: coroutine',
+      'pydantic',
+      'protected_namespaces',
+      'tracemalloc',
+      'DeprecationWarning',
+      'Governance module',
+      'INFO',
+      'Configuration loaded'
+    ];
+    
+    return routineWarnings.some(warning => output.includes(warning));
+  }
+
+  /**
+   * Add output to log buffer for debugging
+   */
+  addToLogBuffer(output) {
+    this.logBuffer.push({
+      timestamp: new Date().toISOString(),
+      message: output
+    });
+    
+    // Keep buffer size limited
+    if (this.logBuffer.length > this.maxLogBufferSize) {
+      this.logBuffer.shift();
+    }
+  }
+
+  /**
+   * Get recent logs for debugging
+   */
+  getRecentLogs() {
+    return this.logBuffer;
   }
 }
 

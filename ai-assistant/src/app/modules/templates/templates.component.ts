@@ -1,18 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { ConfigService } from '../../services/config.service';
-
-interface Template {
-  template_id: string;
-  name: string;
-  description: string;
-  category: string;
-  template_content: string;
-  variables: string[];
-  tags: string[];
-  created_by: string;
-  usage_count?: number;
-}
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { TemplatesApiService } from '../../services/api/templates-api.service';
+import { Template, TemplateType } from '../../models/backend-api.models';
 
 @Component({
   selector: 'app-templates',
@@ -23,103 +12,21 @@ export class TemplatesComponent implements OnInit {
   title = 'Templates Library';
   templates: Template[] = [];
   filteredTemplates: Template[] = [];
-  categories: string[] = ['all', 'general', 'architecture', 'testing', 'security', 'performance'];
-  selectedCategory = 'all';
+  templateTypes = Object.values(TemplateType);
+  categories: string[] = ['code', 'documentation', 'configuration', 'testing', 'deployment'];
+  selectedCategory = '';
+  selectedType: TemplateType | '' = '';
   searchTerm = '';
   selectedTemplate: Template | null = null;
   isLoading = false;
-  error = '';
-
-  // Hardcoded templates for immediate use
-  defaultTemplates: Template[] = [
-    {
-      template_id: 'TMPL-001',
-      name: 'AI Agent Template',
-      description: 'Template for creating new AI agents with persona integration',
-      category: 'architecture',
-      template_content: `class AIAgent:
-    """AI Agent with multi-persona support"""
-    
-    def __init__(self, name: str, personas: List[Persona]):
-        self.name = name
-        self.personas = personas[:3]  # Maximum 3 personas
-        self.tasks_completed = 0
-        self.status = 'ready'
-    
-    async def execute_task(self, task: str):
-        # Consult all personas for consensus
-        decisions = await self.gather_persona_decisions(task)
-        result = await self.reach_consensus(decisions)
-        return result`,
-      variables: ['name', 'personas', 'task'],
-      tags: ['ai', 'agent', 'persona', 'architecture'],
-      created_by: 'system',
-      usage_count: 15
-    },
-    {
-      template_id: 'TMPL-002',
-      name: 'PTY Terminal Handler',
-      description: 'Template for PTY terminal session management',
-      category: 'general',
-      template_content: `import pty
-import os
-import subprocess
-
-class PTYTerminal:
-    def __init__(self, session_id: str):
-        self.session_id = session_id
-        self.master, self.slave = pty.openpty()
-        self.process = None
-    
-    def start_shell(self, shell='/bin/bash'):
-        self.process = subprocess.Popen(
-            [shell],
-            stdin=self.slave,
-            stdout=self.slave,
-            stderr=self.slave,
-            preexec_fn=os.setsid
-        )`,
-      variables: ['session_id', 'shell'],
-      tags: ['terminal', 'pty', 'system'],
-      created_by: 'system',
-      usage_count: 8
-    },
-    {
-      template_id: 'TMPL-003',
-      name: 'Three-Persona Consensus',
-      description: 'Template for implementing three-persona decision making',
-      category: 'architecture',
-      template_content: `async def reach_consensus(self, decisions: Dict[str, Any]):
-    """Three-persona consensus algorithm"""
-    
-    # Dr. Sarah Chen - AI/Technical perspective
-    sarah_vote = decisions.get('sarah_chen', {})
-    
-    # Marcus Rodriguez - Performance/Systems perspective  
-    marcus_vote = decisions.get('marcus_rodriguez', {})
-    
-    # Emily Watson - UX/User perspective
-    emily_vote = decisions.get('emily_watson', {})
-    
-    # Weighted consensus based on task type
-    if self.is_technical_task():
-        weights = {'sarah': 0.5, 'marcus': 0.3, 'emily': 0.2}
-    elif self.is_performance_task():
-        weights = {'sarah': 0.2, 'marcus': 0.6, 'emily': 0.2}
-    else:  # UX/User task
-        weights = {'sarah': 0.2, 'marcus': 0.2, 'emily': 0.6}
-    
-    return self.calculate_weighted_consensus(votes, weights)`,
-      variables: ['decisions', 'weights'],
-      tags: ['persona', 'consensus', 'governance'],
-      created_by: 'system',
-      usage_count: 12
-    }
-  ];
+  editMode = false;
+  templateForm: Partial<Template> = {};
+  renderVariables: Record<string, string> = {};
+  renderedContent = '';
 
   constructor(
-    private http: HttpClient,
-    private config: ConfigService
+    private templatesApi: TemplatesApiService,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -128,21 +35,16 @@ class PTYTerminal:
 
   loadTemplates(): void {
     this.isLoading = true;
-    this.error = '';
     
-    // Try to load from backend
-    const apiUrl = this.config.getApiUrl();
-    this.http.get<{templates: Template[]}>(`${apiUrl}/templates`).subscribe({
+    this.templatesApi.getTemplates({ limit: 100 }).subscribe({
       next: (response) => {
-        this.templates = response.templates || this.defaultTemplates;
+        this.templates = response.templates;
         this.filterTemplates();
         this.isLoading = false;
       },
       error: (error) => {
-        // Fall back to default templates
-        console.warn('Failed to load templates from backend, using defaults', error);
-        this.templates = this.defaultTemplates;
-        this.filterTemplates();
+        console.error('Failed to load templates:', error);
+        this.snackBar.open('Failed to load templates', 'OK', { duration: 3000 });
         this.isLoading = false;
       }
     });
@@ -150,45 +52,161 @@ class PTYTerminal:
 
   filterTemplates(): void {
     this.filteredTemplates = this.templates.filter(template => {
-      const matchesCategory = this.selectedCategory === 'all' || template.category === this.selectedCategory;
+      const matchesCategory = !this.selectedCategory || template.category === this.selectedCategory;
+      const matchesType = !this.selectedType || template.type === this.selectedType;
       const matchesSearch = !this.searchTerm || 
         template.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         template.description.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         template.tags.some(tag => tag.toLowerCase().includes(this.searchTerm.toLowerCase()));
       
-      return matchesCategory && matchesSearch;
+      return matchesCategory && matchesType && matchesSearch;
     });
   }
 
   selectTemplate(template: Template): void {
     this.selectedTemplate = template;
+    this.editMode = false;
+    this.renderedContent = '';
+    // Initialize render variables
+    this.renderVariables = {};
+    template.variables.forEach(v => {
+      this.renderVariables[v] = '';
+    });
+  }
+
+  editTemplate(template: Template): void {
+    this.selectedTemplate = template;
+    this.templateForm = { ...template };
+    this.editMode = true;
+  }
+
+  createTemplate(): void {
+    this.templateForm = {
+      name: '',
+      description: '',
+      type: TemplateType.CODE,
+      category: 'code',
+      content: '',
+      variables: [],
+      tags: []
+    };
+    this.editMode = true;
+    this.selectedTemplate = null;
+  }
+
+  saveTemplate(): void {
+    if (!this.templateForm.name || !this.templateForm.content) {
+      this.snackBar.open('Name and content are required', 'OK', { duration: 3000 });
+      return;
+    }
+
+    if (this.selectedTemplate?.id) {
+      // Update existing
+      this.templatesApi.updateTemplate(this.selectedTemplate.id, this.templateForm).subscribe({
+        next: (updated) => {
+          const index = this.templates.findIndex(t => t.id === updated.id);
+          if (index > -1) {
+            this.templates[index] = updated;
+          }
+          this.filterTemplates();
+          this.snackBar.open('Template updated successfully', 'OK', { duration: 3000 });
+          this.cancelEdit();
+        },
+        error: (error) => {
+          console.error('Error updating template:', error);
+          this.snackBar.open('Failed to update template', 'OK', { duration: 3000 });
+        }
+      });
+    } else {
+      // Create new
+      this.templatesApi.createTemplate(this.templateForm).subscribe({
+        next: (created) => {
+          this.templates.push(created);
+          this.filterTemplates();
+          this.snackBar.open('Template created successfully', 'OK', { duration: 3000 });
+          this.cancelEdit();
+        },
+        error: (error) => {
+          console.error('Error creating template:', error);
+          this.snackBar.open('Failed to create template', 'OK', { duration: 3000 });
+        }
+      });
+    }
+  }
+
+  deleteTemplate(template: Template): void {
+    if (confirm(`Are you sure you want to delete "${template.name}"?`)) {
+      this.templatesApi.deleteTemplate(template.id).subscribe({
+        next: () => {
+          this.templates = this.templates.filter(t => t.id !== template.id);
+          this.filterTemplates();
+          this.snackBar.open('Template deleted successfully', 'OK', { duration: 3000 });
+          this.selectedTemplate = null;
+        },
+        error: (error) => {
+          console.error('Error deleting template:', error);
+          this.snackBar.open('Failed to delete template', 'OK', { duration: 3000 });
+        }
+      });
+    }
+  }
+
+  renderTemplate(): void {
+    if (!this.selectedTemplate) return;
+    
+    this.templatesApi.renderTemplate(this.selectedTemplate.id, {
+      variables: this.renderVariables
+    }).subscribe({
+      next: (result) => {
+        this.renderedContent = result.rendered_content;
+        this.snackBar.open('Template rendered successfully', 'OK', { duration: 2000 });
+      },
+      error: (error) => {
+        console.error('Error rendering template:', error);
+        this.snackBar.open('Failed to render template', 'OK', { duration: 3000 });
+      }
+    });
+  }
+
+  cloneTemplate(template: Template): void {
+    this.templatesApi.cloneTemplate(template.id, {
+      new_name: `${template.name} (Copy)`
+    }).subscribe({
+      next: (cloned) => {
+        this.templates.push(cloned);
+        this.filterTemplates();
+        this.snackBar.open('Template cloned successfully', 'OK', { duration: 3000 });
+      },
+      error: (error) => {
+        console.error('Error cloning template:', error);
+        this.snackBar.open('Failed to clone template', 'OK', { duration: 3000 });
+      }
+    });
   }
 
   copyToClipboard(content: string): void {
     navigator.clipboard.writeText(content).then(() => {
-      // Show success message
-      console.log('Template copied to clipboard');
+      this.snackBar.open('Copied to clipboard', 'OK', { duration: 2000 });
     });
+  }
+
+  cancelEdit(): void {
+    this.editMode = false;
+    this.templateForm = {};
+    if (!this.selectedTemplate) {
+      this.selectedTemplate = null;
+    }
   }
 
   onCategoryChange(): void {
     this.filterTemplates();
   }
 
-  onSearchChange(): void {
+  onTypeChange(): void {
     this.filterTemplates();
   }
 
-  useTemplate(template: Template): void {
-    // Increment usage count
-    if (template.usage_count !== undefined) {
-      template.usage_count++;
-    }
-    
-    // Copy to clipboard
-    this.copyToClipboard(template.template_content);
-    
-    // Could also emit event or navigate to code editor
-    console.log('Using template:', template.name);
+  onSearchChange(): void {
+    this.filterTemplates();
   }
 }

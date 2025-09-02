@@ -149,7 +149,8 @@ export class TemplatesApiService {
   /**
    * Clone an existing template
    */
-  cloneTemplate(templateId: string, newName: string): Observable<TemplateResponse> {
+  cloneTemplate(templateId: string, data: { new_name: string } | string): Observable<TemplateResponse> {
+    const newName = typeof data === 'string' ? data : data.new_name;
     const params = new HttpParams().set('new_name', newName);
     
     return this.http.post<TemplateResponse>(

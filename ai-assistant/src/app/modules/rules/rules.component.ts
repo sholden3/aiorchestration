@@ -160,15 +160,17 @@ export class RulesComponent implements OnInit {
       duration: 2000
     });
     
-    this.rulesApi.enforceRule(rule.id).subscribe({
+    const context = { ruleId: rule.id, timestamp: new Date().toISOString() };
+    this.rulesApi.enforceRule(rule.id, context).subscribe({
       next: (result) => {
+        const violations = result.violations_found || 0;
         this.snackBar.open(
-          `Rule "${rule.title}" enforced. Violations: ${result.violations_found}`, 
+          `Rule "${rule.title}" enforced. Violations: ${violations}`, 
           'OK', 
           { duration: 3000 }
         );
         // Update violations count
-        rule.violations_count = (rule.violations_count || 0) + result.violations_found;
+        rule.violations_count = (rule.violations_count || 0) + violations;
       },
       error: (error) => {
         console.error('Error enforcing rule:', error);

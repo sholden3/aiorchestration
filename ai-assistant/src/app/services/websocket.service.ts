@@ -1,224 +1,173 @@
-import { Injectable, NgZone } from '@angular/core';
-import { Observable, Subject, BehaviorSubject, timer } from 'rxjs';
-import { ConfigService } from './config.service';
+import { Injectable } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
+import { AppConfigService } from './app-config.service';
 
 export interface WebSocketMessage {
-  type: string;
-  data?: any;
-  timestamp?: string;
-  event_type?: string;
-}
-
-export interface OrchestrationUpdate {
-  type: 'orchestration_status';
+  event?: string;
+  type?: string;
   data: any;
-}
-
-export interface CacheMetricsUpdate {
-  type: 'cache_metrics';
-  data: any;
-}
-
-export interface TaskUpdate {
-  type: 'task_update';
-  task_id: string;
-  status: string;
-  details?: any;
-}
-
-export interface PersonaDecision {
-  type: 'persona_decision';
-  persona: string;
-  decision: string;
-  confidence: number;
-}
-
-export interface AssumptionValidation {
-  type: 'assumption_validation';
-  assumption: string;
-  validated: boolean;
-  challenger?: string;
+  timestamp: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class WebSocketService {
-  private socket?: WebSocket;
+  private socket: WebSocket | null = null;
   private messagesSubject = new Subject<WebSocketMessage>();
-  private connectionStatusSubject = new BehaviorSubject<boolean>(false);
-  private reconnectTimer?: any;
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 2000; // Start with 2 seconds
-  
-  // Specific event subjects
-  private orchestrationUpdates = new Subject<OrchestrationUpdate>();
-  private cacheMetricsUpdates = new Subject<CacheMetricsUpdate>();
-  private taskUpdates = new Subject<TaskUpdate>();
-  private personaDecisions = new Subject<PersonaDecision>();
-  private assumptionValidations = new Subject<AssumptionValidation>();
-  
-  // Public observables
   public messages$ = this.messagesSubject.asObservable();
+  
+  private connectionStatusSubject = new Subject<boolean>();
   public connectionStatus$ = this.connectionStatusSubject.asObservable();
-  public orchestrationUpdates$ = this.orchestrationUpdates.asObservable();
-  public cacheMetricsUpdates$ = this.cacheMetricsUpdates.asObservable();
-  public taskUpdates$ = this.taskUpdates.asObservable();
-  public personaDecisions$ = this.personaDecisions.asObservable();
-  public assumptionValidations$ = this.assumptionValidations.asObservable();
+  
+  private reconnectInterval = 5000; // 5 seconds
+  private reconnectTimer: any;
+  
+  // Legacy observables for backward compatibility
+  public orchestrationUpdates$ = new Subject<any>();
+  public cacheMetricsUpdates$ = new Subject<any>();
+  public taskUpdates$ = new Subject<any>();
+  public personaDecisions$ = new Subject<any>();
+  public assumptionValidations$ = new Subject<any>();
 
-  constructor(
-    private config: ConfigService,
-    private ngZone: NgZone
-  ) {}
+  constructor(private configService: AppConfigService) {
+    // Auto-connect when service is created
+    this.connect();
+    
+    // Map new messages to legacy observables
+    this.messages$.subscribe(msg => {
+      if (msg.event === 'orchestration.update') this.orchestrationUpdates$.next(msg.data);
+      if (msg.event === 'cache.metrics') this.cacheMetricsUpdates$.next(msg.data);
+      if (msg.event === 'task.update') this.taskUpdates$.next(msg.data);
+      if (msg.event === 'persona.decision') this.personaDecisions$.next(msg.data);
+      if (msg.event === 'assumption.validation') this.assumptionValidations$.next(msg.data);
+    });
+  }
 
   connect(): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      console.log('WebSocket already connected');
       return;
     }
 
-    const wsUrl = this.getWebSocketUrl();
-    console.log('Connecting to WebSocket:', wsUrl);
+    this.configService.config$.subscribe(config => {
+      const wsProtocol = config.backend.protocol === 'https' ? 'wss' : 'ws';
+      const wsUrl = `${wsProtocol}://${config.backend.host}:${config.backend.port}/ws`;
+      this.connectToWebSocket(wsUrl);
+    });
+  }
 
+  private connectToWebSocket(wsUrl: string): void {
+    console.log('Connecting to WebSocket:', wsUrl);
+    
     try {
       this.socket = new WebSocket(wsUrl);
       
-      this.socket.onopen = (event) => {
+      this.socket.onopen = () => {
         console.log('WebSocket connected');
-        this.ngZone.run(() => {
-          this.connectionStatusSubject.next(true);
-          this.reconnectAttempts = 0;
-          this.reconnectDelay = 2000;
-        });
-        
-        // Subscribe to all events
-        this.sendMessage({
-          type: 'subscribe',
-          events: [
-            'orchestration_status',
-            'cache_metrics',
-            'task_update',
-            'persona_decision',
-            'assumption_validation',
-            'system_alert',
-            'performance_metric'
-          ]
-        });
+        this.connectionStatusSubject.next(true);
+        this.clearReconnectTimer();
       };
-
+      
       this.socket.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          this.ngZone.run(() => {
-            this.handleMessage(message);
-          });
+          this.messagesSubject.next(message);
         } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+          console.error('Failed to parse WebSocket message:', error);
         }
       };
-
+      
       this.socket.onerror = (error) => {
         console.error('WebSocket error:', error);
       };
-
-      this.socket.onclose = (event) => {
+      
+      this.socket.onclose = () => {
         console.log('WebSocket disconnected');
-        this.ngZone.run(() => {
-          this.connectionStatusSubject.next(false);
-          this.attemptReconnect();
-        });
+        this.connectionStatusSubject.next(false);
+        this.socket = null;
+        this.scheduleReconnect();
       };
     } catch (error) {
-      console.error('Failed to create WebSocket:', error);
-      this.attemptReconnect();
-    }
-  }
-
-  private handleMessage(message: WebSocketMessage): void {
-    // Emit to general messages subject
-    this.messagesSubject.next(message);
-    
-    // Route to specific subjects based on type
-    switch (message.type) {
-      case 'orchestration_status':
-        this.orchestrationUpdates.next(message as OrchestrationUpdate);
-        break;
-      case 'cache_metrics':
-        this.cacheMetricsUpdates.next(message as CacheMetricsUpdate);
-        break;
-      case 'task_update':
-        this.taskUpdates.next(message as TaskUpdate);
-        break;
-      case 'persona_decision':
-        this.personaDecisions.next(message as PersonaDecision);
-        break;
-      case 'assumption_validation':
-        this.assumptionValidations.next(message as AssumptionValidation);
-        break;
-    }
-  }
-
-  private attemptReconnect(): void {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached');
-      return;
-    }
-
-    this.reconnectAttempts++;
-    console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
-
-    this.reconnectTimer = setTimeout(() => {
-      this.connect();
-      // Exponential backoff
-      this.reconnectDelay = Math.min(this.reconnectDelay * 2, 30000); // Max 30 seconds
-    }, this.reconnectDelay);
-  }
-
-  sendMessage(message: any): void {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify(message));
-    } else {
-      console.warn('WebSocket is not connected');
+      console.error('Failed to create WebSocket connection:', error);
+      this.scheduleReconnect();
     }
   }
 
   disconnect(): void {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-    }
-    
+    this.clearReconnectTimer();
     if (this.socket) {
       this.socket.close();
-      this.socket = undefined;
+      this.socket = null;
     }
   }
 
-  private getWebSocketUrl(): string {
-    const apiUrl = this.config.getApiUrl();
-    // Convert http to ws, https to wss
-    const wsProtocol = apiUrl.startsWith('https') ? 'wss' : 'ws';
-    const baseUrl = apiUrl.replace(/^https?/, wsProtocol);
-    return `${baseUrl}/ws`;
+  send(event: string, data: any): void {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      const message = {
+        event,
+        data,
+        timestamp: new Date().toISOString()
+      };
+      this.socket.send(JSON.stringify(message));
+    } else {
+      console.warn('WebSocket not connected, message not sent:', event);
+    }
   }
 
-  // Utility methods for common operations
-  ping(): void {
-    this.sendMessage({ type: 'ping' });
+  private scheduleReconnect(): void {
+    this.clearReconnectTimer();
+    console.log(`Scheduling reconnect in ${this.reconnectInterval}ms`);
+    this.reconnectTimer = setTimeout(() => {
+      this.connect();
+    }, this.reconnectInterval);
   }
 
-  requestStatus(): void {
-    this.sendMessage({ type: 'request_status' });
+  private clearReconnectTimer(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
   }
 
-  subscribeToEvents(events: string[]): void {
-    this.sendMessage({
-      type: 'subscribe',
-      events: events
+  // Subscribe to specific event types
+  onEvent(eventType: string): Observable<any> {
+    return new Observable(observer => {
+      const subscription = this.messages$.subscribe(message => {
+        if (message.event === eventType) {
+          observer.next(message.data);
+        }
+      });
+      return () => subscription.unsubscribe();
     });
   }
 
-  ngOnDestroy(): void {
-    this.disconnect();
+  // Common event subscriptions
+  onRuleUpdate(): Observable<any> {
+    return this.onEvent('rule.updated');
+  }
+
+  onPracticeUpdate(): Observable<any> {
+    return this.onEvent('practice.updated');
+  }
+
+  onTemplateUpdate(): Observable<any> {
+    return this.onEvent('template.updated');
+  }
+
+  onCacheMetrics(): Observable<any> {
+    return this.onEvent('cache.metrics');
+  }
+
+  onOrchestrationStatus(): Observable<any> {
+    return this.onEvent('orchestration.status');
+  }
+
+  onGovernanceEvent(): Observable<any> {
+    return this.onEvent('governance.event');
+  }
+
+  onNotification(): Observable<any> {
+    return this.onEvent('notification');
   }
 }

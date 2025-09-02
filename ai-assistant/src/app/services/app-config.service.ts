@@ -116,7 +116,7 @@ export interface AppConfig {
   providedIn: 'root'
 })
 export class AppConfigService {
-  private config$ = new BehaviorSubject<AppConfig | null>(null);
+  public config$ = new BehaviorSubject<AppConfig | null>(null);
   private configUrl = '/config/app.config.json';
   private environment = this.detectEnvironment();
   

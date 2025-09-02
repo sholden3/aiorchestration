@@ -9,6 +9,7 @@
 export enum RuleSeverity {
   INFO = 'INFO',
   WARNING = 'WARNING',
+  MEDIUM = 'MEDIUM',
   ERROR = 'ERROR',
   CRITICAL = 'CRITICAL'
 }
@@ -16,6 +17,7 @@ export enum RuleSeverity {
 export enum RuleStatus {
   DRAFT = 'DRAFT',
   ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
   DEPRECATED = 'DEPRECATED'
 }
 
@@ -96,6 +98,16 @@ export interface RuleEnforcementResult {
   message: string;
   action?: string;
   context: Record<string, any>;
+  violations_found?: number;
+}
+
+// Additional Rule types
+export interface Rule extends RuleResponse {
+  title: string;
+  conditions?: any[];
+  actions?: any[];
+  exceptions?: any[];
+  violations_count?: number;
 }
 
 // ============== PRACTICES ==============
@@ -150,9 +162,20 @@ export interface PracticeVote {
 }
 
 export interface PracticeApplication {
-  applied_to: string;
-  effectiveness_rating: number;
+  applied_to?: string;
+  project_id?: string;
+  effectiveness_rating?: number;
   notes?: string;
+}
+
+// Additional Practice types
+export interface BestPractice extends PracticeResponse {
+  title: string;
+  risks?: string[];
+  references?: string[];
+  vote_score?: number;
+  adoption_count?: number;
+  adoption_rate?: number;
 }
 
 // ============== TEMPLATES ==============
@@ -161,10 +184,11 @@ export interface TemplateBase {
   name: string;
   type: TemplateType;
   category?: string;
-  template_content: string;
+  template_content?: string;
+  content?: string;
   description?: string;
   example_usage?: Record<string, any>;
-  variables?: Record<string, any>;
+  variables?: string[] | Record<string, any>;
   validation_rules?: Record<string, any>;
   metadata?: Record<string, any>;
   tags?: string[];
@@ -220,6 +244,12 @@ export interface TemplateRenderResponse {
   rendered_content: string;
   validation_errors?: string[];
   metadata?: Record<string, any>;
+}
+
+// Additional Template types
+export interface Template extends TemplateResponse {
+  content?: string;
+  variables: string[];
 }
 
 // ============== SESSIONS ==============

@@ -1,16 +1,215 @@
-governance:
-  version: "1.0.0"
-  mode: "development"
-  strict: false
-  cache_enabled: true
-  audit_enabled: true
+# EXTREME GOVERNANCE CONFIGURATION v2.0
+# Zero-tolerance enforcement system
+# Last Updated: 2025-09-02
+# NO BYPASS ALLOWED - NO EXCEPTIONS
+
+version: 2.0
+mode: EXTREME  # EXTREME | STRICT | STANDARD | RELAXED
+
+# Core Settings
+enforcement:
+  bypass_allowed: false         # NEVER allow bypass
+  warning_threshold: 0          # No warnings, only blocks
+  compliance_minimum: 95        # 95% minimum compliance
+  block_on_violation: true      # Any violation = blocked commit
   
-# Default settings
-defaults:
-  timeout: 30  # seconds
-  max_retries: 3
+# Universal Standards
+naming:
+  enforce_standard_names: true
+  standard_files:
+    tracker: TRACKER.md
+    status: STATUS.md
+    decisions: DECISIONS.md
+    roadmap: ROADMAP.md
+    changelog: CHANGELOG.md
+  readme_required: true         # Every directory MUST have README.md
   
-# Logging configuration
-logging:
-  level: "INFO"
-  format: "%(asctime)s [%(levelname)s] %(name)s - %(message)s"
+# Documentation Requirements
+documentation:
+  source_code:
+    required_tags:
+      - "@description"          # What this file does
+      - "@author"              # Who wrote it (persona)
+      - "@version"             # Version number
+      - "@dependencies"        # What it needs
+      - "@exports"             # What it provides
+      - "@testing"             # Test coverage %
+      - "@last_review"         # Last review date
+    
+    enforcement:
+      python: true
+      typescript: true
+      javascript: true
+      
+  directories:
+    readme_required: true
+    readme_max_depth: 2  # Only require READMEs up to 2 levels deep
+    readme_required_parents:  # Specific directories that need READMEs
+      - "."  # Root
+      - "ai-assistant"
+      - "governance"
+      - "docs"
+      - "tests"
+      - "ai-assistant/backend"
+      - "ai-assistant/src"
+      - "ai-assistant/electron"
+    readme_min_sections:
+      - "## Purpose"
+      - "## Contents"
+      - "## Dependencies"
+      - "## Testing"
+      - "## Maintenance"
+      
+# File Management
+archival:
+  automatic: true
+  require_manifest: true
+  archive_dir_pattern: ".archive/YYYY-MM-DD_HHMMSS/"
+  manifest_fields:
+    - reason
+    - archived_by
+    - original_path
+    - restoration_procedure
+    - archive_date
+    
+  triggers:
+    - file_replacement
+    - major_refactor
+    - deprecation
+    - naming_standardization
+    
+# Validation Rules
+validation:
+  pre_commit:
+    checks:
+      - readme_files          # Every dir has README
+      - source_documentation  # Every file documented
+      - naming_standards      # Standard names used
+      - test_coverage        # Tests exist
+      - archival_compliance  # Replacements archived
+      - decision_log         # Decisions tracked
+      - no_duplicates       # No duplicate code
+      - no_experimental     # No experimental code
+      - no_bypass          # No bypass attempts
+    
+  blocking_violations:
+    missing_readme: 
+      message: "Directory {dir} missing README.md"
+      penalty: 10
+    poor_documentation: 
+      message: "File {file} missing required tags: {tags}"
+      penalty: 5
+    bad_naming: 
+      message: "File {file} violates naming standards"
+      penalty: 15
+    no_tests: 
+      message: "Code file {file} has no tests"
+      penalty: 20
+    duplicate_code: 
+      message: "Duplicate implementation detected"
+      penalty: 25
+    unapproved_change: 
+      message: "Change requires architect approval"
+      penalty: 30
+    bypass_attempt:
+      message: "Bypass attempt detected - BLOCKED"
+      penalty: 100
+    
+# Testing Requirements  
+testing:
+  minimum_coverage:
+    python: 85
+    typescript: 80
+    overall: 82
+    
+  required_test_types:
+    - unit
+    - integration
+    
+  test_file_patterns:
+    # Map file extensions to their test patterns
+    ".py": 
+      - "{name}_test.py"
+      - "test_{name}.py"
+      - "{name_underscore}_test.py"
+      - "test_{name_underscore}.py"
+      - "{name_hyphen}_test.py"
+      - "test_{name_hyphen}.py"
+    ".ts": 
+      - "{name}.spec.ts"
+      - "{name}.test.ts"
+      - "{name_underscore}.spec.ts"
+      - "{name_underscore}.test.ts"
+      - "{name_hyphen}.spec.ts"
+      - "{name_hyphen}.test.ts"
+    ".tsx": 
+      - "{name}.spec.tsx"
+      - "{name}.test.tsx"
+      - "{name_underscore}.spec.tsx"
+      - "{name_underscore}.test.tsx"
+      - "{name_hyphen}.spec.tsx"
+      - "{name_hyphen}.test.tsx"
+    ".js": 
+      - "{name}.spec.js"
+      - "{name}.test.js"
+      - "{name_underscore}.spec.js"
+      - "{name_underscore}.test.js"
+    ".jsx": 
+      - "{name}.spec.jsx"
+      - "{name}.test.jsx"
+      - "{name_underscore}.spec.jsx"
+      - "{name_underscore}.test.jsx"
+    
+# Audit Trail
+audit:
+  log_all_commits: true
+  log_all_blocks: true
+  log_all_archives: true
+  log_all_violations: true
+  retention_days: 365
+  
+  log_location: ".governance/audit/"
+  
+  required_fields:
+    - timestamp
+    - user
+    - action
+    - files
+    - compliance_score
+    - decision
+    - violations
+    
+# Security
+security:
+  scan_for_secrets: true
+  scan_for_vulnerabilities: true
+  block_dangerous_patterns: true
+  
+  dangerous_patterns:
+    - pattern: "eval\\("
+      message: "eval() is dangerous"
+    - pattern: "exec\\("
+      message: "exec() is dangerous"
+    - pattern: "shell=True"
+      message: "shell=True is dangerous"
+    - pattern: "innerHTML"
+      message: "innerHTML is XSS risk"
+    - pattern: "dangerouslySetInnerHTML"
+      message: "dangerouslySetInnerHTML is XSS risk"
+      
+  secret_patterns:
+    - pattern: "password\\s*=\\s*[\"']"
+      message: "Hardcoded password detected"
+    - pattern: "api_key\\s*=\\s*[\"']"
+      message: "Hardcoded API key detected"
+    - pattern: "token\\s*=\\s*[\"']"
+      message: "Hardcoded token detected"
+    - pattern: "secret\\s*=\\s*[\"']"
+      message: "Hardcoded secret detected"
+
+# Penalties (percentage reduction from 100%)
+penalties:
+  critical: 20    # Critical violations
+  high: 10        # High priority violations
+  medium: 5       # Medium priority violations
+  low: 2          # Low priority violations

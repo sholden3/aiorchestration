@@ -26,6 +26,27 @@ naming:
   
 # Documentation Requirements
 documentation:
+  skip_directories:
+    # Directories to skip for all checks
+    - node_modules
+    - .git
+    - __pycache__
+    - .archive
+    - htmlcov
+    - dist
+    - build
+    - coverage
+    - .pytest_cache
+    - .benchmarks
+    - .venv
+    - venv
+    - env
+    - .env
+    - .tox
+    - .mypy_cache
+    - .ruff_cache
+    - .coverage
+    
   source_code:
     required_tags:
       - "@description"          # What this file does
@@ -60,6 +81,45 @@ documentation:
       - "## Testing"
       - "## Maintenance"
       
+# File Creation Restrictions
+file_creation:
+  allowed_patterns:
+    # Only these file patterns can be created
+    - "*.py"           # Python source
+    - "*.ts"           # TypeScript source
+    - "*.tsx"          # React TypeScript
+    - "*.js"           # JavaScript
+    - "*.jsx"          # React JavaScript
+    - "*.md"           # Documentation
+    - "*.json"         # Config files
+    - "*.jsonl"        # JSON lines (audit logs)
+    - "*.yaml"         # Config files
+    - "*.yml"          # Config files
+    - "*.txt"          # Text files
+    - "*.sql"          # Database scripts
+    - "*.sh"           # Shell scripts
+    - "*.bat"          # Batch scripts
+    - "requirements*.txt"
+    - "package*.json"
+    - "tsconfig*.json"
+    - "jest.config.*"
+    - "*.spec.*"       # Test files
+    - "*.test.*"       # Test files
+    
+  forbidden_patterns:
+    # Never allow these
+    - "*.tmp"          # Temp files
+    - "*.bak"          # Backup files
+    - "*.log"          # Log files (should be gitignored)
+    - "test_*"         # Ad-hoc test files
+    - "temp_*"         # Temporary files
+    - "debug_*"        # Debug files
+    - "*.pyc"          # Compiled Python
+    - "__pycache__/*"  # Python cache
+    - "node_modules/*" # Dependencies
+    
+  require_purpose_comment: true  # New files need purpose header
+
 # File Management
 archival:
   automatic: true
@@ -86,10 +146,16 @@ validation:
       - source_documentation  # Every file documented
       - naming_standards      # Standard names used
       - test_coverage        # Tests exist
+      - test_execution       # Tests must pass
+      - coverage_threshold   # Min coverage met
+      - documentation_sync   # Docs match code
+      - no_random_files     # No unplanned files
       - archival_compliance  # Replacements archived
       - decision_log         # Decisions tracked
       - no_duplicates       # No duplicate code
       - no_experimental     # No experimental code
+      - no_todos           # No uncommitted TODOs
+      - no_debug_code      # No debug prints
       - no_bypass          # No bypass attempts
     
   blocking_violations:
@@ -121,6 +187,10 @@ testing:
     python: 85
     typescript: 80
     overall: 82
+  
+  execution_required: false     # Tests must run before commit (temporarily disabled)
+  fail_on_test_failure: true   # Block if tests fail
+  coverage_enforcement: true    # Enforce coverage thresholds
     
   required_test_types:
     - unit
@@ -196,6 +266,27 @@ security:
       message: "innerHTML is XSS risk"
     - pattern: "dangerouslySetInnerHTML"
       message: "dangerouslySetInnerHTML is XSS risk"
+      
+  code_quality_patterns:
+    # Debug code that shouldn't be committed
+    - pattern: "console\\.log\\("
+      message: "Remove console.log before commit"
+      severity: "medium"
+    - pattern: "print\\(.*#.*DEBUG"
+      message: "Remove debug print statements"
+      severity: "high"
+    - pattern: "debugger;"
+      message: "Remove debugger statement"
+      severity: "critical"
+    - pattern: "TODO:|FIXME:|HACK:|XXX:"
+      message: "Resolve TODO before commit"
+      severity: "medium"
+    - pattern: "import pdb"
+      message: "Remove pdb debugger import"
+      severity: "critical"
+    - pattern: "pdb\\.set_trace"
+      message: "Remove pdb breakpoint"
+      severity: "critical"
       
   secret_patterns:
     - pattern: "password\\s*=\\s*[\"']"

@@ -51,7 +51,11 @@ class ExtremeGovernance:
             ['git', 'diff', '--cached', '--name-only'],
             capture_output=True, text=True
         )
-        skip_patterns = ['node_modules/', '.git/', '__pycache__/', '.archive/', 'htmlcov/', 'dist/', 'build/', 'coverage/']
+        # Get skip patterns from config
+        skip_patterns = self.config.get('documentation', {}).get('skip_directories', [])
+        # Add trailing slash for directory matching
+        skip_patterns = [p if p.endswith('/') else p + '/' for p in skip_patterns]
+        
         files = []
         for f in result.stdout.strip().split('\n'):
             if f and not any(skip in f for skip in skip_patterns):
@@ -61,7 +65,8 @@ class ExtremeGovernance:
     def get_all_directories(self) -> Set[str]:
         """Get all directories in the project"""
         dirs = set()
-        skip_paths = ['node_modules', '.git', '__pycache__', '.archive', 'htmlcov', 'dist', 'build', 'coverage']
+        # Get skip paths from config
+        skip_paths = self.config.get('documentation', {}).get('skip_directories', [])
         
         for root, directories, _ in os.walk(self.repo_root):
             # Skip if current path contains any skip pattern
@@ -231,6 +236,181 @@ class ExtremeGovernance:
         else:
             print("[PASS] All code files have tests")
     
+    def check_test_execution(self):
+        """Run tests and ensure they pass with coverage"""
+        print("\n[CHECK] Test Execution & Coverage")
+        print("-" * 40)
+        
+        if not self.config.get('testing', {}).get('execution_required', False):
+            print("[SKIP] Test execution not required")
+            return
+        
+        # Check for Python tests with coverage
+        if any(f.endswith('.py') for f in self.changed_files if self.is_source_file(f)):
+            print("Running Python tests with coverage...")
+            
+            # Run tests with coverage
+            result = subprocess.run(
+                ['python', '-m', 'pytest', '--cov=.', '--cov-report=term-missing', '--cov-fail-under=' + 
+                 str(self.config.get('testing', {}).get('minimum_coverage', {}).get('python', 85))],
+                capture_output=True, text=True, cwd=self.repo_root
+            )
+            
+            if result.returncode != 0:
+                # Check if it's test failure or coverage failure
+                if 'FAILED' in result.stdout:
+                    self.add_violation(
+                        level="CRITICAL",
+                        message="Python tests failed - fix before committing",
+                        penalty=self.config['penalties']['critical']
+                    )
+                    print(f"[FAIL] Python tests failed")
+                elif 'coverage' in result.stdout.lower():
+                    self.add_violation(
+                        level="HIGH",
+                        message=f"Python coverage below {self.config.get('testing', {}).get('minimum_coverage', {}).get('python', 85)}%",
+                        penalty=self.config['penalties']['high']
+                    )
+                    print(f"[FAIL] Insufficient test coverage")
+                
+                # Show relevant output
+                print(result.stdout[-1000:] if len(result.stdout) > 1000 else result.stdout)
+                return
+            else:
+                print(f"[PASS] Python tests passing with sufficient coverage")
+        
+        # Check for TypeScript/JavaScript tests with coverage
+        if any(f.endswith(('.ts', '.tsx', '.js', '.jsx')) for f in self.changed_files if self.is_source_file(f)):
+            if (self.repo_root / 'package.json').exists():
+                print("Running JavaScript/TypeScript tests with coverage...")
+                
+                # Run tests with coverage
+                result = subprocess.run(
+                    ['npm', 'test', '--', '--coverage', '--passWithNoTests'],
+                    capture_output=True, text=True, cwd=self.repo_root
+                )
+                
+                if result.returncode != 0:
+                    self.add_violation(
+                        level="CRITICAL",
+                        message="JavaScript/TypeScript tests failed",
+                        penalty=self.config['penalties']['critical']
+                    )
+                    print(f"[FAIL] JavaScript/TypeScript tests failed")
+                    return
+                else:
+                    print(f"[PASS] JavaScript/TypeScript tests passing")
+        
+        print("[PASS] All tests passing with coverage")
+    
+    def check_file_creation(self):
+        """Check that only allowed files are being created"""
+        print("\n[CHECK] File Creation Rules")
+        print("-" * 40)
+        
+        forbidden_files = []
+        suspicious_files = []
+        
+        file_config = self.config.get('file_creation', {})
+        allowed = file_config.get('allowed_patterns', [])
+        forbidden = file_config.get('forbidden_patterns', [])
+        
+        for file_path in self.changed_files:
+            filename = Path(file_path).name
+            
+            # Check forbidden patterns
+            for pattern in forbidden:
+                if self.matches_pattern(filename, pattern):
+                    forbidden_files.append(file_path)
+                    self.add_violation(
+                        level="CRITICAL",
+                        message=f"Forbidden file pattern: '{file_path}'",
+                        penalty=self.config['penalties']['critical']
+                    )
+                    break
+            
+            # Check if file matches allowed patterns
+            if not any(self.matches_pattern(filename, p) for p in allowed):
+                suspicious_files.append(file_path)
+                self.add_violation(
+                    level="HIGH",
+                    message=f"Suspicious file type: '{file_path}'",
+                    penalty=self.config['penalties']['high']
+                )
+        
+        if forbidden_files or suspicious_files:
+            print(f"[FAIL] {len(forbidden_files)} forbidden, {len(suspicious_files)} suspicious files")
+        else:
+            print("[PASS] All files follow creation rules")
+    
+    def check_code_quality(self):
+        """Check for debug code, TODOs, and other quality issues"""
+        print("\n[CHECK] Code Quality")
+        print("-" * 40)
+        
+        quality_issues = []
+        
+        patterns = self.config.get('security', {}).get('code_quality_patterns', [])
+        
+        for file_path in self.changed_files:
+            if self.is_source_file(file_path):
+                full_path = self.repo_root / file_path
+                if full_path.exists():
+                    content = full_path.read_text(errors='ignore')
+                    
+                    for pattern_config in patterns:
+                        pattern = pattern_config['pattern']
+                        if re.search(pattern, content):
+                            quality_issues.append({
+                                'file': file_path,
+                                'issue': pattern_config['message'],
+                                'severity': pattern_config.get('severity', 'medium')
+                            })
+                            
+                            penalty = {
+                                'critical': self.config['penalties']['critical'],
+                                'high': self.config['penalties']['high'],
+                                'medium': self.config['penalties']['medium'],
+                                'low': self.config['penalties']['low']
+                            }.get(pattern_config.get('severity', 'medium'), 5)
+                            
+                            self.add_violation(
+                                level=pattern_config.get('severity', 'MEDIUM').upper(),
+                                message=f"{file_path}: {pattern_config['message']}",
+                                penalty=penalty
+                            )
+        
+        if quality_issues:
+            print(f"[FAIL] {len(quality_issues)} code quality issues found")
+            for issue in quality_issues[:5]:  # Show first 5
+                print(f"  - {issue['file']}: {issue['issue']}")
+        else:
+            print("[PASS] Code quality standards met")
+    
+    def check_documentation_sync(self):
+        """Ensure documentation is updated when code changes"""
+        print("\n[CHECK] Documentation Sync")
+        print("-" * 40)
+        
+        # Check if significant code changes require doc updates
+        code_files = [f for f in self.changed_files if self.is_source_file(f)]
+        doc_files = [f for f in self.changed_files if f.endswith('.md')]
+        
+        if len(code_files) > 3 and not doc_files:
+            self.add_violation(
+                level="MEDIUM",
+                message="Significant code changes without documentation updates",
+                penalty=self.config['penalties']['medium']
+            )
+            print(f"[WARN] {len(code_files)} code files changed without documentation")
+        else:
+            print("[PASS] Documentation appears in sync")
+    
+    def matches_pattern(self, filename: str, pattern: str) -> bool:
+        """Check if filename matches a pattern (supports wildcards)"""
+        import fnmatch
+        return fnmatch.fnmatch(filename, pattern)
+    
     def is_source_file(self, file_path: str) -> bool:
         """Check if file is source code"""
         extensions = ['.py', '.ts', '.js', '.tsx', '.jsx']
@@ -359,7 +539,14 @@ class ExtremeGovernance:
         self.check_readme_files()
         self.check_source_documentation()
         self.check_naming_standards()
+        self.check_file_creation()
         self.check_test_coverage()
+        self.check_code_quality()
+        self.check_documentation_sync()
+        
+        # Run tests last (they take the longest)
+        if self.config.get('testing', {}).get('execution_required', False):
+            self.check_test_execution()
         
         # Final verdict
         print("\n" + "="*70)

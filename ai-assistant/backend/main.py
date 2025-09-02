@@ -49,6 +49,10 @@ sys.path.append(str(Path(__file__).parent))
 # Add governance modules to path
 sys.path.append(str(Path(__file__).parent.parent / "governance"))
 
+# Import configuration
+from core.config import get_config, get_backend_url, is_development
+from core.port_discovery import discover_backend_port, cleanup_backend_port, get_port_discovery
+
 from cache_manager import IntelligentCache
 from persona_manager import PersonaManager, PersonaType
 from claude_integration import ClaudeOptimizer
@@ -121,10 +125,29 @@ class AIBackendService:
     Main backend service orchestrating all AI operations
     """
     
-    def __init__(self, config: Config = None, port: int = None):
+    def __init__(self, config: Config = None, port: int = None, host: str = '127.0.0.1'):
+        # Load configuration from centralized config
+        self.app_config = get_config()
         self.config = config or Config()
-        self.app = FastAPI(title="AI Development Assistant Backend")
-        self.port = port or self.config.systems.backend_port
+        
+        # Use port discovery if not specified
+        if port is None:
+            # Try to discover an available port
+            self.port = discover_backend_port()
+            logger.info(f"Discovered available port: {self.port}")
+            # Write port to file for frontend to read
+            port_discovery = get_port_discovery()
+            port_discovery.write_port_file(self.port)
+        else:
+            self.port = port
+        
+        self.host = host
+        
+        self.app = FastAPI(
+            title=self.app_config.name,
+            version=self.app_config.version,
+            debug=is_development()
+        )
         
         # FIX H3: Database initialization state tracking
         self._initialization_complete = False
@@ -171,13 +194,15 @@ class AIBackendService:
         
     def setup_middleware(self):
         """Configure CORS for Electron app"""
-        self.app.add_middleware(
-            CORSMiddleware,
-            allow_origins=os.getenv('CORS_ORIGINS', 'http://localhost:4200,file://').split(','),
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
+        # Use CORS settings from centralized config
+        if self.app_config.backend.cors.enabled:
+            self.app.add_middleware(
+                CORSMiddleware,
+                allow_origins=self.app_config.backend.cors.origins,
+                allow_credentials=True,
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
     
     def setup_lifecycle(self):
         """Setup startup and shutdown events"""
@@ -260,6 +285,11 @@ class AIBackendService:
                 if self.db_manager:
                     await self.cache.save_to_database(self.db_manager)
                     await self.db_manager.close()
+                    
+                # Clean up port allocation
+                cleanup_backend_port()
+                logger.info("Released backend port")
+                
                 logger.info("Shutdown complete")
             except Exception as e:
                 logger.error(f"Shutdown error: {e}")
@@ -1006,22 +1036,63 @@ class AIBackendService:
     
     def run(self):
         """Start the backend service"""
-        logger.info(f"Starting AI Backend Service on port {self.port}")
+        logger.info(f"Starting {self.app_config.name} Backend on {self.host}:{self.port}")
+        logger.info(f"Environment: {self.app_config.environment}")
+        
         uvicorn.run(
             self.app,
-            host=os.getenv('BACKEND_HOST', '127.0.0.1'),
+            host=self.host,
             port=self.port,
-            log_level="info"
+            log_level=self.app_config.logging.level.lower()
         )
 
 def main():
-    """Main entry point"""
+    """Main entry point with automatic port discovery"""
+    # Load centralized configuration
+    app_config = get_config()
+    
     parser = argparse.ArgumentParser(description='AI Development Assistant Backend')
-    config = Config()
-    parser.add_argument('--port', type=int, default=config.systems.backend_port, help='Port to run the service on')
+    parser.add_argument('--port', type=int, default=None, 
+                      help='Port to run the service on (auto-discovers if not specified)')
+    parser.add_argument('--host', type=str, default='127.0.0.1',
+                      help='Host to bind to')
+    parser.add_argument('--env', type=str, default='development',
+                      choices=['development', 'production', 'test'],
+                      help='Environment to run in')
+    parser.add_argument('--correlation-id', type=str, default=None,
+                      help='Correlation ID for debugging')
     args = parser.parse_args()
     
-    service = AIBackendService(port=args.port)
+    # Set environment if specified
+    if args.env:
+        os.environ['APP_ENV'] = args.env
+    
+    # Use port discovery if no port specified or if default port is in use
+    if args.port is None:
+        # Try to use configured port first, then discover if needed
+        port_discovery = get_port_discovery()
+        port = port_discovery.find_available_port('backend')
+        logger.info(f"Using discovered port: {port}")
+    else:
+        # Check if specified port is available
+        port_discovery = get_port_discovery()
+        if port_discovery.is_port_available(args.port):
+            port = args.port
+            port_discovery.allocate_port('backend', port)
+        else:
+            # Port is in use, discover a new one
+            logger.warning(f"Port {args.port} is in use, discovering available port...")
+            port = port_discovery.find_available_port('backend')
+            logger.info(f"Using discovered port: {port}")
+    
+    # Write port file for frontend to discover
+    port_discovery.write_port_file(port)
+    
+    # Register cleanup on exit
+    import atexit
+    atexit.register(cleanup_backend_port)
+    
+    service = AIBackendService(port=port, host=args.host)
     service.run()
 
 if __name__ == "__main__":

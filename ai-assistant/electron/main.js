@@ -11,6 +11,33 @@ const { spawn } = require('child_process');
 
 // FIX C3: Load centralized configuration
 const config = require('./config');
+const fs = require('fs');
+
+// Import BackendManager for automatic backend startup
+const BackendManager = require('./backend-manager');
+
+// Load app configuration from centralized JSON
+function loadAppConfig() {
+  const configPath = path.join(__dirname, '../../config/app.config.json');
+  const envConfigPath = path.join(__dirname, `../../config/app.config.${process.env.NODE_ENV || 'development'}.json`);
+  
+  let appConfig = {};
+  
+  // Load base config
+  if (fs.existsSync(configPath)) {
+    appConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  }
+  
+  // Merge with environment-specific config
+  if (fs.existsSync(envConfigPath)) {
+    const envConfig = JSON.parse(fs.readFileSync(envConfigPath, 'utf8'));
+    appConfig = { ...appConfig, ...envConfig };
+  }
+  
+  return appConfig;
+}
+
+const appConfig = loadAppConfig();
 
 // Use universal PTY fallback system that automatically selects best implementation
 const PTYManager = require('./pty-fallback-system');
@@ -20,9 +47,11 @@ class AIAssistantApp {
   constructor() {
     this.mainWindow = null;
     this.pythonBackend = null;
+    this.backendManager = new BackendManager(); // Use BackendManager for backend lifecycle
     this.ptyManager = new PTYManager();
     this.isDev = process.argv.includes('--dev');
-    this.backendPort = config.backend.port; // FIX C3: Use centralized config
+    this.appConfig = appConfig; // Use loaded app config
+    this.backendPort = null; // Will be set by BackendManager
     
     this.initializeApp();
   }
@@ -42,12 +71,12 @@ class AIAssistantApp {
 
     app.whenReady().then(() => {
       this.createWindow();
-      // FIX C3: Always attempt to start or connect to backend on correct port
+      // Use BackendManager to auto-start backend with port discovery
       this.startPythonBackend();
-      // Health check will verify if backend is running
-      setTimeout(() => this.checkBackendHealth(), 2000);
       this.setupIPC();
       this.setupPTYHandlers();
+      // Start periodic health checks
+      this.startHealthMonitoring();
     });
 
     app.on('window-all-closed', () => {
@@ -103,197 +132,37 @@ class AIAssistantApp {
 
   async startPythonBackend() {
     /**
-     * FIX C3: Comprehensive backend coordination with retry logic
-     * Alex Novak v3.0: Full process coordination with debugging
-     * Features: Retry logic, correlation IDs, already-running detection
+     * Use BackendManager for automatic backend startup with port discovery
+     * Features: Port discovery, health checks, graceful shutdown
      */
     
-    const correlationId = `startup-${Date.now()}`;
-    console.log(`[${correlationId}] Starting backend coordination`);
+    console.log('Starting backend using BackendManager...');
     
-    // Configuration from centralized config
-    const backendConfig = {
-      port: config.backend.port,
-      host: config.backend.host,
-      maxRetries: config.backend.startup.maxRetries,
-      retryDelay: config.backend.startup.retryDelay,
-      healthCheckTimeout: config.backend.startup.healthCheckTimeout,
-      startupTimeout: config.backend.startup.startupTimeout
-    };
-    
-    // First check if backend is already running
-    if (await this.checkBackendRunning(backendConfig, correlationId)) {
-      console.log(`[${correlationId}] Backend already running on port ${backendConfig.port}`);
-      this.notifyBackendStatus('connected', backendConfig.port);
-      return true;
-    }
-    
-    // Attempt to start backend with retries
-    for (let attempt = 1; attempt <= backendConfig.maxRetries; attempt++) {
-      console.log(`[${correlationId}] Startup attempt ${attempt}/${backendConfig.maxRetries}`);
-      
-      try {
-        // Start the backend process
-        const started = await this.launchBackendProcess(backendConfig, correlationId, attempt);
-        if (!started) {
-          throw new Error('Failed to launch backend process');
-        }
-        
-        // Wait for backend to be healthy
-        const healthy = await this.waitForBackendHealth(backendConfig, correlationId);
-        if (healthy) {
-          console.log(`[${correlationId}] Backend started successfully on attempt ${attempt}`);
-          this.notifyBackendStatus('connected', backendConfig.port);
-          return true;
-        }
-        
-      } catch (error) {
-        console.error(`[${correlationId}] Attempt ${attempt} failed:`, error.message);
-        
-        // Kill failed process before retry
-        if (this.pythonBackend) {
-          this.pythonBackend.kill();
-          this.pythonBackend = null;
-        }
-        
-        // Wait before retry with exponential backoff
-        if (attempt < backendConfig.maxRetries) {
-          const delay = backendConfig.retryDelay * Math.pow(2, attempt - 1);
-          console.log(`[${correlationId}] Waiting ${delay}ms before retry`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
-      }
-    }
-    
-    // All attempts failed
-    console.error(`[${correlationId}] Failed to start backend after ${backendConfig.maxRetries} attempts`);
-    this.notifyBackendStatus('failed', null);
-    this.showBackendErrorDialog(correlationId);
-    return false;
-  }
-  
-  async checkBackendRunning(config, correlationId) {
-    /**
-     * Check if backend is already running on the configured port
-     */
     try {
-      const response = await fetch(`http://${config.host}:${config.port}/health`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log(`[${correlationId}] Backend health response:`, data);
-        return true;
-      }
-    } catch (error) {
-      // Backend not running or not responding
-      return false;
-    }
-    return false;
-  }
-  
-  async launchBackendProcess(config, correlationId, attempt) {
-    /**
-     * Launch the Python backend process with proper configuration
-     */
-    const fs = require('fs');
-    const pythonCommands = process.platform === 'win32' 
-      ? ['python', 'python3', 'py']  // Try multiple Python commands on Windows
-      : ['python3', 'python'];
-    
-    const backendPath = path.join(__dirname, '../backend/main.py');
-    
-    // Verify backend script exists
-    if (!fs.existsSync(backendPath)) {
-      console.error(`[${correlationId}] Backend script not found at: ${backendPath}`);
-      return false;
-    }
-    
-    // Try different Python commands until one works
-    for (const pythonCmd of pythonCommands) {
-      try {
-        console.log(`[${correlationId}] Trying ${pythonCmd} ${backendPath}`);
-        
-        this.pythonBackend = spawn(pythonCmd, [
-          backendPath,
-          '--port', config.port.toString(),
-          '--host', config.host,
-          '--correlation-id', correlationId
-        ], {
-          cwd: path.join(__dirname, '../backend'),
-          env: {
-            ...process.env,
-            PYTHONUNBUFFERED: '1',
-            BACKEND_PORT: config.port.toString(),
-            BACKEND_HOST: config.host,
-            ELECTRON_RUN: 'true'
-          },
-          shell: false,
-          windowsHide: true
-        });
-        
-        // Set up event handlers
-        this.pythonBackend.stdout.on('data', (data) => {
-          console.log(`[${correlationId}] Backend stdout:`, data.toString().trim());
-          if (this.mainWindow) {
-            this.mainWindow.webContents.send('backend-log', data.toString());
-          }
-        });
-        
-        this.pythonBackend.stderr.on('data', (data) => {
-          console.error(`[${correlationId}] Backend stderr:`, data.toString().trim());
-          if (this.mainWindow) {
-            this.mainWindow.webContents.send('backend-error', data.toString());
-          }
-        });
-        
-        this.pythonBackend.on('error', (error) => {
-          console.error(`[${correlationId}] Backend process error:`, error);
-        });
-        
-        this.pythonBackend.on('exit', (code, signal) => {
-          console.log(`[${correlationId}] Backend exited with code ${code}, signal ${signal}`);
-          this.pythonBackend = null;
-          this.notifyBackendStatus('disconnected', null);
-        });
-        
-        // If we got here, spawn succeeded
-        console.log(`[${correlationId}] Backend process started with ${pythonCmd}`);
-        return true;
-        
-      } catch (error) {
-        console.log(`[${correlationId}] ${pythonCmd} failed:`, error.message);
-        // Try next Python command
-        continue;
-      }
-    }
-    
-    console.error(`[${correlationId}] No Python command worked`);
-    return false;
-  }
-  
-  async waitForBackendHealth(config, correlationId) {
-    /**
-     * Wait for backend to become healthy with timeout
-     */
-    const startTime = Date.now();
-    const checkInterval = 500;
-    
-    while (Date.now() - startTime < config.startupTimeout) {
-      try {
-        const response = await fetch(`http://${config.host}:${config.port}/health`);
-        if (response.ok) {
-          const data = await response.json();
-          console.log(`[${correlationId}] Backend healthy:`, data);
-          return true;
-        }
-      } catch (error) {
-        // Not ready yet, continue waiting
-      }
+      // Start backend - BackendManager will handle port discovery
+      this.backendPort = await this.backendManager.start();
+      console.log(`Backend started on port ${this.backendPort}`);
       
-      await new Promise(resolve => setTimeout(resolve, checkInterval));
+      // Update app config with discovered port
+      this.appConfig.backend.port = this.backendPort;
+      
+      // Notify renderer of backend status
+      this.notifyBackendStatus('connected', this.backendPort);
+      
+      // Set up shutdown handler
+      this.backendManager.onShutdown(async () => {
+        console.log('Backend shutdown initiated');
+        this.notifyBackendStatus('disconnected', null);
+      });
+      
+      return true;
+      
+    } catch (error) {
+      console.error('Failed to start backend:', error);
+      this.notifyBackendStatus('failed', null);
+      this.showBackendErrorDialog(`backend-${Date.now()}`);
+      return false;
     }
-    
-    console.error(`[${correlationId}] Backend health check timeout after ${config.startupTimeout}ms`);
-    return false;
   }
   
   notifyBackendStatus(status, port) {
@@ -319,11 +188,35 @@ class AIAssistantApp {
       `Possible causes:\n` +
       `1. Python 3.10+ not installed\n` +
       `2. Required packages missing (pip install -r requirements.txt)\n` +
-      `3. Port ${this.backendPort} already in use\n` +
+      `3. No available ports in range 8000-9000\n` +
       `4. Antivirus blocking the backend\n\n` +
       `Correlation ID: ${correlationId}\n\n` +
       `Check the console (Ctrl+Shift+I) for detailed error messages.`
     );
+  }
+
+  startHealthMonitoring() {
+    /**
+     * Monitor backend health and restart if necessary
+     */
+    setInterval(async () => {
+      const status = this.backendManager.getStatus();
+      
+      if (status.isRunning && status.port) {
+        // Check if backend is actually healthy
+        const healthy = await status.healthy;
+        if (!healthy) {
+          console.warn('Backend health check failed, attempting restart...');
+          try {
+            this.backendPort = await this.backendManager.restart();
+            this.notifyBackendStatus('reconnected', this.backendPort);
+          } catch (error) {
+            console.error('Failed to restart backend:', error);
+            this.notifyBackendStatus('failed', null);
+          }
+        }
+      }
+    }, 30000); // Check every 30 seconds
   }
 
 
@@ -333,6 +226,19 @@ class AIAssistantApp {
      * Security: Validate all IPC messages
      * Performance: Async handlers for non-blocking operations
      */
+    
+    // Configuration Handler
+    ipcMain.handle('get-config', async () => {
+      return this.appConfig;
+    });
+    
+    // Environment check
+    ipcMain.handle('get-environment', async () => {
+      return {
+        isDevelopment: this.isDev,
+        environment: this.appConfig.app?.environment || 'development'
+      };
+    });
     
     // AI Task Execution
     ipcMain.handle('execute-ai-task', async (event, task) => {
@@ -488,24 +394,19 @@ class AIAssistantApp {
   cleanup() {
     /**
      * Business Logic: Clean shutdown of all services
-     * Error Handling: Force kill if graceful shutdown fails
+     * Error Handling: BackendManager handles graceful shutdown
      */
     console.log('Cleaning up...');
     
     // Kill all PTY sessions
     this.ptyManager.killAllSessions();
     
-    // Stop Python backend only if we started it
-    if (this.pythonBackend) {
-      console.log('Stopping Python backend...');
-      this.pythonBackend.kill('SIGTERM');
-      setTimeout(() => {
-        if (this.pythonBackend && !this.pythonBackend.killed) {
-          this.pythonBackend.kill('SIGKILL');
-        }
-      }, 5000);
-    } else {
-      console.log('Backend was externally managed, not stopping');
+    // Use BackendManager for clean backend shutdown
+    if (this.backendManager) {
+      console.log('Stopping backend via BackendManager...');
+      this.backendManager.cleanup().catch(error => {
+        console.error('Backend cleanup error:', error);
+      });
     }
   }
 }

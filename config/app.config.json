@@ -1,0 +1,132 @@
+{
+  "app": {
+    "name": "AI Development Assistant",
+    "version": "2.0.0",
+    "environment": "development"
+  },
+  "backend": {
+    "host": "127.0.0.1",
+    "port": 8000,
+    "protocol": "http",
+    "api_prefix": "/api",
+    "health_check_path": "/health",
+    "cors": {
+      "enabled": true,
+      "origins": ["http://localhost:4200", "http://localhost:8000", "file://"]
+    },
+    "database": {
+      "url": "sqlite:///./ai_assistant.db",
+      "pool_size": 10,
+      "echo": false
+    },
+    "cache": {
+      "enabled": true,
+      "ttl": 3600,
+      "max_size": 1000
+    },
+    "websocket": {
+      "enabled": true,
+      "ping_interval": 30,
+      "ping_timeout": 10
+    }
+  },
+  "frontend": {
+    "dev_server": {
+      "host": "localhost",
+      "port": 4200
+    },
+    "electron": {
+      "window": {
+        "width": 1600,
+        "height": 900,
+        "minWidth": 1200,
+        "minHeight": 700
+      },
+      "dev_tools": true
+    },
+    "api": {
+      "timeout": 30000,
+      "retry_attempts": 3,
+      "retry_delay": 1000
+    }
+  },
+  "ipc": {
+    "max_message_size": 10485760,
+    "rate_limit": {
+      "window": 60000,
+      "max_calls": 100
+    },
+    "channels": {
+      "whitelist_enabled": true,
+      "audit_enabled": true
+    }
+  },
+  "terminal": {
+    "shell": {
+      "windows": "powershell.exe",
+      "linux": "/bin/bash",
+      "darwin": "/bin/zsh"
+    },
+    "pty": {
+      "cols": 80,
+      "rows": 24,
+      "cwd": null
+    }
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "json",
+    "file": {
+      "enabled": true,
+      "path": "./logs/app.log",
+      "max_size": "10MB",
+      "max_files": 5
+    },
+    "console": {
+      "enabled": true,
+      "colorize": true
+    }
+  },
+  "security": {
+    "auth": {
+      "enabled": false,
+      "jwt_secret": "CHANGE_THIS_IN_PRODUCTION",
+      "token_expiry": 3600
+    },
+    "rate_limiting": {
+      "enabled": true,
+      "requests_per_minute": 60
+    },
+    "content_security_policy": {
+      "enabled": true,
+      "directives": {
+        "default-src": ["'self'"],
+        "script-src": ["'self'", "'unsafe-inline'"],
+        "style-src": ["'self'", "'unsafe-inline'"],
+        "img-src": ["'self'", "data:", "https:"],
+        "connect-src": ["'self'", "ws://localhost:*", "http://localhost:*", "http://127.0.0.1:*"]
+      }
+    }
+  },
+  "features": {
+    "ai_integration": {
+      "enabled": false,
+      "provider": "mock",
+      "model": "gpt-4",
+      "max_tokens": 2000
+    },
+    "governance": {
+      "enabled": true,
+      "audit_all_operations": true,
+      "enforce_rules": true
+    },
+    "templates": {
+      "enabled": true,
+      "cache_rendered": true
+    },
+    "practices": {
+      "enabled": true,
+      "voting_enabled": true
+    }
+  }
+}

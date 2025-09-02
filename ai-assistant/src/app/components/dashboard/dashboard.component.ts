@@ -2,8 +2,22 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RulesService, Rule, BestPractice, Template, Statistics } from '../../services/rules.service';
 import { OrchestrationService, OrchestrationStatus } from '../../services/orchestration.service';
 import { WebSocketService } from '../../services/websocket.service';
-import { interval, Subscription } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { interval, Subscription, forkJoin } from 'rxjs';
+import { switchMap, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
+
+// Import new API services
+import { RulesApiService } from '../../services/api/rules-api.service';
+import { PracticesApiService } from '../../services/api/practices-api.service';
+import { TemplatesApiService } from '../../services/api/templates-api.service';
+import { SessionsApiService } from '../../services/api/sessions-api.service';
+import { 
+  RuleResponse, 
+  PracticeResponse, 
+  TemplateResponse, 
+  SessionMetrics,
+  RuleStats 
+} from '../../models/backend-api.models';
 
 export interface Project {
   name: string;
@@ -65,10 +79,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   ];
   
-  // Data properties
+  // Data properties - keeping old format for backward compatibility
   rules: Rule[] = [];
   bestPractices: BestPractice[] = [];
   templates: Template[] = [];
+  
+  // New API data
+  apiRules: RuleResponse[] = [];
+  apiPractices: PracticeResponse[] = [];
+  apiTemplates: TemplateResponse[] = [];
+  sessionMetrics: SessionMetrics | null = null;
+  ruleStats: RuleStats | null = null;
   
   // Statistics
   rulesStats: Statistics | null = null;
@@ -112,10 +133,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(
     private rulesService: RulesService,
     private orchestrationService: OrchestrationService,
-    private webSocketService: WebSocketService
+    private webSocketService: WebSocketService,
+    // New API services
+    private rulesApi: RulesApiService,
+    private practicesApi: PracticesApiService,
+    private templatesApi: TemplatesApiService,
+    private sessionsApi: SessionsApiService
   ) {}
   
   ngOnInit(): void {
+    // Try to load from new APIs first
+    this.loadRealData();
+    
+    // Fallback to old mock service
     this.loadAllData();
     this.loadCategories();
     this.connectWebSocket();
@@ -422,5 +452,158 @@ export class DashboardComponent implements OnInit, OnDestroy {
       console.log('Assumption validation:', validation);
       // Could show assumption challenges in real-time
     });
+  }
+  
+  // ============== NEW API METHODS ==============
+  
+  /**
+   * Load real data from backend APIs
+   */
+  loadRealData(): void {
+    // Load all data in parallel
+    forkJoin({
+      rules: this.rulesApi.getRules({ limit: 10 }).pipe(
+        catchError(err => {
+          console.error('Failed to load rules from API:', err);
+          return of({ rules: [], total: 0, skip: 0, limit: 10 });
+        })
+      ),
+      practices: this.practicesApi.getPractices({ limit: 10 }).pipe(
+        catchError(err => {
+          console.error('Failed to load practices from API:', err);
+          return of({ practices: [], total: 0, skip: 0, limit: 10 });
+        })
+      ),
+      templates: this.templatesApi.getTemplates({ limit: 10 }).pipe(
+        catchError(err => {
+          console.error('Failed to load templates from API:', err);
+          return of({ templates: [], total: 0, skip: 0, limit: 10 });
+        })
+      ),
+      sessionMetrics: this.sessionsApi.getSessionMetrics().pipe(
+        catchError(err => {
+          console.error('Failed to load session metrics:', err);
+          return of(null);
+        })
+      ),
+      ruleStats: this.rulesApi.getRuleStats().pipe(
+        catchError(err => {
+          console.error('Failed to load rule stats:', err);
+          return of(null);
+        })
+      )
+    }).subscribe(results => {
+      // Update component data
+      this.apiRules = results.rules.rules;
+      this.apiPractices = results.practices.practices;
+      this.apiTemplates = results.templates.templates;
+      this.sessionMetrics = results.sessionMetrics;
+      this.ruleStats = results.ruleStats;
+      
+      // Update statistics for display
+      this.updateStatisticsFromAPI();
+      
+      // Update projects based on real data
+      this.updateProjectsFromSessions();
+      
+      console.log('Real data loaded successfully:', {
+        rules: this.apiRules.length,
+        practices: this.apiPractices.length,
+        templates: this.apiTemplates.length,
+        sessionMetrics: this.sessionMetrics,
+        ruleStats: this.ruleStats
+      });
+    });
+  }
+  
+  /**
+   * Update statistics from API data
+   */
+  updateStatisticsFromAPI(): void {
+    // Update rules stats
+    if (this.ruleStats) {
+      this.rulesStats = {
+        total: this.ruleStats.total_rules,
+        by_category: this.ruleStats.severity_distribution || {},
+        by_severity: this.ruleStats.severity_distribution
+      } as Statistics;
+    }
+    
+    // Update practices stats from loaded data
+    if (this.apiPractices.length > 0) {
+      const categoryCounts: Record<string, number> = {};
+      this.apiPractices.forEach(practice => {
+        const category = practice.category || 'uncategorized';
+        categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+      });
+      
+      this.practicesStats = {
+        total: this.apiPractices.length,
+        by_category: categoryCounts,
+        active: this.apiPractices.filter(p => p.effectiveness_score && p.effectiveness_score > 0.5).length
+      } as Statistics;
+    }
+    
+    // Update templates stats from loaded data
+    if (this.apiTemplates.length > 0) {
+      const categoryCounts: Record<string, number> = {};
+      this.apiTemplates.forEach(template => {
+        const category = template.category || 'uncategorized';
+        categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+      });
+      
+      this.templatesStats = {
+        total: this.apiTemplates.length,
+        by_category: categoryCounts,
+        active: this.apiTemplates.filter(t => t.usage_count > 0).length
+      } as Statistics;
+    }
+  }
+  
+  /**
+   * Update projects display from session metrics
+   */
+  updateProjectsFromSessions(): void {
+    if (this.sessionMetrics) {
+      // Create dynamic projects based on session data
+      const dynamicProjects: Project[] = [
+        {
+          name: 'Active Development Sessions',
+          percentage: Math.min(100, (this.sessionMetrics.active_sessions / Math.max(1, this.sessionMetrics.total_sessions)) * 100),
+          status: `${this.sessionMetrics.active_sessions} active sessions`,
+          phase: 'active'
+        },
+        {
+          name: 'Total Decisions Made',
+          percentage: Math.min(100, (this.sessionMetrics.total_decisions / 1000) * 100),
+          status: `${this.sessionMetrics.total_decisions} AI decisions tracked`,
+          phase: 'monitoring'
+        },
+        {
+          name: 'Audit Compliance',
+          percentage: Math.min(100, (this.sessionMetrics.total_audit_logs / 100) * 100),
+          status: `${this.sessionMetrics.total_audit_logs} audit logs recorded`,
+          phase: 'compliance'
+        },
+        {
+          name: 'Average Session Duration',
+          percentage: Math.min(100, (this.sessionMetrics.average_duration_minutes / 120) * 100),
+          status: `${Math.round(this.sessionMetrics.average_duration_minutes)} minutes average`,
+          phase: 'metrics'
+        }
+      ];
+      
+      // Update projects if we have real data
+      if (this.sessionMetrics.total_sessions > 0) {
+        this.projects = dynamicProjects;
+      }
+    }
+  }
+  
+  /**
+   * Refresh data from APIs
+   */
+  refreshData(): void {
+    this.loadRealData();
   }
 }

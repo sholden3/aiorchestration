@@ -387,7 +387,8 @@ class AIBackendService:
                     "timestamp": datetime.now().isoformat(),
                     "cache_enabled": True,
                     "personas_available": len(self.persona_manager.personas),
-                    "initialized": True
+                    "initialized": True,
+                    "database": db_service.get_connection_status()
                 }
             elif self._initialization_error:
                 return {
@@ -396,7 +397,8 @@ class AIBackendService:
                     "cache_enabled": False,
                     "personas_available": 0,
                     "initialized": False,
-                    "error": self._initialization_error
+                    "error": self._initialization_error,
+                    "database": db_service.get_connection_status()
                 }
             else:
                 return {
@@ -404,8 +406,14 @@ class AIBackendService:
                     "timestamp": datetime.now().isoformat(),
                     "cache_enabled": False,
                     "personas_available": 0,
-                    "initialized": False
+                    "initialized": False,
+                    "database": {"is_connected": False, "circuit_breaker": {"state": "closed"}}
                 }
+        
+        @self.app.get("/database/status")
+        async def database_status():
+            """Get detailed database connection status including circuit breaker state"""
+            return db_service.get_connection_status()
         
         @self.app.post("/ai/execute", response_model=TaskResponse)
         async def execute_ai_task(task: AITask, background_tasks: BackgroundTasks):

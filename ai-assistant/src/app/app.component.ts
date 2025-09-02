@@ -21,7 +21,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadSystemStatus();
-    this.refreshSubscription = interval(5000).subscribe(() => this.loadSystemStatus());
+    // Reduced polling frequency from 5s to 30s to improve performance
+    // The WebSocket connection provides real-time updates, so frequent polling is unnecessary
+    this.refreshSubscription = interval(30000).subscribe(() => this.loadSystemStatus());
     
     // FIX C1: Initialize 3AM debugging utilities
     TerminalService.attachGlobalDebugHook(this.terminalManager);

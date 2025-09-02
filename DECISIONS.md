@@ -399,6 +399,46 @@
 - [Dependencies to track]
 
 ---
+
+### 2025-09-02 - Dr. Sarah Chen v1.2 - Database Resilience Pattern
+
+**Invoked By**: Steven Holden  
+**Context**: Database connection failures causing cascading system issues and poor user experience  
+
+**Decisions Made**:
+1. **Circuit Breaker Pattern Implementation**:
+   - Failure threshold: 3 attempts before opening circuit
+   - Recovery timeout: 30 seconds before attempting half-open state
+   - State tracking: CLOSED → OPEN → HALF_OPEN cycle
+2. **Database Service Enhancement**:
+   - Integrated circuit breaker for all connection attempts
+   - Connection status endpoint for monitoring
+   - Graceful fallback to mock data when circuit is open
+3. **Performance Optimization**:
+   - Reduced UI polling from 5s to 30s (WebSocket provides real-time updates)
+   - Prevented repeated connection attempts during outages
+
+**Binding Constraints**:
+- Circuit breaker must be used for all external service calls
+- Connection status must be exposed via /database/status endpoint
+- Fallback behavior must maintain user experience
+
+**Documentation Created**:
+- [x] Circuit breaker module with full documentation
+- [x] Enhanced database service with status tracking
+- [x] API endpoint documentation
+
+**Integration Impact**:
+- Backend: All database calls now protected by circuit breaker
+- Frontend: Reduced polling frequency for better performance
+- Monitoring: New endpoint for database health checks
+
+**Follow-up Required**:
+- [ ] Add unit tests for circuit breaker - Sam Martinez - Priority High
+- [ ] Add integration tests for database service - Dr. Jamie Rodriguez - Priority High
+- [ ] Monitor production metrics after deployment - Taylor Williams
+
+---
 ```
 
 ---

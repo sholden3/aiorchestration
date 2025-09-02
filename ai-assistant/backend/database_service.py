@@ -8,6 +8,7 @@ from typing import List, Dict, Any, Optional
 import json
 from datetime import datetime
 import logging
+from circuit_breaker import CircuitBreaker
 
 logger = logging.getLogger(__name__)
 
@@ -17,31 +18,53 @@ class DatabaseService:
     def __init__(self):
         self.pool: Optional[asyncpg.Pool] = None
         self.is_connected = False
+        self.circuit_breaker = CircuitBreaker(
+            failure_threshold=3,
+            recovery_timeout=30,
+            expected_exception=Exception
+        )
+        self._connection_attempts = 0
+        self._last_connection_attempt = None
         
     async def connect(self, database_url: str = None):
-        """Connect to PostgreSQL database"""
+        """Connect to PostgreSQL database with circuit breaker protection"""
+        # Check if already connected
+        if self.is_connected and self.pool:
+            return
+            
         if database_url is None:
             # Default connection for development
             # TODO: Move to encrypted credentials manager
             database_url = "postgresql://postgres:root@localhost:5432/ai_assistant"
+        
+        async def _do_connect():
+            """Inner connection function for circuit breaker"""
+            self._connection_attempts += 1
+            self._last_connection_attempt = datetime.now()
             
-        try:
             self.pool = await asyncpg.create_pool(
                 database_url,
                 min_size=1,
                 max_size=10,
                 command_timeout=60
             )
-            self.is_connected = True
-            logger.info("Connected to PostgreSQL database")
             
             # Test connection
             async with self.pool.acquire() as conn:
                 version = await conn.fetchval("SELECT version()")
                 logger.info(f"PostgreSQL version: {version}")
-                
+            
+            self.is_connected = True
+            logger.info("Connected to PostgreSQL database")
+            
+        try:
+            # Use circuit breaker to prevent repeated failed attempts
+            await self.circuit_breaker.call_async(_do_connect)
         except Exception as e:
-            logger.error(f"Failed to connect to database: {e}")
+            if "Circuit breaker is OPEN" in str(e):
+                logger.warning(f"Database connection circuit breaker is open: {e}")
+            else:
+                logger.error(f"Failed to connect to database: {e}")
             self.is_connected = False
             # Use mock data fallback
             logger.warning("Falling back to mock data mode")
@@ -51,6 +74,15 @@ class DatabaseService:
         if self.pool:
             await self.pool.close()
             self.is_connected = False
+            
+    def get_connection_status(self) -> Dict[str, Any]:
+        """Get detailed connection status including circuit breaker state"""
+        return {
+            "is_connected": self.is_connected,
+            "connection_attempts": self._connection_attempts,
+            "last_attempt": self._last_connection_attempt.isoformat() if self._last_connection_attempt else None,
+            "circuit_breaker": self.circuit_breaker.get_state()
+        }
             
 
     def _parse_jsonb_fields(self, row: dict, jsonb_fields: list) -> dict:

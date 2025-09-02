@@ -57,7 +57,7 @@ class SystemsPerformanceConfig(BaseSettings):
     db_port: int = Field(5432, description="PostgreSQL port")
     db_name: str = Field("ai_assistant", description="Database name")
     db_user: str = Field("postgres", description="Database user")
-    db_password: str = Field("postgres", description="Database password")
+    db_password: str = Field("root", description="Database password")
     
     # Connection Pool Settings
     db_pool_min_size: int = Field(2, description="Minimum connection pool size")

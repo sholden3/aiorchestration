@@ -21,9 +21,14 @@ sessions_router = APIRouter(prefix="/api/sessions", tags=["Sessions"])
 # ==================== DEPENDENCY ====================
 
 async def get_db():
-    """Dependency to ensure database is connected"""
-    if not db_service.is_connected:
-        await db_service.connect()
+    """Dependency to ensure database is connected
+    
+    IMPORTANT: We no longer try to reconnect on every call.
+    If the database is not connected, we use the mock fallback.
+    The circuit breaker prevents repeated connection attempts.
+    """
+    # Just return the service - it handles its own connection state
+    # and falls back to mock data when not connected
     return db_service
 
 # ==================== MODELS ====================

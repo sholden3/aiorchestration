@@ -66,7 +66,7 @@ from unified_governance_orchestrator import UnifiedGovernanceOrchestrator
 from persona_orchestration_enhanced import PersonaOrchestrationEnhanced
 from conversation_manager import ConversationManager
 from additional_api_endpoints import add_additional_routes
-from updated_api_endpoints import rules_router, practices_router, templates_router
+from updated_api_endpoints import rules_router, practices_router, templates_router, sessions_router
 from database_service import db_service
 from websocket_manager import ws_manager, EventType
 from agent_terminal_manager import agent_terminal_manager, AgentType
@@ -185,12 +185,12 @@ class AIBackendService:
         # Add additional API endpoints (mock - for backwards compatibility)
         # add_additional_routes(self.app)
         
-        # Add real database-backed endpoints
-        from api import rules, practices, templates, sessions
-        self.app.include_router(rules.router)
-        self.app.include_router(practices.router) 
-        self.app.include_router(templates.router)
-        self.app.include_router(sessions.router)
+        # Add real database-backed endpoints using database_service
+        # These routers use the database_service with fallback to mock data
+        self.app.include_router(rules_router)
+        self.app.include_router(practices_router) 
+        self.app.include_router(templates_router)
+        self.app.include_router(sessions_router)
         
     def setup_middleware(self):
         """Configure CORS for Electron app"""

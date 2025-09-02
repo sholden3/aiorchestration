@@ -9,6 +9,10 @@ const { contextBridge, ipcRenderer } = require('electron');
 // Expose protected methods that allow the renderer process to communicate
 // with the main process without exposing the entire Electron API
 contextBridge.exposeInMainWorld('electronAPI', {
+  // Configuration
+  getConfig: () => ipcRenderer.invoke('get-config'),
+  getEnvironment: () => ipcRenderer.invoke('get-environment'),
+  
   // AI Operations
   executeAITask: (task) => ipcRenderer.invoke('execute-ai-task', task),
   getCacheMetrics: () => ipcRenderer.invoke('get-cache-metrics'),

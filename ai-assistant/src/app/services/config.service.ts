@@ -1,41 +1,28 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
+import { AppConfigService } from './app-config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ConfigService {
-  // Backend API configuration
-  private readonly DEFAULT_API_HOST = '127.0.0.1';
-  private readonly DEFAULT_API_PORT = 8001;
-  private readonly DEFAULT_API_PROTOCOL = 'http';
   
-  // Get API URL from environment or use defaults
+  constructor(private appConfig: AppConfigService) {}
+  
+  // Get API URL from centralized config
   getApiUrl(): string {
-    if (environment.production) {
-      // In production, use relative URLs or configured endpoint
-      return environment.apiUrl || '/api';
-    }
-    
-    // In development, check if running in Electron
-    if (this.isElectron()) {
-      // Electron app connects to local backend
-      return `${this.DEFAULT_API_PROTOCOL}://${this.DEFAULT_API_HOST}:${this.DEFAULT_API_PORT}`;
-    }
-    
-    // Web development mode
-    return environment.apiUrl || `${this.DEFAULT_API_PROTOCOL}://${this.DEFAULT_API_HOST}:${this.DEFAULT_API_PORT}`;
+    // Use centralized config service
+    return this.appConfig.getApiUrl();
   }
   
   // Check if running in Electron
   private isElectron(): boolean {
-    return typeof window !== 'undefined' && window.electronAPI !== undefined;
+    return this.appConfig.isElectron();
   }
   
   // Get WebSocket URL for real-time connections
   getWebSocketUrl(): string {
-    const apiUrl = this.getApiUrl();
-    return apiUrl.replace(/^http/, 'ws');
+    return this.appConfig.getWebSocketUrl();
   }
   
   // Get specific service endpoints

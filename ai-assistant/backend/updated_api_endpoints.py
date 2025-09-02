@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 rules_router = APIRouter(prefix="/api/rules", tags=["Rules & Best Practices"])
 practices_router = APIRouter(prefix="/api/practices", tags=["Best Practices"])
 templates_router = APIRouter(prefix="/api/templates", tags=["Templates"])
+sessions_router = APIRouter(prefix="/api/sessions", tags=["Sessions"])
 
 # ==================== DEPENDENCY ====================
 
@@ -338,11 +339,56 @@ async def get_templates_statistics(db: DatabaseService = Depends(get_db)):
         logger.error(f"Failed to get templates statistics: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# ==================== SESSIONS ENDPOINTS ====================
+
+@sessions_router.get("/metrics")
+async def get_session_metrics(db: DatabaseService = Depends(get_db)):
+    """Get session metrics for dashboard"""
+    try:
+        # Return mock metrics for now
+        return {
+            "active_sessions": 3,
+            "total_sessions": 127,
+            "average_duration": 1845,  # seconds
+            "success_rate": 0.92,
+            "peak_usage_hour": 14,
+            "sessions_by_day": [
+                {"day": "Mon", "count": 23},
+                {"day": "Tue", "count": 31},
+                {"day": "Wed", "count": 28},
+                {"day": "Thu", "count": 19},
+                {"day": "Fri", "count": 26}
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Error getting session metrics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@sessions_router.get("/")
+async def get_sessions(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: DatabaseService = Depends(get_db)
+):
+    """Get all sessions with pagination"""
+    try:
+        # Return mock sessions for now
+        return {
+            "sessions": [],
+            "total": 0,
+            "skip": skip,
+            "limit": limit
+        }
+    except Exception as e:
+        logger.error(f"Error getting sessions: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # ==================== HEALTH CHECK ====================
 
 @rules_router.get("/health")
 @practices_router.get("/health")
 @templates_router.get("/health")
+@sessions_router.get("/health")
 async def health_check(db: DatabaseService = Depends(get_db)):
     """Check if database connection is healthy"""
     return {

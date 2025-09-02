@@ -185,7 +185,7 @@ async def update_rule(
             raise HTTPException(status_code=400, detail=f"Invalid rule condition: {error}")
     
     # Update fields
-    update_data = rule_update.dict(exclude_unset=True)
+    update_data = rule_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(rule, field, value)
     

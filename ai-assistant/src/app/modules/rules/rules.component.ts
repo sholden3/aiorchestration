@@ -1,20 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { RulesService } from '../../services/rules.service';
+import { RulesApiService } from '../../services/api/rules-api.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
-interface Rule {
-  id: string;
-  name: string;
-  description: string;
-  condition: string;
-  action: string;
-  priority: number;
-  enabled: boolean;
-  category: string;
-  tags: string[];
-  lastModified: Date;
-  executionCount: number;
-}
+import { Rule, RuleSeverity, RuleStatus } from '../../models/backend-api.models';
 
 @Component({
   selector: 'app-rules',
@@ -23,14 +10,16 @@ interface Rule {
 })
 export class RulesComponent implements OnInit {
   rules: Rule[] = [];
-  categories = ['Validation', 'Transformation', 'Security', 'Performance', 'Business Logic'];
-  displayedColumns: string[] = ['enabled', 'name', 'category', 'priority', 'executionCount', 'actions'];
+  categories = ['security', 'performance', 'governance', 'validation', 'documentation'];
+  severities = Object.values(RuleSeverity);
+  displayedColumns: string[] = ['status', 'title', 'category', 'severity', 'violations_count', 'actions'];
   selectedRule: Rule | null = null;
   searchQuery = '';
   selectedCategory = '';
+  loading = false;
 
   constructor(
-    private rulesService: RulesService,
+    private rulesApi: RulesApiService,
     private snackBar: MatSnackBar
   ) {}
 
@@ -39,122 +28,113 @@ export class RulesComponent implements OnInit {
   }
 
   loadRules(): void {
-    // Load rules from service
-    this.rules = [
-      {
-        id: '1',
-        name: 'No Assumptions Rule',
-        description: 'Prevents any assumptions without evidence',
-        condition: 'if (!evidence) { reject() }',
-        action: 'RequestEvidence()',
-        priority: 1,
-        enabled: true,
-        category: 'Validation',
-        tags: ['critical', 'evidence-based'],
-        lastModified: new Date(),
-        executionCount: 245
+    this.loading = true;
+    this.rulesApi.getRules({ limit: 100 }).subscribe({
+      next: (response) => {
+        this.rules = response.rules;
+        this.loading = false;
       },
-      {
-        id: '2',
-        name: 'Token Optimization',
-        description: 'Optimizes token usage for Claude API calls',
-        condition: 'if (tokens > threshold)',
-        action: 'CompressContext()',
-        priority: 2,
-        enabled: true,
-        category: 'Performance',
-        tags: ['optimization', 'cost-reduction'],
-        lastModified: new Date(),
-        executionCount: 1823
-      },
-      {
-        id: '3',
-        name: 'Cross-Persona Validation',
-        description: 'Ensures all three personas validate critical decisions',
-        condition: 'if (decision.critical)',
-        action: 'RequireThreePersonaConsensus()',
-        priority: 1,
-        enabled: true,
-        category: 'Business Logic',
-        tags: ['governance', 'validation'],
-        lastModified: new Date(),
-        executionCount: 89
-      },
-      {
-        id: '4',
-        name: 'Cache Hit Optimization',
-        description: 'Prioritizes cache usage for frequent queries',
-        condition: 'if (query.frequency > 10)',
-        action: 'MoveToHotCache()',
-        priority: 3,
-        enabled: true,
-        category: 'Performance',
-        tags: ['cache', 'optimization'],
-        lastModified: new Date(),
-        executionCount: 3421
-      },
-      {
-        id: '5',
-        name: 'Security Audit Trail',
-        description: 'Logs all sensitive operations',
-        condition: 'if (operation.sensitive)',
-        action: 'LogToAuditTrail()',
-        priority: 1,
-        enabled: true,
-        category: 'Security',
-        tags: ['audit', 'compliance'],
-        lastModified: new Date(),
-        executionCount: 567
+      error: (error) => {
+        console.error('Error loading rules:', error);
+        this.snackBar.open('Failed to load rules', 'OK', { duration: 3000 });
+        this.loading = false;
       }
-    ];
+    });
   }
 
   toggleRule(rule: Rule): void {
-    rule.enabled = !rule.enabled;
-    this.snackBar.open(`Rule "${rule.name}" ${rule.enabled ? 'enabled' : 'disabled'}`, 'OK', {
-      duration: 2000
+    const newStatus = rule.status === RuleStatus.ACTIVE ? RuleStatus.INACTIVE : RuleStatus.ACTIVE;
+    const update = { status: newStatus };
+    
+    this.rulesApi.updateRule(rule.id, update).subscribe({
+      next: (updatedRule) => {
+        rule.status = updatedRule.status;
+        this.snackBar.open(`Rule "${rule.title}" ${rule.status}`, 'OK', {
+          duration: 2000
+        });
+      },
+      error: (error) => {
+        console.error('Error updating rule:', error);
+        this.snackBar.open('Failed to update rule', 'OK', { duration: 3000 });
+      }
     });
   }
 
   editRule(rule: Rule): void {
-    this.selectedRule = rule;
+    this.selectedRule = { ...rule }; // Create a copy for editing
   }
 
   deleteRule(rule: Rule): void {
-    const index = this.rules.indexOf(rule);
-    if (index > -1) {
-      this.rules.splice(index, 1);
-      this.snackBar.open(`Rule "${rule.name}" deleted`, 'OK', {
-        duration: 2000
+    if (confirm(`Are you sure you want to delete rule "${rule.title}"?`)) {
+      this.rulesApi.deleteRule(rule.id).subscribe({
+        next: () => {
+          const index = this.rules.findIndex(r => r.id === rule.id);
+          if (index > -1) {
+            this.rules.splice(index, 1);
+          }
+          this.snackBar.open(`Rule "${rule.title}" deleted`, 'OK', {
+            duration: 2000
+          });
+        },
+        error: (error) => {
+          console.error('Error deleting rule:', error);
+          this.snackBar.open('Failed to delete rule', 'OK', { duration: 3000 });
+        }
       });
     }
   }
 
   addNewRule(): void {
-    const newRule: Rule = {
-      id: Date.now().toString(),
-      name: 'New Rule',
+    const newRule: Partial<Rule> = {
+      title: 'New Rule',
       description: 'Rule description',
-      condition: '',
-      action: '',
-      priority: 5,
-      enabled: false,
-      category: 'Validation',
+      category: 'governance',
+      severity: RuleSeverity.MEDIUM,
+      status: RuleStatus.DRAFT,
       tags: [],
-      lastModified: new Date(),
-      executionCount: 0
+      conditions: [],
+      actions: [],
+      exceptions: []
     };
-    this.rules.push(newRule);
-    this.selectedRule = newRule;
+    this.selectedRule = newRule as Rule;
   }
 
   saveRule(): void {
     if (this.selectedRule) {
-      this.selectedRule.lastModified = new Date();
-      this.snackBar.open(`Rule "${this.selectedRule.name}" saved`, 'OK', {
-        duration: 2000
-      });
-      this.selectedRule = null;
+      if (this.selectedRule.id) {
+        // Update existing rule
+        this.rulesApi.updateRule(this.selectedRule.id, this.selectedRule).subscribe({
+          next: (updatedRule) => {
+            const index = this.rules.findIndex(r => r.id === updatedRule.id);
+            if (index > -1) {
+              this.rules[index] = updatedRule;
+            }
+            this.snackBar.open(`Rule "${updatedRule.title}" updated`, 'OK', {
+              duration: 2000
+            });
+            this.selectedRule = null;
+          },
+          error: (error) => {
+            console.error('Error updating rule:', error);
+            this.snackBar.open('Failed to update rule', 'OK', { duration: 3000 });
+          }
+        });
+      } else {
+        // Create new rule
+        this.rulesApi.createRule(this.selectedRule).subscribe({
+          next: (createdRule) => {
+            this.rules.push(createdRule);
+            this.snackBar.open(`Rule "${createdRule.title}" created`, 'OK', {
+              duration: 2000
+            });
+            this.selectedRule = null;
+          },
+          error: (error) => {
+            console.error('Error creating rule:', error);
+            this.snackBar.open('Failed to create rule', 'OK', { duration: 3000 });
+          }
+        });
+      }
     }
   }
 
@@ -165,7 +145,7 @@ export class RulesComponent implements OnInit {
   get filteredRules(): Rule[] {
     return this.rules.filter(rule => {
       const matchesSearch = !this.searchQuery || 
-        rule.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        rule.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
         rule.description.toLowerCase().includes(this.searchQuery.toLowerCase());
       
       const matchesCategory = !this.selectedCategory || 
@@ -175,16 +155,25 @@ export class RulesComponent implements OnInit {
     });
   }
 
-  testRule(rule: Rule): void {
-    this.snackBar.open(`Testing rule "${rule.name}"...`, 'OK', {
+  enforceRule(rule: Rule): void {
+    this.snackBar.open(`Enforcing rule "${rule.title}"...`, 'OK', {
       duration: 2000
     });
-    // Simulate rule execution
-    setTimeout(() => {
-      rule.executionCount++;
-      this.snackBar.open(`Rule "${rule.name}" executed successfully`, 'OK', {
-        duration: 2000
-      });
-    }, 1000);
+    
+    this.rulesApi.enforceRule(rule.id).subscribe({
+      next: (result) => {
+        this.snackBar.open(
+          `Rule "${rule.title}" enforced. Violations: ${result.violations_found}`, 
+          'OK', 
+          { duration: 3000 }
+        );
+        // Update violations count
+        rule.violations_count = (rule.violations_count || 0) + result.violations_found;
+      },
+      error: (error) => {
+        console.error('Error enforcing rule:', error);
+        this.snackBar.open('Failed to enforce rule', 'OK', { duration: 3000 });
+      }
+    });
   }
 }

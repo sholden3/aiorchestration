@@ -1,0 +1,61 @@
+# Project Configuration
+# Central configuration for project metadata and settings
+
+project:
+  name: "AI Orchestration Platform"
+  code_name: "Claude Research and Development"
+  version: "2.1"
+  status: "OPERATIONAL"
+  phase: "1.6 Documentation Updates"
+  
+repository:
+  url: "https://github.com/sholden3/aiorchestration.git"
+  clone_url: "git@github.com:sholden3/aiorchestration.git"
+  issues_url: "https://github.com/sholden3/aiorchestration/issues"
+  wiki_url: "https://github.com/sholden3/aiorchestration/wiki"
+  
+team:
+  owner: "Steven Holden"
+  github_username: "sholden3"
+  core_architects:
+    - name: "Alex Novak"
+      role: "Frontend & Integration"
+      focus: "Angular, Electron, TypeScript"
+    - name: "Dr. Sarah Chen"
+      role: "Backend & Infrastructure"
+      focus: "Python, FastAPI, Database"
+  contact: "governance@system.local"
+  
+infrastructure:
+  backend:
+    language: "Python"
+    framework: "FastAPI"
+    port: 8000
+  frontend:
+    language: "TypeScript"
+    framework: "Angular 17"
+    port: 4200
+  database:
+    primary: "PostgreSQL 14+"
+    fallback: "SQLite"
+  cache:
+    primary: "Redis 7+"
+    fallback: "In-memory"
+  
+governance:
+  compliance_minimum: 95
+  test_coverage_target:
+    python: 85
+    typescript: 80
+  documentation_standards:
+    validator_coverage: 85
+    progressive_enforcement: true
+  
+dates:
+  project_start: "2025-08-30"
+  last_major_update: "2025-09-03"
+  next_milestone: "2025-09-05"
+  
+license:
+  type: "MIT"
+  copyright: "Copyright (c) 2025 AI Orchestration Team"

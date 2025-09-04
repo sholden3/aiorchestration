@@ -1,0 +1,505 @@
+# Unified Documentation Standards Configuration
+# Version: 1.0.0
+# Last Updated: 2025-09-03
+# Purpose: Data-driven documentation templates and validation rules
+# This configuration is designed to be UI-manageable via FastAPI endpoints
+
+version: 1.0.0
+metadata:
+  created: 2025-09-03
+  authors: 
+    - Isabella Martinez (Documentation Standards)
+    - David Park (Developer Experience)
+    - Alex Novak (Integration)
+    - Dr. Sarah Chen (Backend Architecture)
+  description: |
+    Unified configuration for all documentation standards, templates, and validation rules.
+    This replaces static template files and enables UI-driven configuration management.
+
+# Document Type Definitions
+document_types:
+  README:
+    description: "Standard README for directories and components"
+    file_pattern: "README.md"
+    priority: 1
+    required_sections:
+      - section: "Purpose"
+        level: 2
+        required: true
+        weight: 20
+        description: "Clear statement of directory/component purpose"
+        validation:
+          min_words: 10
+          max_words: 200
+        template: |
+          ## Purpose
+          
+          [Brief description of what this directory/component contains and its role in the system]
+          
+      - section: "Contents"
+        level: 2
+        required: true
+        weight: 15
+        description: "Overview of directory contents"
+        validation:
+          min_words: 5
+        template: |
+          ## Contents
+          
+          - **file/dir**: Description
+          - **file/dir**: Description
+          
+      - section: "Dependencies"
+        level: 2
+        required: true
+        weight: 15
+        description: "External and internal dependencies"
+        template: |
+          ## Dependencies
+          
+          ### External
+          - Package: version (purpose)
+          
+          ### Internal
+          - Component: purpose
+          
+      - section: "Testing"
+        level: 2
+        required: true
+        weight: 20
+        description: "Testing approach and coverage"
+        template: |
+          ## Testing
+          
+          **Coverage**: X%
+          **Test Files**: Location
+          **Run Command**: `command`
+          
+      - section: "Maintenance"
+        level: 2
+        required: true
+        weight: 10
+        description: "Maintenance guidelines"
+        template: |
+          ## Maintenance
+          
+          **Owner**: Team/Person
+          **Update Frequency**: Schedule
+          **Review Date**: YYYY-MM-DD
+
+  CLAUDE:
+    description: "AI assistant instruction document"
+    file_pattern: "CLAUDE.md"
+    priority: 1
+    required_sections:
+      - section: "AI Development Assistant Documentation"
+        level: 1
+        required: true
+        weight: 10
+        template: "# AI Development Assistant Documentation"
+        
+      - section: "Project Overview"
+        level: 2
+        required: true
+        weight: 15
+        template: |
+          ## Project Overview
+          
+          [High-level description of the project and its goals]
+          
+      - section: "Quick Start"
+        level: 2
+        required: true
+        weight: 20
+        template: |
+          ## Quick Start
+          
+          ### Prerequisites
+          - Requirement 1
+          - Requirement 2
+          
+          ### Installation
+          ```bash
+          # Installation commands
+          ```
+          
+      - section: "Architecture Overview"
+        level: 2
+        required: true
+        weight: 15
+        template: |
+          ## Architecture Overview
+          
+          [System architecture description with key components]
+          
+      - section: "Core Features"
+        level: 2
+        required: true
+        weight: 10
+        template: |
+          ## Core Features
+          
+          ### Feature 1
+          Description
+          
+      - section: "Getting Started for Developers"
+        level: 2
+        required: true
+        weight: 15
+        template: |
+          ## Getting Started for Developers
+          
+          ### Development Workflow
+          1. Step 1
+          2. Step 2
+          
+      - section: "Critical Governance Requirements"
+        level: 2
+        required: true
+        weight: 15
+        template: |
+          ## Critical Governance Requirements
+          
+          ### ⚠️ MANDATORY RULES FOR AI ASSISTANTS
+          
+          1. Rule 1
+          2. Rule 2
+
+  STATUS:
+    description: "System status and health document"
+    file_pattern: "STATUS.md"
+    priority: 1
+    required_sections:
+      - section: "System Status Report"
+        level: 1
+        required: true
+        weight: 10
+        template: "# System Status Report"
+        
+      - section: "Overall Health"
+        level: 2
+        required: true
+        weight: 25
+        template: |
+          ## Overall Health
+          **Status**: 🟢 OPERATIONAL | 🟡 DEGRADED | 🔴 CRITICAL
+          **Health Score**: X/100
+          **Last Updated**: YYYY-MM-DD HH:MM UTC
+          
+      - section: "Component Status"
+        level: 2
+        required: true
+        weight: 20
+        template: |
+          ## Component Status
+          
+          | Component | Status | Health | Last Check | Notes |
+          |-----------|--------|--------|------------|-------|
+          | Component | 🟢 | 100% | Time | Notes |
+          
+      - section: "Recent Changes"
+        level: 2
+        required: true
+        weight: 15
+        template: |
+          ## Recent Changes
+          
+          ### YYYY-MM-DD
+          - Change description
+          
+      - section: "Active Issues"
+        level: 2
+        required: true
+        weight: 20
+        template: |
+          ## Active Issues
+          
+          ### Issue ID: Title
+          **Severity**: Level
+          **Impact**: Description
+          **Status**: Current status
+          
+      - section: "Metrics"
+        level: 2
+        required: true
+        weight: 10
+        template: |
+          ## Metrics
+          
+          ### Performance
+          - Metric: Value
+          
+          ### Reliability
+          - Metric: Value
+
+  TRACKER:
+    description: "Project task tracking document"
+    file_pattern: "TRACKER.md"
+    priority: 1
+    required_sections:
+      - section: "Project Task Tracker"
+        level: 1
+        required: true
+        weight: 10
+        template: "# Project Task Tracker"
+        
+      - section: "Overview Dashboard"
+        level: 2
+        required: true
+        weight: 20
+        template: |
+          ## Overview Dashboard
+          **Phase Progress**: X% Complete
+          **Total Tasks**: X tasks
+          **Completed**: X tasks (X%)
+          
+      - section: "Critical Path Tasks"
+        level: 2
+        required: true
+        weight: 25
+        template: |
+          ## Critical Path Tasks
+          
+          ### Current Week
+          - [ ] Task description (Owner) - Due: Date
+          
+      - section: "Blocked Tasks"
+        level: 2
+        required: true
+        weight: 20
+        template: |
+          ## Blocked Tasks
+          
+          ### Critical Blocks
+          1. **Task Name**
+             - **Blocked By**: Reason
+             - **Impact**: Description
+             
+      - section: "Metrics Tracking"
+        level: 2
+        required: true
+        weight: 15
+        template: |
+          ## Metrics Tracking
+          
+          ### Completion Rates
+          - Target: X%
+          - Achievement: X%
+
+  DECISIONS:
+    description: "Technical and architecture decisions log"
+    file_pattern: "DECISIONS.md"
+    priority: 1
+    required_sections:
+      - section: "Technical & Architecture Decisions Log"
+        level: 1
+        required: true
+        weight: 10
+        template: "# Technical & Architecture Decisions Log"
+        
+      - section: "Overview"
+        level: 2
+        required: true
+        weight: 15
+        template: |
+          ## Overview
+          
+          This log tracks all technical and architectural decisions.
+          
+      - section: "Decision Status Legend"
+        level: 2
+        required: true
+        weight: 10
+        template: |
+          ## Decision Status Legend
+          - 🟢 **Approved & Implemented**
+          - 🟡 **Approved & In Progress**
+          - 🔵 **Approved & Pending**
+          
+      - section: "Recent Decisions"
+        level: 2
+        required: true
+        weight: 40
+        template: |
+          ## Recent Decisions (Last 30 Days)
+          
+          ### DEC-YYYY-XXX: Title Status_Emoji
+          **Date**: YYYY-MM-DD
+          **Decision Maker**: Names
+          **Status**: Status
+          
+          **Decision**: Description
+          
+          **Context**: Background
+          
+          **Alternatives Considered**:
+          1. Option 1
+          2. Option 2
+          
+      - section: "Decision Archive"
+        level: 2
+        required: false
+        weight: 25
+        template: |
+          ## Decision Archive
+          
+          [Older decisions moved here]
+
+# Validation Rules
+validation_rules:
+  global:
+    min_file_size: 100  # bytes
+    max_file_size: 1048576  # 1MB
+    encoding: "utf-8"
+    line_ending: "lf"  # or "crlf" for Windows
+    
+  scoring:
+    pass_threshold: 70
+    warning_threshold: 85
+    weights:
+      structure: 30
+      content: 40
+      completeness: 30
+      
+  markdown:
+    heading_hierarchy: true
+    require_toc_for_long_docs: true
+    toc_threshold_lines: 200
+    max_line_length: 120
+    require_code_fence_language: true
+    
+  content:
+    min_section_words: 5
+    max_section_words: 2000
+    require_date_formats: "YYYY-MM-DD"
+    require_timestamp_formats: "YYYY-MM-DD HH:MM UTC"
+
+# Exemption System
+exemptions:
+  directory_readme_exemptions:
+    full_exemptions:
+      # Directories that don't need README files at all
+      - path: "node_modules"
+        type: "exact"
+        reason: "External dependencies"
+        permanent: true
+        
+      - path: ".git"
+        type: "exact"
+        reason: "Version control system"
+        permanent: true
+        
+      - path: "__pycache__"
+        type: "glob"
+        pattern: "**/__pycache__"
+        reason: "Python cache directories"
+        permanent: true
+        
+      - path: "coverage"
+        type: "glob"
+        pattern: "**/coverage"
+        reason: "Test coverage reports"
+        permanent: true
+        
+      - path: "dist"
+        type: "glob"
+        pattern: "**/dist"
+        reason: "Build output directories"
+        permanent: true
+        
+      - path: "temp"
+        type: "exact"
+        reason: "Temporary development directory"
+        expires: "2025-12-31"
+        
+      - path: ".archive"
+        type: "glob"
+        pattern: "**/.archive/**"
+        reason: "Archived files"
+        permanent: true
+        
+    section_exemptions:
+      # Directories where certain README sections are optional
+      - path: "tests"
+        exempt_sections:
+          - "Dependencies"
+          - "Maintenance"
+        reason: "Test directories have simplified structure"
+        
+      - path: "docs"
+        exempt_sections:
+          - "Testing"
+        reason: "Documentation doesn't require testing section"
+        
+  document_exemptions:
+    # Other document types that might have exemptions
+    - document_type: "STATUS"
+      path: "archive"
+      reason: "Archived status reports don't need updates"
+      expires: "2026-01-01"
+
+# Template Rendering Configuration
+rendering:
+  variable_markers:
+    start: "{{"
+    end: "}}"
+  
+  default_variables:
+    project_name: "AI Orchestration Platform"
+    organization: "AI Development Team"
+    copyright_year: 2025
+    repository_url: "https://github.com/sholden3/aiorchestration"
+    
+  date_formats:
+    short: "YYYY-MM-DD"
+    long: "YYYY-MM-DD HH:MM UTC"
+    
+  placeholder_defaults:
+    owner: "Team/Person"
+    status: "🟢 OPERATIONAL"
+    coverage: "X%"
+    version: "X.X.X"
+
+# UI Configuration Metadata
+ui_config:
+  editable_fields:
+    - "document_types.*.required_sections"
+    - "validation_rules.scoring.pass_threshold"
+    - "exemptions.directory_readme_exemptions"
+    - "rendering.default_variables"
+    
+  readonly_fields:
+    - "version"
+    - "metadata"
+    
+  validation_on_save: true
+  backup_on_change: true
+  change_tracking: true
+  
+  api_endpoints:
+    get_config: "GET /api/governance/documentation/standards"
+    update_config: "PUT /api/governance/documentation/standards"
+    validate_config: "POST /api/governance/documentation/validate"
+    get_exemptions: "GET /api/governance/documentation/exemptions"
+    add_exemption: "POST /api/governance/documentation/exemptions"
+    remove_exemption: "DELETE /api/governance/documentation/exemptions/{id}"
+
+# Migration Support
+migration:
+  from_version: "0.9.0"  # Previous template-based system
+  to_version: "1.0.0"    # Current config-based system
+  migration_date: "2025-09-03"
+  rollback_available: true
+  
+# Performance Optimization
+cache:
+  enabled: true
+  ttl: 300  # seconds
+  invalidate_on_change: true
+  
+# Audit Trail
+audit:
+  enabled: true
+  track_changes: true
+  retention_days: 90
+  log_level: "INFO"

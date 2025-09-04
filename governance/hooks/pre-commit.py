@@ -22,6 +22,10 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Tuple, Set
 
+# Import exemption manager
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from governance.core.exemption_manager import ExemptionManager
+
 class ExtremeGovernance:
     """Zero-tolerance governance enforcement"""
     
@@ -35,6 +39,10 @@ class ExtremeGovernance:
         self.compliance_score = 100.0
         self.changed_files = self.get_changed_files()
         self.all_directories = self.get_all_directories()
+        
+        # Initialize exemption manager
+        config_path = self.repo_root / "governance" / "config.yaml"
+        self.exemption_manager = ExemptionManager(config_path)
         
     def load_config(self) -> dict:
         """Load governance configuration"""
@@ -142,6 +150,65 @@ class ExtremeGovernance:
         """Every source file MUST have complete documentation"""
         print("\n[CHECK] Source Code Documentation")
         print("-" * 40)
+        
+        # Try to use the new code documentation validator first
+        try:
+            from governance.validators.code_doc_validator import CodeDocumentationValidator
+            
+            # Get staged code files
+            code_files = [
+                f for f in self.changed_files 
+                if f.endswith(('.py', '.ts', '.tsx', '.js', '.jsx'))
+                and not any(pattern in f for pattern in ['test', 'spec', 'migrations', 'vendor', 'node_modules'])
+            ]
+            
+            if not code_files:
+                print("  [OK] No code files to validate")
+                return
+            
+            # Initialize validator
+            validator = CodeDocumentationValidator()
+            enforcement_mode = validator.enforcement_mode
+            print(f"  Using advanced validator (mode: {enforcement_mode})")
+            
+            total_score = 0
+            failed_files = []
+            
+            for file_path in code_files:
+                full_path = self.repo_root / file_path
+                if not full_path.exists():
+                    continue
+                
+                # Validate the file
+                result = validator.validate_file(full_path)
+                total_score += result.score
+                
+                # Report results
+                if result.is_valid:
+                    print(f"  [OK] {file_path} - Score: {result.score:.2%}")
+                else:
+                    print(f"  [FAIL] {file_path} - Score: {result.score:.2%}")
+                    failed_files.append(file_path)
+                    
+                    # Show top violations
+                    for violation in result.violations[:2]:
+                        print(f"    - {violation.get('message', 'Unknown')}")
+            
+            # Apply enforcement
+            avg_score = total_score / len(code_files) if code_files else 1.0
+            print(f"  Average score: {avg_score:.2%}")
+            
+            if failed_files and enforcement_mode != 'warnings_only':
+                self.add_violation(
+                    "HIGH",
+                    f"Code documentation below standards in {len(failed_files)} file(s)",
+                    5.0
+                )
+            return
+            
+        except ImportError:
+            # Fall back to original basic check
+            print("  Using basic documentation check")
         
         poorly_documented = []
         for file_path in self.changed_files:
@@ -360,6 +427,14 @@ class ExtremeGovernance:
                     
                     for pattern_config in patterns:
                         pattern = pattern_config['pattern']
+                        
+                        # Map pattern to rule ID for exemption checking
+                        rule_id = self._pattern_to_rule_id(pattern)
+                        
+                        # Check if file is exempt from this rule
+                        if self.exemption_manager.is_exempt(file_path, rule_id):
+                            continue  # Skip this check for exempt file
+                        
                         if re.search(pattern, content):
                             quality_issues.append({
                                 'file': file_path,
@@ -387,6 +462,124 @@ class ExtremeGovernance:
         else:
             print("[PASS] Code quality standards met")
     
+    def check_temp_directory(self):
+        """Check if temp directory is clean"""
+        print("\n[CHECK] Temp Directory Status...")
+        
+        temp_dir = self.repo_root / 'temp'
+        if not temp_dir.exists():
+            return  # No temp directory, that's fine
+        
+        # Get all files in temp, excluding README.md and .gitignore
+        temp_files = []
+        for file in temp_dir.iterdir():
+            if file.name not in ['README.md', '.gitignore']:
+                temp_files.append(file)
+        
+        if temp_files:
+            self.add_violation(
+                "CRITICAL",
+                f"Temp directory contains {len(temp_files)} file(s) - must be cleaned before commit",
+                10.0  # High penalty
+            )
+            print(f"  [CRITICAL] Found {len(temp_files)} files in temp directory:")
+            for f in temp_files[:5]:  # Show first 5
+                print(f"    - {f.name}")
+            if len(temp_files) > 5:
+                print(f"    ... and {len(temp_files) - 5} more")
+            print("  [ACTION] Clean temp directory before committing")
+        else:
+            print("  [OK] Temp directory is clean")
+    
+    def check_documentation_validation(self):
+        """Validate documentation against standards"""
+        print("\n[CHECK] Documentation Validation...")
+        
+        # Get staged markdown files
+        md_files = [f for f in self.changed_files if f.endswith('.md')]
+        
+        if not md_files:
+            print("  [OK] No markdown files to validate")
+            return
+        
+        try:
+            # Import the validator
+            from governance.validators.doc_validator import DocumentationValidator
+            
+            # Initialize validator
+            validator = DocumentationValidator()
+            
+            # Check enforcement mode
+            enforcement_mode = validator.enforcement_mode
+            print(f"  Enforcement mode: {enforcement_mode}")
+            
+            total_score = 0
+            failed_files = []
+            
+            for file_path in md_files:
+                full_path = self.repo_root / file_path
+                if not full_path.exists():
+                    continue
+                
+                # Validate the file
+                result = validator.validate_file(full_path)
+                total_score += result.score
+                
+                # Report results
+                if result.is_valid:
+                    print(f"  [OK] {file_path} - Score: {result.score:.2%}")
+                else:
+                    print(f"  [FAIL] {file_path} - Score: {result.score:.2%}")
+                    failed_files.append(file_path)
+                    
+                    # Show violations
+                    for violation in result.violations[:3]:  # Show first 3
+                        print(f"    - {violation.get('message', 'Unknown violation')}")
+                    
+                    # Show warnings in warnings_only mode
+                    if enforcement_mode == 'warnings_only':
+                        for warning in result.warnings[:2]:
+                            print(f"    ⚠ {warning}")
+                
+                # Show suggestions
+                for suggestion in result.suggestions[:1]:  # Show first suggestion
+                    print(f"    💡 {suggestion}")
+            
+            # Calculate average score
+            avg_score = total_score / len(md_files) if md_files else 1.0
+            
+            # Apply enforcement based on mode
+            if enforcement_mode == 'strict' and failed_files:
+                self.add_violation(
+                    "CRITICAL",
+                    f"Documentation validation failed for {len(failed_files)} file(s)",
+                    10.0
+                )
+            elif enforcement_mode == 'progressive' and failed_files:
+                # Progressive enforcement - warnings first, then blocks
+                from datetime import datetime, timedelta
+                implementation_date = datetime(2025, 9, 1)  # Start of September 2025
+                weeks_since_implementation = (datetime.now() - implementation_date).days // 7
+                if weeks_since_implementation >= 2:
+                    self.add_violation(
+                        "HIGH",
+                        f"Documentation issues in {len(failed_files)} file(s)",
+                        5.0
+                    )
+                else:
+                    print(f"  [WARNING] Documentation issues found (not blocking yet)")
+            elif enforcement_mode == 'warnings_only':
+                if failed_files:
+                    print(f"  [WARNING] Documentation issues in {len(failed_files)} file(s) (warnings only)")
+            
+            print(f"  Average documentation score: {avg_score:.2%}")
+            
+        except ImportError:
+            print("  [WARNING] Documentation validator not available")
+        except Exception as e:
+            print(f"  [ERROR] Documentation validation failed: {e}")
+            # Don't block commit on validator errors
+    
     def check_documentation_sync(self):
         """Ensure documentation is updated when code changes"""
         print("\n[CHECK] Documentation Sync")
@@ -405,6 +598,87 @@ class ExtremeGovernance:
             print(f"[WARN] {len(code_files)} code files changed without documentation")
         else:
             print("[PASS] Documentation appears in sync")
+    
+    def check_documentation_validation(self):
+        """Validate staged documentation files against metadata"""
+        print("\n[CHECK] Documentation Validation...")
+        print("-" * 40)
+        
+        # Get staged .md files
+        staged_docs = [f for f in self.changed_files if f.endswith('.md')]
+        
+        if not staged_docs:
+            print("  [OK] No documentation files to validate")
+            return
+        
+        # Check if documentation validation is enabled
+        doc_validation_config = self.config.get('documentation_validation', {})
+        if not doc_validation_config.get('enabled', True):
+            print("  [SKIP] Documentation validation disabled in config")
+            return
+        
+        try:
+            # Import validator (lazy import to avoid issues if module doesn't exist)
+            from governance.validators.doc_validator import DocumentationValidator
+            validator = DocumentationValidator(self.repo_root)
+            
+            # Validate staged files
+            summary = validator.validate_staged_files()
+            
+            print(f"  Files checked: {summary.total_files}")
+            print(f"  Valid: {summary.valid_files}")
+            print(f"  Invalid: {summary.invalid_files}")
+            
+            if summary.invalid_files > 0:
+                print(f"  Violations: Critical={summary.critical_violations}, High={summary.high_violations}, Medium={summary.medium_violations}, Low={summary.low_violations}")
+                
+                # Add violations based on severity
+                for result in summary.results:
+                    if not result.is_valid:
+                        # Map severity to governance levels
+                        severity_map = {
+                            'critical': 'CRITICAL',
+                            'high': 'HIGH',
+                            'medium': 'MEDIUM',
+                            'low': 'LOW'
+                        }
+                        
+                        gov_severity = severity_map.get(result.severity, 'MEDIUM')
+                        
+                        # For progressive enforcement, start with warnings
+                        progressive = doc_validation_config.get('strict_mode', False)
+                        if not progressive and gov_severity in ['CRITICAL', 'HIGH']:
+                            # Downgrade to warning during rollout
+                            gov_severity = 'MEDIUM'
+                            
+                        self.add_violation(
+                            level=gov_severity,
+                            message=f"Documentation validation: {result.file_path} - {result.message}",
+                            penalty=result.penalty
+                        )
+                
+                print(f"  [FAIL] Documentation validation found {summary.total_violations} issues")
+                
+                # Generate and save report if enabled
+                if doc_validation_config.get('generate_reports', True):
+                    try:
+                        report_path = validator.save_report(summary)
+                        print(f"  [INFO] Validation report saved: {report_path}")
+                    except Exception as e:
+                        print(f"  [WARN] Failed to save report: {e}")
+            else:
+                print(f"  [PASS] All documentation files validated successfully")
+                
+        except ImportError as e:
+            print(f"  [WARN] Documentation validator not available: {e}")
+        except Exception as e:
+            print(f"  [ERROR] Documentation validation failed: {e}")
+            # Add a violation for the validation system failure
+            self.add_violation(
+                level="MEDIUM",
+                message=f"Documentation validation system error: {str(e)}",
+                penalty=self.config['penalties']['medium']
+            )
     
     def matches_pattern(self, filename: str, pattern: str) -> bool:
         """Check if filename matches a pattern (supports wildcards)"""
@@ -482,6 +756,24 @@ class ExtremeGovernance:
         })
         self.compliance_score = max(0, self.compliance_score - penalty)
     
+    def _pattern_to_rule_id(self, pattern: str) -> str:
+        """Map regex pattern to rule ID for exemptions"""
+        pattern_map = {
+            r"console\.log\(": "console_log_check",
+            r"print\(.*#.*DEBUG": "debug_code_check",
+            r"debugger;": "debug_code_check",
+            r"TODO:|FIXME:|HACK:|XXX:": "todo_check",
+            r"import pdb": "debug_code_check",
+            r"pdb\.set_trace": "debug_code_check",
+        }
+        
+        for regex, rule_id in pattern_map.items():
+            if regex in pattern:
+                return rule_id
+        
+        # Default rule ID based on pattern
+        return pattern.replace('\\', '').replace('.', '_').replace('(', '').replace(')', '').lower()
+    
     def fatal_error(self, message: str):
         """Unrecoverable error"""
         print(f"\n{'='*70}")
@@ -540,6 +832,8 @@ class ExtremeGovernance:
         self.check_source_documentation()
         self.check_naming_standards()
         self.check_file_creation()
+        self.check_temp_directory()  # Check temp is clean
+        self.check_documentation_validation()  # Validate markdown docs
         self.check_test_coverage()
         self.check_code_quality()
         self.check_documentation_sync()

@@ -4,7 +4,8 @@
       "Bash(grep:*)",
       "Bash(python -m pytest --co -q)",
       "Bash(python test:*)",
-      "Bash(python -m pytest tests/unit/test_unified_governance_orchestrator.py -v)"
+      "Bash(python -m pytest tests/unit/test_unified_governance_orchestrator.py -v)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

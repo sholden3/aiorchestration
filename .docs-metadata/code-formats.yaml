@@ -1,0 +1,406 @@
+# Code Documentation Format Standards
+# Created: 2025-09-03
+# Purpose: Define standards for code documentation across languages
+
+# Global settings
+global:
+  enabled: true
+  enforcement_mode: progressive  # progressive, strict, warnings_only
+  
+  # Progressive enforcement timeline
+  enforcement_schedule:
+    week_1: warnings_only
+    week_2: block_critical
+    week_3: full_enforcement
+
+# Python documentation standards
+python:
+  style: google  # google, numpy, sphinx
+  
+  file_level:
+    required:
+      - module_docstring
+      - author_tag
+      - description_tag
+    recommended:
+      - version_tag
+      - dependencies_tag
+      - exports_tag
+      - created_tag
+      - license_tag
+    optional:
+      - module_structure
+      - attributes_section
+      - constants_section
+      - see_also_section
+      - notes_section
+    
+    required_dunder_variables:
+      - __version__
+      - __author__
+    
+    optional_dunder_variables:
+      - __email__
+      - __status__  # Prototype/Development/Production
+    
+    format: |
+      """
+      Module Title
+      
+      Brief description of module purpose
+      
+      Author: Author name(s)
+      Created: YYYY-MM-DD
+      Version: X.X.X
+      License: License type
+      
+      Dependencies:
+          - dependency_name >= version
+      
+      Module Structure:
+          ClassName: Brief class description
+          function_name: Brief function description
+      
+      Example:
+          Basic usage example
+      
+      Attributes:
+          module_attribute: Description
+      
+      Constants:
+          CONSTANT_NAME: Description
+      
+      See Also:
+          related_module: Description
+      
+      Notes:
+          Important notes
+      """
+    
+    format_rules:
+      - shebang_required: true  # #!/usr/bin/env python3
+      - triple_quotes_required: true
+      - max_line_length: 79
+      - title_case_for_title: true
+  
+  class_level:
+    required:
+      - class_docstring
+      - brief_description
+    strongly_recommended:
+      - attributes_section
+      - example_section
+    recommended:
+      - detailed_description
+    optional:
+      - class_methods_section
+      - instance_methods_section
+      - properties_section
+      - inheritance_section
+      - thread_safety_section
+      - performance_section
+      - see_also_section
+      - notes_section
+      - version_history_section
+    
+    format: |
+      """Brief one-line description.
+      
+      Detailed description if needed.
+      
+      Attributes:
+          attribute_name (type): Description
+          class_variable (type): Description
+      
+      Class Methods:
+          method_name: Brief description
+      
+      Instance Methods:
+          method_name: Brief description
+      
+      Properties:
+          property_name (type): Description
+      
+      Inheritance:
+          Inherits from: ParentClass
+          Implements: Interface1, Interface2
+      
+      Thread Safety:
+          Thread safety notes
+      
+      Performance:
+          Time Complexity: O(n)
+          Space Complexity: O(1)
+      
+      Example:
+          >>> obj = MyClass()
+          >>> obj.method()
+      
+      See Also:
+          RelatedClass: Description
+      
+      Notes:
+          Implementation notes
+      
+      Version History:
+          1.0.0: Initial implementation
+      """
+    
+    format_rules:
+      - first_line_ends_with_period: true
+      - blank_line_after_first_line: true
+      - section_headers_title_case: true
+  
+  method_level:
+    required:
+      - method_docstring
+      - brief_description
+    conditional:
+      - args_section  # Required if has parameters
+      - returns_section  # Required if returns value
+      - yields_section  # Required if generator
+      - raises_section  # Required if raises exceptions
+    optional:
+      - detailed_description
+      - example_section
+      - note_section
+      - warning_section
+      - see_also_section
+      - todo_section
+      - version_history_section
+    
+    format: |
+      """Brief description of what method does.
+      
+      Detailed description if needed.
+      
+      Args:
+          parameter_name (type): Description
+          parameter_name (type, optional): Description. Defaults to default_value.
+          parameter_name (type): Description
+              Additional parameter details
+      
+      Returns:
+          type: Description
+          
+          Alternative format for complex returns:
+          dict: Dictionary containing:
+              'key_name' (type): Description
+              'key_name' (type): Description
+      
+      Yields:
+          type: Description for generators
+      
+      Raises:
+          ExceptionType: When this exception occurs
+          ExceptionType: When this exception occurs
+      
+      Example:
+          Basic usage example
+          
+          Advanced usage example
+      
+      Note:
+          Important implementation details
+      
+      Warning:
+          Critical usage warnings
+      
+      See Also:
+          related_method: Description
+          related_class: Description
+      
+      Todo:
+          * Future improvement 1
+          * Future improvement 2
+      
+      Version History:
+          1.0.0: Initial implementation
+      """
+    
+    format_rules:
+      - imperative_mood: true  # "Calculate" not "Calculates"
+      - first_line_period: true
+      - parameter_types_required: true
+      - blank_line_between_sections: true
+
+# TypeScript/JavaScript documentation standards
+typescript:
+  style: jsdoc
+  
+  file_level:
+    required:
+      - file_comment
+      - fileoverview_tag
+      - author_tag
+      - version_tag
+    recommended:
+      - module_tag
+      - since_tag
+      - created_tag
+      - example_tag
+    optional:
+      - modified_tag
+      - requires_tag
+      - see_tag
+      - todo_tag
+      - license_tag
+      - copyright_tag
+    
+    format: |
+      /**
+       * @fileoverview Brief description of file purpose
+       * 
+       * @author Author name <email>
+       * @version X.X.X
+       * @since Initial version
+       * @created YYYY-MM-DD
+       * @modified YYYY-MM-DD
+       * 
+       * @module ModuleName
+       * @requires dependency1
+       * @requires dependency2
+       * 
+       * @example
+       * Basic usage example
+       * 
+       * @see {@link RelatedModule} Description
+       * @see {@link https://docs.url} Documentation
+       * 
+       * @todo Future improvements
+       * 
+       * @license License type
+       * @copyright Copyright notice
+       */
+    
+    format_rules:
+      - jsdoc_format_required: true
+      - author_email_required: true
+      - semantic_versioning: true
+      - iso_date_format: true
+  
+  class_level:
+    required:
+      - class_comment
+      - description
+    recommended:
+      - extends_tag
+      - implements_tag
+      - example_tag
+    
+    format: |
+      /**
+       * Brief description of class.
+       * 
+       * @class ClassName
+       * @extends {BaseClass}
+       * @implements {Interface}
+       * 
+       * @example
+       * const instance = new ClassName();
+       * instance.method();
+       */
+  
+  method_level:
+    required:
+      - method_comment
+      - description
+    conditional:
+      - param_tags  # Required if has parameters
+      - returns_tag  # Required if returns value
+      - throws_tag  # Required if throws exceptions
+    
+    format: |
+      /**
+       * Brief description of method.
+       * 
+       * @param {Type} paramName - Description
+       * @param {Type} [optionalParam] - Optional parameter
+       * @returns {ReturnType} Description of return
+       * @throws {ErrorType} When this error occurs
+       * 
+       * @example
+       * const result = instance.method(param);
+       */
+
+javascript:
+  # Inherits from typescript with relaxed type requirements
+  style: jsdoc
+  inherit_from: typescript
+  relaxed_types: true  # Don't require type annotations
+
+# Validation rules
+validation:
+  rules:
+    # Critical rules (block commit)
+    critical:
+      - missing_file_docstring
+      - missing_class_docstring
+      - missing_public_method_docstring
+    
+    # Major rules (warnings, then block)
+    major:
+      - missing_parameter_description
+      - missing_return_description
+      - incomplete_docstring
+    
+    # Minor rules (warnings only)
+    minor:
+      - missing_example
+      - missing_author_tag
+      - formatting_issues
+  
+  # Exemptions
+  exemptions:
+    # Methods that don't need documentation
+    method_exemptions:
+      - "__init__"  # Python constructors often self-evident
+      - "constructor"  # JS/TS constructors
+      - "ngOnInit"  # Angular lifecycle
+      - "ngOnDestroy"  # Angular lifecycle
+      - "render"  # React render methods
+    
+    # Files that are exempt
+    file_exemptions:
+      - "**/tests/**"  # Test files have different standards
+      - "**/*.spec.*"  # Test spec files
+      - "**/*.test.*"  # Test files
+      - "**/migrations/**"  # Database migrations
+      - "**/vendor/**"  # Third-party code
+      - "**/node_modules/**"  # Dependencies
+
+# Scoring configuration
+scoring:
+  weights:
+    file_documentation: 0.3
+    class_documentation: 0.3
+    method_documentation: 0.4
+  
+  thresholds:
+    pass_threshold: 0.7  # 70% minimum
+    warning_threshold: 0.85  # Show warnings below 85%
+    excellent_threshold: 0.95  # Excellent code docs
+  
+  penalties:
+    missing_required: 0.2  # 20% penalty
+    missing_recommended: 0.1  # 10% penalty
+    missing_optional: 0.05  # 5% penalty
+
+# Auto-fix capabilities
+auto_fix:
+  enabled: true
+  
+  fixable:
+    - add_missing_docstring_template
+    - fix_docstring_format
+    - add_missing_param_descriptions
+    - convert_docstring_style
+    - add_type_hints_from_names
+
+# Reporting
+reporting:
+  enabled: true
+  output_format: markdown
+  include_examples: true
+  show_coverage: true
+  group_by: file  # file, class, severity

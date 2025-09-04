@@ -1,0 +1,61 @@
+# Metadata for STATUS.md - Project Status Document
+template:
+  name: "Project Status Document"
+  version: "1.0.0"
+  category: "status"
+  description: "Real-time project status and progress tracking"
+
+validation:
+  required_sections:
+    - name: "Current Status"
+      level: 2
+      required: true
+      description: "Overall project status"
+    
+    - name: "Recent Progress"
+      level: 2
+      required: true
+      description: "What has been accomplished recently"
+      
+    - name: "Active Work"
+      level: 2
+      required: true
+      description: "Currently in progress"
+      
+    - name: "Next Steps"
+      level: 2
+      required: true
+      description: "Planned upcoming work"
+      
+    - name: "Issues & Blockers"
+      level: 2
+      required: true
+      description: "Current challenges and obstacles"
+
+  required_placeholders:
+    - name: "LAST_UPDATED"
+      type: "date"
+      required: true
+      format: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+      description: "Date when status was last updated"
+    
+    - name: "OVERALL_STATUS"
+      type: "status"
+      required: true
+      format: '^(🟢|🟡|🔴)'
+      description: "Overall project health indicator"
+
+  validation_rules:
+    check_sections: true
+    check_placeholders: true
+    check_metadata_header: true
+    check_basic_structure: true
+    check_formatting: true
+    
+  max_age_days: 3  # Status should be updated every 3 days
+  
+  custom_validators:
+    status_consistency:
+      require_status_indicators: true
+      check_progress_metrics: true
+      validate_date_format: true

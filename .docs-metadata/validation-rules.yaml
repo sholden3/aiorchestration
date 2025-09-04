@@ -1,0 +1,190 @@
+# Documentation Validation Rules
+# Created: 2025-09-03
+# Purpose: Define validation rules for all documentation types
+
+# Global settings
+global:
+  enabled: true
+  enforcement_mode: progressive  # progressive, strict, warnings_only
+  
+  # Progressive enforcement timeline
+  enforcement_schedule:
+    week_1: warnings_only
+    week_2: block_critical
+    week_3: block_all
+  
+  # Common requirements for all documents
+  common_requirements:
+    - must_have_title
+    - must_have_date
+    - no_broken_links
+    - proper_markdown_syntax
+
+# Document type specific rules
+document_types:
+  
+  # Architecture documents
+  architecture:
+    path_pattern: "docs/architecture/*.md"
+    required_sections:
+      - "## Overview"
+      - "## Components"
+      - "## Data Flow"
+    recommended_sections:
+      - "## Security Considerations"
+      - "## Performance Impact"
+    metadata_required:
+      - version
+      - status
+      - last_updated
+    min_word_count: 500
+    
+  # API documentation
+  api:
+    path_pattern: "docs/api/*.md"
+    required_sections:
+      - "## Endpoints"
+      - "## Request/Response"
+      - "## Authentication"
+    code_blocks_required: true
+    example_required: true
+    
+  # Process documentation
+  process:
+    path_pattern: "docs/processes/*.md"
+    required_sections:
+      - "## Purpose"
+      - "## Steps"
+      - "## Responsibilities"
+    checklist_required: true
+    
+  # Testing documentation
+  testing:
+    path_pattern: "docs/testing/*.md"
+    required_sections:
+      - "## Test Coverage"
+      - "## Test Cases"
+      - "## Running Tests"
+    code_examples_required: true
+    
+  # README files
+  readme:
+    path_pattern: "**/README.md"
+    required_sections:
+      - "## Quick Start"  # Or ## 🚀 Quick Start
+      - "## Architecture"  # Or ## 🏗️ Architecture
+      - "## Documentation"  # Or ## 📚 Documentation
+      - "## Development"  # Or ## 🛠️ Development
+    recommended_sections:
+      - "## Prerequisites"  # Or ### Prerequisites
+      - "## Contributing"  # Or ### Contributing
+      - "## Support"  # Or ## 📞 Support
+      - "## License"  # Or ## 📄 License
+    metadata_required:
+      - last_updated  # In footer or header
+      - status  # Project status indicator
+    min_sections: 4
+    max_heading_level: 3  # Don't go deeper than ###
+    
+  # Decision records
+  decisions:
+    path_pattern: "docs/decisions/*.md"
+    required_fields:
+      - title
+      - status
+      - deciders
+      - date
+      - context
+      - decision
+      - consequences
+    template: "docs/templates/decision-template.md"
+    
+  # Persona documentation
+  personas:
+    path_pattern: "claude/*.md"
+    required_sections:
+      - "## Role"
+      - "## Expertise"
+      - "## Responsibilities"
+    
+# Validation severity levels
+severity_levels:
+  critical:
+    penalty: 10.0
+    blocks_commit: true
+    examples:
+      - missing_required_section
+      - broken_internal_link
+      - invalid_metadata
+      
+  major:
+    penalty: 5.0
+    blocks_commit: false  # Will block after week 2
+    examples:
+      - missing_recommended_section
+      - insufficient_content
+      - missing_examples
+      
+  minor:
+    penalty: 2.0
+    blocks_commit: false
+    examples:
+      - formatting_issues
+      - spelling_errors
+      - style_violations
+      
+  info:
+    penalty: 0.0
+    blocks_commit: false
+    examples:
+      - suggestions
+      - best_practices
+      - improvements
+
+# Scoring configuration
+scoring:
+  pass_threshold: 0.7  # 70% minimum score
+  warning_threshold: 0.85  # Show warnings below 85%
+  excellent_threshold: 0.95  # Excellent documentation
+  
+  # Weight factors for different aspects
+  weights:
+    structure: 0.4
+    content: 0.3
+    metadata: 0.2
+    formatting: 0.1
+
+# Exemptions and overrides
+exemptions:
+  # Files that are exempt from validation
+  exempt_files:
+    - "*.archive/*"
+    - "temp/*"
+    - "node_modules/*"
+    - ".git/*"
+    
+  # Temporary exemptions (remove after dates)
+  temporary_exemptions:
+    - path: "docs/legacy/*"
+      until: "2025-10-01"
+      reason: "Legacy docs being migrated"
+
+# Auto-fix capabilities
+auto_fix:
+  enabled: true
+  fix_on_commit: false  # Don't auto-fix, just suggest
+  
+  fixable_issues:
+    - add_missing_date
+    - fix_markdown_formatting
+    - add_table_of_contents
+    - fix_heading_hierarchy
+    - remove_trailing_whitespace
+
+# Reporting configuration  
+reporting:
+  generate_report: true
+  report_format: markdown
+  report_location: ".docs-metadata/reports/"
+  include_suggestions: true
+  include_metrics: true

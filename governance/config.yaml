@@ -1,7 +1,8 @@
 # EXTREME GOVERNANCE CONFIGURATION v2.0
 # Zero-tolerance enforcement system
-# Last Updated: 2025-09-02
+# Last Updated: 2025-09-03
 # NO BYPASS ALLOWED - NO EXCEPTIONS
+# Project metadata: see ../project.yaml
 
 version: 2.0
 mode: EXTREME  # EXTREME | STRICT | STANDARD | RELAXED
@@ -32,6 +33,8 @@ documentation:
     - .git
     - __pycache__
     - .archive
+    - archive
+    - RecoveryProject  # Recovery project files
     - htmlcov
     - dist
     - build
@@ -46,6 +49,8 @@ documentation:
     - .mypy_cache
     - .ruff_cache
     - .coverage
+    - .governance  # Governance internal files
+    - temp  # Temp directory for development files
     
   source_code:
     required_tags:
@@ -188,7 +193,7 @@ testing:
     typescript: 80
     overall: 82
   
-  execution_required: false     # Tests must run before commit (temporarily disabled)
+  execution_required: true      # Tests must run before commit
   fail_on_test_failure: true   # Block if tests fail
   coverage_enforcement: true    # Enforce coverage thresholds
     
@@ -304,3 +309,309 @@ penalties:
   high: 10        # High priority violations
   medium: 5       # Medium priority violations
   low: 2          # Low priority violations
+
+# Documentation Structure
+documentation_structure:
+  root_files:
+    required:
+      - CLAUDE.md
+      - DOCUMENTATION_INDEX.md
+      - STATUS.md
+      - TRACKER.md
+      - DECISIONS.md
+      - README.md
+    optional:
+      - ROADMAP.md
+      - CHANGELOG.md
+      - RECOVERY_PLAN.md
+      - RECOVERY_SUMMARY.md
+      - HOUSEKEEPING_PLAN.md
+    
+  docs_directories:
+    architecture:
+      path: docs/architecture
+      required_files:
+        - backend.md
+        - frontend.md
+        - database.md
+        - security.md
+        - api-contracts.md
+    
+    testing:
+      path: docs/testing
+      required_files:
+        - testing-strategy.md
+        - unit-tests.md
+      optional_files:
+        - integration-tests.md
+        - e2e-tests.md
+        - performance-tests.md
+        - security-tests.md
+    
+    processes:
+      path: docs/processes
+      required_files:
+        - current-phase.md
+      optional_files:
+        - past-phase-summary.md
+        - future-phase-summary.md
+    
+    governance:
+      path: docs/governance
+      optional_files:
+        - mcp.md
+        - pre-commit-hooks.md
+        - post-commit-hooks.md
+        - permissions-hierarchy.md
+        - development-guidelines.md
+    
+    research:
+      path: docs/research
+      optional_files:
+        - best-practices.md
+        - potential-features.md
+        - future-features.md
+    
+    debt:
+      path: docs/debt
+      required_files:
+        - technical-debt.md
+      optional_files:
+        - completed-debt.md
+
+# Temp Directory Configuration
+temp_directory:
+  path: temp/
+  max_files: 0  # Must be empty for commits
+  excluded_files:
+    - .gitignore
+    - README.md
+  check_on_commit: true
+  block_if_not_empty: true
+
+# Documentation Validation Configuration
+documentation_validation:
+  enabled: true
+  strict_mode: false  # Progressive enforcement - start with warnings
+  metadata_dir: .docs-metadata
+  generate_reports: true
+  
+  # Validation settings
+  validation_rules:
+    check_placeholders: true
+    check_sections: true
+    check_formatting: true
+    check_links: false  # Disabled initially for performance
+    check_metadata_header: true
+    check_basic_structure: true
+    
+  # Severity handling during progressive rollout
+  progressive_enforcement:
+    enabled: true
+    phase: 1  # Phase 1: warnings only, Phase 2: critical errors, Phase 3: full enforcement
+    downgrade_critical_to_medium: true
+    downgrade_high_to_medium: true
+    
+  # Performance settings
+  performance:
+    timeout_per_file_seconds: 10
+    max_file_size_mb: 5
+    parallel_validation: false
+    
+  # Reporting
+  reports:
+    save_to_disk: true
+    include_suggestions: true
+    max_issues_per_file: 10
+
+# Validation Exemptions
+# These allow specific files or patterns to be exempt from certain checks
+# Every exemption must be documented and approved
+validation_exemptions:
+  # Directory-level README exemptions
+  directory_readme_exemptions:
+    # Directories that don't need README files at all
+    full_exemptions:
+      - path: ".docs-metadata/reports"
+        reason: "Reports directory for generated content (may not exist)"
+        approved_by: "Alex Novak"
+        expires: "2025-12-31"
+        
+      - path: "claude/claude-sections"
+        reason: "Modular sections of CLAUDE.md, documented in parent README"
+        approved_by: "Dr. Sarah Chen"
+        expires: "2025-12-31"
+        
+      - path: "governance/correlations"
+        reason: "Contains only JSON correlation data files"
+        approved_by: "Dr. Sarah Chen"
+        expires: "2025-12-31"
+        
+      - path: "governance/audit"
+        reason: "Contains only audit log files"
+        approved_by: "Dr. Sarah Chen"
+        expires: "2025-12-31"
+        
+      - path: "governance/session"
+        reason: "Contains only session data files"
+        approved_by: "Dr. Sarah Chen"
+        expires: "2025-12-31"
+        
+      - path: ".governance/**"
+        reason: "Internal governance data directories"
+        approved_by: "Alex Novak"
+        expires: "2025-12-31"
+    
+    # Directories that have READMEs but don't need all sections
+    section_exemptions:
+      - path: "docs/architecture"
+        exempt_sections: ["Testing"]
+        reason: "Architecture documentation doesn't require testing section"
+        approved_by: "Alex Novak"
+        expires: "2025-12-31"
+        
+      - path: "docs/processes"
+        exempt_sections: ["Testing", "Dependencies"]
+        reason: "Process documentation is standalone"
+        approved_by: "Dr. Sarah Chen"
+        expires: "2025-12-31"
+        
+      - path: "docs/debt"
+        exempt_sections: ["Dependencies"]
+        reason: "Debt tracking has no external dependencies"
+        approved_by: "Alex Novak"
+        expires: "2025-12-31"
+        
+      - path: "docs/testing"
+        exempt_sections: ["Testing"]
+        reason: "Testing documentation doesn't test itself"
+        approved_by: "Sam Martinez"
+        expires: "2025-12-31"
+        
+      - path: ".docs-metadata"
+        exempt_sections: ["Testing"]
+        reason: "Metadata configuration files aren't directly tested"
+        approved_by: "Dr. Sarah Chen"
+        expires: "2025-12-31"
+        
+      - path: "claude"
+        exempt_sections: ["Testing"]
+        reason: "Documentation doesn't require testing"
+        approved_by: "Alex Novak"
+        expires: "2025-12-31"
+        
+      - path: "ai-assistant/backend"
+        exempt_sections: ["Testing"]
+        reason: "Backend tests are in tests/ directory"
+        approved_by: "Dr. Sarah Chen"
+        expires: "2025-12-31"
+  
+  # File-specific exemptions
+  file_exemptions:
+    # Test files that test for forbidden patterns
+    - path: "tests/unit/governance/test_domain_validators.py"
+      rules:
+        - id: "console_log_check"
+          reason: "Tests console.log detection functionality"
+          approved_by: "Sam Martinez"
+          expires: "2025-12-31"
+        - id: "debug_code_check"
+          reason: "Tests debug statement detection"
+          approved_by: "Sam Martinez"
+          expires: "2025-12-31"
+    
+    - path: "tests/unit/governance/test_code_doc_validator.py"
+      rules:
+        - id: "require_docstrings"
+          reason: "Tests missing docstring detection"
+          approved_by: "Sam Martinez"
+          expires: "2025-12-31"
+    
+    - path: "tests/unit/governance/test_smart_rules.py"
+      rules:
+        - id: "todo_check"
+          reason: "Tests TODO detection functionality"
+          approved_by: "Sam Martinez"
+          expires: "2025-12-31"
+    
+    - path: "governance/hooks/pre-commit.py"
+      rules:
+        - id: "debug_code_check"
+          reason: "Contains pattern mappings for debug detection, not actual debug code"
+          approved_by: "Alex Novak"
+          expires: "2025-12-31"
+        - id: "todo_check"
+          reason: "Contains TODO pattern for detection, not actual TODO"
+          approved_by: "Alex Novak"
+          expires: "2025-12-31"
+    
+    - path: "governance/core/todo_tracker.py"
+      rules:
+        - id: "todo_check"
+          reason: "TODO tracker implementation contains TODO patterns for detection"
+          approved_by: "Dr. Sarah Chen"
+          expires: "2025-12-31"
+  
+  # Pattern-based exemptions (apply to multiple files)
+  pattern_exemptions:
+    - pattern: "tests/**/*.py"
+      rules:
+        - id: "hardcoded_values"
+          reason: "Test fixtures require hardcoded values"
+          approved_by: "Sam Martinez"
+        - id: "console_log_in_strings"
+          reason: "Tests may contain console.log in test strings"
+          approved_by: "Sam Martinez"
+    
+    - pattern: "**/migrations/*.py"
+      rules:
+        - id: "require_docstrings"
+          reason: "Database migrations are self-documenting"
+          approved_by: "Dr. Sarah Chen"
+    
+    - pattern: "**/*.generated.*"
+      rules:
+        - id: "all_documentation_checks"
+          reason: "Generated files should not be manually documented"
+          approved_by: "Alex Novak"
+  
+  # Context-aware exemptions
+  context_exemptions:
+    # Allow certain patterns when they appear in specific contexts
+    - rule: "console_log_check"
+      allowed_when:
+        - "inside_string_literal"
+        - "inside_comment"
+        - "inside_test_assertion"
+        - "test_file_testing_console_log"
+    
+    - rule: "todo_check"
+      allowed_when:
+        - "todo_tracker_implementation"
+        - "inside_docstring"
+        - "test_file_testing_todos"
+    
+    - rule: "debug_code_check"
+      allowed_when:
+        - "test_file_testing_debug"
+        - "debug_utility_implementation"
+  
+  # Exemption governance
+  governance:
+    require_approval: true
+    require_reason: true
+    require_expiry: true
+    max_duration_days: 90
+    
+    # Audit requirements
+    audit:
+      log_usage: true
+      alert_on_expired: true
+      review_frequency: "monthly"
+    
+    # These patterns can NEVER be exempted
+    forbidden_exemptions:
+      - "sql_injection_patterns"
+      - "credential_exposure"
+      - "security_vulnerabilities"
+      - "eval_exec_usage"

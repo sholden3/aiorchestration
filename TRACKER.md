@@ -17,12 +17,20 @@
 ## Critical Path Tasks
 ### Week 36 (Sept 2-8, 2025) - CURRENT WEEK
 
+#### EMERGENCY: Dependency Recovery 🔴 CRITICAL
+- [x] ~~Phase 1: Backend structure repair~~ ✅ Sept 3 (22:45)
+- [x] ~~Phase 2: Frontend assets recovery~~ ✅ Sept 3 (22:50)
+- [ ] **Phase 3: Database models restoration** - In Progress
+- [ ] **Phase 4: Startup scripts creation** - Pending
+- [ ] **Phase 5: Full validation** - Pending
+
 #### Documentation Standardization 🔴 CRITICAL
 - [x] ~~Implement documentation validation system~~ ✅ Sept 3
 - [x] ~~Implement code documentation standards~~ ✅ Sept 3
 - [x] ~~Create and pass all validator tests (27/27)~~ ✅ Sept 3
 - [x] ~~Update CLAUDE.md to template format~~ ✅ Sept 3
 - [x] ~~Update STATUS.md to template format~~ ✅ Sept 3
+- [x] ~~Implement unified documentation config~~ ✅ Sept 3
 - [ ] **Update TRACKER.md to template format** (Alex) - Due: Sept 3
 - [ ] **Update DECISIONS.md to template format** (Sarah) - Due: Sept 3
 - [ ] **Update DOCUMENTATION_INDEX.md** (Alex) - Due: Sept 3

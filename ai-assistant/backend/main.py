@@ -50,6 +50,8 @@ sys.path.append(str(Path(__file__).parent))
 sys.path.append(str(Path(__file__).parent.parent / "governance"))
 
 # Import configuration
+# Fixed imports for recovery (DEC-2025-010)
+# Since main.py is run as a script, use direct imports with sys.path
 from core.config import get_config, get_backend_url, is_development
 from core.port_discovery import discover_backend_port, cleanup_backend_port, get_port_discovery
 

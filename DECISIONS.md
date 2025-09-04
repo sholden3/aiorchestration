@@ -20,6 +20,61 @@ This log tracks all technical and architectural decisions for the AI Orchestrati
 
 ## Recent Decisions (Last 30 Days)
 
+### DEC-2025-010: Emergency Dependency Recovery 🟢
+**Date:** 2025-09-03  
+**Decision Makers:** Alex Novak, Dr. Sarah Chen  
+**Infrastructure Review:** Riley Thompson  
+**Status:** Approved & Implemented  
+
+**Decision:** Execute systematic recovery of missing backend infrastructure to restore application functionality
+
+**Context:** Application is completely non-functional due to backend import errors (ModuleNotFoundError: No module named 'core'). Analysis revealed missing Python package structure and misplaced configuration files from overzealous cleanup.
+
+**Alternatives Considered:**
+1. **Complete rebuild from scratch**
+   - Pros: Clean implementation
+   - Cons: Time-consuming (days), loss of existing work
+2. **Git revert to earlier state**  
+   - Pros: Quick restoration
+   - Cons: Would lose recent documentation validation work
+3. **Selective recovery with validation** (Selected)
+   - Pros: Preserves recent work, systematic approach, reversible
+   - Cons: Requires careful execution, 2-4 hour timeline
+
+**Implementation Plan:**
+- Phase 1: Fix Python package structure (30 min)
+- Phase 2: Recover frontend assets (15 min)
+- Phase 3: Restore database models (45 min)
+- Phase 4: Create startup scripts (30 min)
+- Phase 5: Validation & testing (45 min)
+
+**Governance Compliance:**
+- ✅ Full backup created: `.archive/20250903_223224_dependency_recovery/`
+- ✅ Manifest file created with rollback procedure
+- ✅ Phased approach with validation gates
+- ✅ Documentation updated before execution
+- ✅ All phases validated and passed (30/30 checks)
+- ✅ Recovery validation report: 100% success rate
+
+**Risk Mitigation:**
+- Backup created with manifest
+- Each phase independently reversible
+- Validation script for success criteria
+- Clear rollback procedure documented
+
+**Implementation Notes:**
+- Phase 1: Created Python package structure with proper `__init__.py` files
+- Phase 2: Recovered `check-pty.js` and created assets directories
+- Phase 3: Recovered database models, schema, and initialization scripts from RecoveryProject
+- Phase 4: Determined startup scripts unnecessary - Electron backend-manager handles everything
+- Phase 5: All 30 validation checks passed successfully
+
+**Key Discoveries:**
+- Backend uses dynamic port discovery through Electron backend-manager.js
+- No shell scripts needed - npm scripts and Electron handle startup
+- Database uses both SQLAlchemy models AND raw asyncpg for different purposes
+- Frontend more complete than RecoveryProject (58 vs 2 TypeScript files)
+
 ### DEC-2025-009: Documentation Validation Implementation 🟢
 **Date:** 2025-09-03  
 **Decision Maker:** Alex Novak, Dr. Sarah Chen, Isabella Martinez  

@@ -22,9 +22,15 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Tuple, Set
 
-# Import exemption manager
+# Import unified validator and exemption manager
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 from governance.core.exemption_manager import ExemptionManager
+try:
+    from governance.validators.unified_doc_validator import UnifiedDocumentValidator
+    UNIFIED_VALIDATOR_AVAILABLE = True
+except ImportError:
+    UNIFIED_VALIDATOR_AVAILABLE = False
 
 class ExtremeGovernance:
     """Zero-tolerance governance enforcement"""
@@ -91,23 +97,84 @@ class ExtremeGovernance:
         return dirs
     
     def check_readme_files(self):
-        """Check README.md based on config rules"""
+        """Check README.md using unified validator with exemption support"""
         print("\n[CHECK] README.md Files")
         print("-" * 40)
         
+        if UNIFIED_VALIDATOR_AVAILABLE:
+            # Use unified validator which has exemptions built-in
+            try:
+                validator = UnifiedDocumentValidator()
+                dirs_without_readme = []
+                readme_issues = []
+                
+                for dir_path in self.all_directories:
+                    readme_path = self.repo_root / dir_path / "README.md"
+                    
+                    # Check if README is required (using exemption system)
+                    from pathlib import Path
+                    parent_dir = Path(__file__).parent.parent
+                    sys.path.insert(0, str(parent_dir / "core"))
+                    
+                    try:
+                        # Import the new exemption manager if available
+                        from template_renderer import DocumentTemplateRenderer
+                        # Check exemptions through unified system
+                        doc_standards_path = self.repo_root / "governance" / "documentation_standards.yaml"
+                        if doc_standards_path.exists():
+                            # The unified validator handles exemptions internally
+                            if readme_path.exists():
+                                result = validator.validate_file(readme_path)
+                                if not result.valid and 'fully_exempt' not in result.exemptions:
+                                    for issue in result.issues:
+                                        if 'Missing required section' in issue:
+                                            readme_issues.append((dir_path, issue))
+                                            self.add_violation(
+                                                level="HIGH",
+                                                message=f"README in '{dir_path}': {issue}",
+                                                penalty=self.config['penalties']['medium']
+                                            )
+                            else:
+                                # Check if directory needs README
+                                result = validator.validate_path(self.repo_root / dir_path)
+                                if result.get('readme_required', True):
+                                    dirs_without_readme.append(dir_path)
+                                    self.add_violation(
+                                        level="CRITICAL",
+                                        message=f"Directory '{dir_path}' missing README.md",
+                                        penalty=self.config['penalties']['high']
+                                    )
+                    except:
+                        # Fallback to basic check
+                        if not readme_path.exists():
+                            dirs_without_readme.append(dir_path)
+                            self.add_violation(
+                                level="CRITICAL",
+                                message=f"Directory '{dir_path}' missing README.md",
+                                penalty=self.config['penalties']['high']
+                            )
+                
+                if dirs_without_readme:
+                    print(f"[FAIL] {len(dirs_without_readme)} directories missing README.md")
+                elif readme_issues:
+                    print(f"[FAIL] {len(readme_issues)} README files have issues")
+                else:
+                    print("[PASS] All directories have valid README.md files")
+                return
+            except Exception as e:
+                print(f"  [WARN] Unified validator error, falling back: {e}")
+        
+        # Fallback to original logic if unified validator not available
         max_depth = self.config['documentation']['directories'].get('readme_max_depth', 999)
         required_parents = self.config['documentation']['directories'].get('readme_required_parents', [])
         
         dirs_without_readme = []
         for dir_path in self.all_directories:
-            # Check depth
             depth = len(Path(dir_path).parts)
             
-            # Skip if deeper than max_depth and not in required_parents
             if depth > max_depth and dir_path not in required_parents:
                 continue
             
-            # Check if this directory or its parent is in required list
             should_check = False
             if depth <= max_depth:
                 should_check = True
@@ -127,7 +194,6 @@ class ExtremeGovernance:
                         penalty=self.config['penalties']['high']
                     )
                 else:
-                    # Check README quality
                     try:
                         content = readme_path.read_text(encoding='utf-8', errors='ignore')
                     except:
@@ -153,7 +219,11 @@ class ExtremeGovernance:
         
         # Try to use the new code documentation validator first
         try:
-            from governance.validators.code_doc_validator import CodeDocumentationValidator
+            if UNIFIED_VALIDATOR_AVAILABLE:
+                # Use unified validator for code documentation
+                from governance.validators.unified_doc_validator import UnifiedDocumentValidator as CodeDocumentationValidator
+            else:
+                from governance.validators.code_doc_validator import CodeDocumentationValidator
             
             # Get staged code files
             code_files = [
@@ -504,7 +574,11 @@ class ExtremeGovernance:
         
         try:
             # Import the validator
-            from governance.validators.doc_validator import DocumentationValidator
+            if UNIFIED_VALIDATOR_AVAILABLE:
+                # Use unified validator for documentation
+                from governance.validators.unified_doc_validator import UnifiedDocumentValidator as DocumentationValidator
+            else:
+                from governance.validators.doc_validator import DocumentationValidator
             
             # Initialize validator
             validator = DocumentationValidator()
@@ -619,7 +693,11 @@ class ExtremeGovernance:
         
         try:
             # Import validator (lazy import to avoid issues if module doesn't exist)
-            from governance.validators.doc_validator import DocumentationValidator
+            if UNIFIED_VALIDATOR_AVAILABLE:
+                # Use unified validator for documentation
+                from governance.validators.unified_doc_validator import UnifiedDocumentValidator as DocumentationValidator
+            else:
+                from governance.validators.doc_validator import DocumentationValidator
             validator = DocumentationValidator(self.repo_root)
             
             # Validate staged files

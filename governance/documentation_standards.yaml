@@ -418,6 +418,161 @@ exemptions:
         reason: "Archived files"
         permanent: true
         
+      # Build and cache directories
+      - path: ".pytest_cache"
+        type: "glob"
+        pattern: "**/.pytest_cache/**"
+        reason: "Pytest cache directory"
+        permanent: true
+        
+      - path: ".benchmarks"
+        type: "exact"
+        reason: "Benchmark results directory"
+        permanent: true
+        
+      - path: ".claude"
+        type: "exact"
+        reason: "Claude configuration directory"
+        permanent: true
+        
+      - path: ".governance"
+        type: "glob"
+        pattern: ".governance/**"
+        reason: "Legacy governance directory structure"
+        permanent: true
+        
+      - path: ".docs-metadata/reports"
+        type: "exact"
+        reason: "Auto-generated reports directory"
+        permanent: true
+        
+      # Recovery and backup directories
+      - path: "RecoveryProject"
+        type: "glob"
+        pattern: "RecoveryProject/**"
+        reason: "Recovery backup directory"
+        permanent: true
+        
+      # Source code subdirectories (covered by parent READMEs)
+      - path: "ai-assistant/backend/api"
+        type: "exact"
+        reason: "API endpoints directory - covered by backend README"
+        permanent: true
+        
+      - path: "ai-assistant/backend/cache"
+        type: "exact"
+        reason: "Cache implementation - covered by backend README"
+        permanent: true
+        
+      - path: "ai-assistant/backend/core"
+        type: "exact"
+        reason: "Core backend logic - covered by backend README"
+        permanent: true
+        
+      - path: "ai-assistant/backend/database"
+        type: "exact"
+        reason: "Database models - covered by backend README"
+        permanent: true
+        
+      - path: "ai-assistant/backend/schemas"
+        type: "exact"
+        reason: "Data schemas - covered by backend README"
+        permanent: true
+        
+      - path: "ai-assistant/backend/tests"
+        type: "exact"
+        reason: "Backend tests - covered by backend README"
+        permanent: true
+        
+      - path: "ai-assistant/electron"
+        type: "exact"
+        reason: "Electron wrapper - covered by main README"
+        permanent: true
+        
+      - path: "ai-assistant/scripts"
+        type: "exact"
+        reason: "Build scripts - covered by main README"
+        permanent: true
+        
+      # Frontend source subdirectories
+      - path: "ai-assistant/src"
+        type: "glob"
+        pattern: "ai-assistant/src/**"
+        reason: "Frontend source code - covered by main README"
+        permanent: true
+        
+      # Governance subdirectories (covered by main governance README)
+      - path: "governance/audit"
+        type: "exact"
+        reason: "Audit logs - covered by governance README"
+        permanent: true
+        
+      - path: "governance/correlations"
+        type: "exact"
+        reason: "Correlation tracking - covered by governance README"
+        permanent: true
+        
+      - path: "governance/session"
+        type: "exact"
+        reason: "Session management - covered by governance README"
+        permanent: true
+        
+      # Documentation subdirectories
+      - path: "claude/claude-sections"
+        type: "exact"
+        reason: "Claude sections - covered by claude README"
+        permanent: true
+        
+      - path: ".docs-metadata/format-templates"
+        type: "glob"
+        pattern: ".docs-metadata/format-templates/**"
+        reason: "Template files directory"
+        permanent: true
+        
+      # Test directories
+      - path: "tests/unit/governance"
+        type: "exact"
+        reason: "Unit test directory - covered by tests README"
+        permanent: true
+        
+      - path: "tests/integration/governance"
+        type: "exact"
+        reason: "Integration test directory - covered by tests README"
+        permanent: true
+        
+      - path: "tests/backend/unit"
+        type: "exact"
+        reason: "Backend unit test directory - covered by tests README"
+        permanent: true
+        
+      - path: "ai-assistant/backend/data"
+        type: "exact"
+        reason: "Data directory - covered by backend README"
+        permanent: true
+        
+      # Additional directories that don't need READMEs
+      - path: "ai-assistant/backend/logs"
+        type: "exact"
+        reason: "Log files directory"
+        permanent: true
+        
+      - path: "docs/development/standards"
+        type: "exact"
+        reason: "Standards documentation - covered by development README"
+        permanent: true
+        
+      - path: "logs"
+        type: "glob"
+        pattern: "**/logs"
+        reason: "Log directories"
+        permanent: true
+        
+      - path: "build"
+        type: "glob"
+        pattern: "**/build"
+        reason: "Build output directories"
+        permanent: true
+        
     section_exemptions:
       # Directories where certain README sections are optional
       - path: "tests"
@@ -430,6 +585,66 @@ exemptions:
         exempt_sections:
           - "Testing"
         reason: "Documentation doesn't require testing section"
+        
+      - path: ".docs-metadata"
+        exempt_sections:
+          - "Testing"
+        reason: "Metadata directory doesn't require testing"
+        
+      - path: "ai-assistant/backend"
+        exempt_sections:
+          - "Purpose"
+          - "Contents"
+          - "Dependencies"
+          - "Testing"
+          - "Maintenance"
+        reason: "Backend README uses different structure"
+        
+      - path: "docs/processes"
+        exempt_sections:
+          - "Purpose"
+          - "Contents"
+          - "Dependencies"
+          - "Testing"
+          - "Maintenance"
+        reason: "Process docs use different structure"
+        
+      - path: "docs/architecture"
+        exempt_sections:
+          - "Purpose"
+          - "Contents"
+          - "Dependencies"
+          - "Testing"
+          - "Maintenance"
+        reason: "Architecture docs use different structure"
+        
+      - path: "docs/debt"
+        exempt_sections:
+          - "Purpose"
+          - "Contents"
+          - "Dependencies"
+          - "Testing"
+          - "Maintenance"
+        reason: "Debt tracking uses different structure"
+        
+      - path: "governance/validators"
+        exempt_sections:
+          - "Testing"
+        reason: "Validator directory covered by main governance tests"
+        
+      - path: "claude"
+        exempt_sections:
+          - "Testing"
+        reason: "Claude configuration directory"
+        
+      - path: "docs/testing"
+        exempt_sections:
+          - "Purpose"
+          - "Contents"
+          - "Dependencies"
+          - "Testing"
+          - "Maintenance"
+        reason: "Testing docs use different structure"
         
   document_exemptions:
     # Other document types that might have exemptions

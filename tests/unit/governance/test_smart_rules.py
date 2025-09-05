@@ -29,7 +29,7 @@ import sys
 # Add governance module to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from governance.rules.smart_rules import SmartRules, RuleEnhancer
+from libs.governance.rules.smart_rules import SmartRules, RuleEnhancer
 
 
 class TestSmartRules(unittest.TestCase):

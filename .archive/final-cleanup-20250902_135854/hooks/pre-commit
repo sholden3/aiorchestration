@@ -1,5 +1,0 @@
-#!/bin/sh
-# Full Governance Pre-commit Hook
-cd ai-assistant/backend
-python governance_enforcer.py --quick
-exit $?

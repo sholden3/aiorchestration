@@ -1,0 +1,134 @@
+# MCP Governance Server Configuration
+# Author: Dr. Sarah Chen
+# Phase: MCP-001 PHOENIX_RISE_FOUNDATION
+# Purpose: Centralized configuration for MCP server
+
+server:
+  name: "mcp-governance"
+  version: "1.0.0"
+  environment: "${MCP_ENV:development}"
+  
+  # Port configuration
+  port:
+    preferred: 8001
+    range_start: 8001
+    range_end: 8100
+    fallback: 8001
+  
+  # Server settings
+  host: "127.0.0.1"
+  reload: true
+  log_level: "${MCP_LOG_LEVEL:INFO}"
+
+database:
+  # Database type: postgresql or sqlite
+  type: "${MCP_DATABASE_TYPE:sqlite}"
+  
+  # PostgreSQL settings
+  postgresql:
+    host: "${MCP_DB_HOST:localhost}"
+    port: "${MCP_DB_PORT:5432}"
+    database: "${MCP_DB_NAME:mcp_governance}"
+    username: "${MCP_DB_USER:mcp_user}"
+    password: "${MCP_DB_PASS:}"
+    pool_size: 10
+    max_overflow: 20
+  
+  # SQLite settings  
+  sqlite:
+    path: "${MCP_SQLITE_PATH:./data/mcp_governance.db}"
+    check_same_thread: false
+    timeout: 30
+
+cache:
+  # Cache type: redis or memory
+  type: "${MCP_CACHE_TYPE:memory}"
+  
+  # Redis settings
+  redis:
+    host: "${MCP_REDIS_HOST:localhost}"
+    port: "${MCP_REDIS_PORT:6379}"
+    db: "${MCP_REDIS_DB:0}"
+    password: "${MCP_REDIS_PASS:}"
+    max_connections: 50
+  
+  # Memory cache settings
+  memory:
+    max_size: 1000
+    ttl_seconds: 300
+    cleanup_interval: 60
+
+governance:
+  # Path to personas configuration
+  personas_config: "./libs/governance/personas.yaml"
+  
+  # Path to governance rules
+  rules_config: "./libs/governance/documentation_standards.yaml"
+  
+  # Consultation settings
+  consultation:
+    timeout_seconds: 30
+    max_retries: 3
+    cache_enabled: true
+    cache_ttl: 600
+  
+  # Decision thresholds
+  thresholds:
+    approval_confidence: 0.7
+    warning_confidence: 0.5
+    unanimous_required: false
+
+monitoring:
+  # Metrics collection
+  metrics:
+    enabled: true
+    interval_seconds: 60
+    retention_days: 30
+  
+  # Audit logging
+  audit:
+    enabled: true
+    log_file: "${MCP_AUDIT_LOG:./logs/mcp_audit.log}"
+    rotation: "daily"
+    retention_days: 90
+
+security:
+  # API key for authentication
+  api_key: "${MCP_API_KEY:}"
+  
+  # Rate limiting
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+    burst_size: 10
+  
+  # CORS settings
+  cors:
+    enabled: true
+    origins: ["http://localhost:4200", "http://localhost:3000"]
+    methods: ["GET", "POST", "PUT", "DELETE"]
+    headers: ["Content-Type", "Authorization"]
+
+paths:
+  # File paths for various components
+  port_file: "~/.ai_assistant/mcp_governance_port.txt"
+  session_state: "./data/mcp_sessions.json"
+  decision_log: "./logs/mcp_decisions.jsonl"
+
+# Performance tuning
+performance:
+  # Connection pool settings
+  connection_pool:
+    min_size: 5
+    max_size: 20
+    timeout: 30
+  
+  # Request processing
+  request:
+    timeout: 60
+    max_payload_size: 10485760  # 10MB
+  
+  # Background tasks
+  background:
+    workers: 4
+    queue_size: 100

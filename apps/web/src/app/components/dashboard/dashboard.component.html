@@ -1,0 +1,161 @@
+<div class="dashboard-container">
+  <div class="page-header">
+    <h1 class="page-title">{{ currentPage }}</h1>
+    <p class="page-subtitle">Welcome back! Here's what's happening with your AI orchestration projects.</p>
+  </div>
+  
+  <div class="grid">
+    <!-- Application Updates -->
+    <mat-card class="card">
+      <mat-card-header>
+        <mat-card-title>Latest Updates</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div *ngFor="let update of updates" class="update-item">
+          <div class="update-icon" [style.background]="update.color">
+            <mat-icon>{{ update.icon }}</mat-icon>
+          </div>
+          <div class="update-content">
+            <div class="update-title">{{ update.title }}</div>
+            <div class="update-description">{{ update.description }}</div>
+            <div class="update-time">{{ update.time }}</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    
+    <!-- Current Projects -->
+    <mat-card class="card">
+      <mat-card-header>
+        <mat-card-title>Current Projects</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div *ngFor="let project of projects" class="project-item">
+          <div class="project-header">
+            <span class="project-name">{{ project.name }}</span>
+            <span class="project-percentage">{{ project.percentage }}%</span>
+          </div>
+          <mat-progress-bar 
+            mode="determinate" 
+            [value]="project.percentage"
+            class="progress-bar">
+          </mat-progress-bar>
+          <div class="project-status">{{ project.status }}</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Orchestration Status -->
+  <div class="grid" *ngIf="orchestrationStatus || cacheMetrics">
+    <mat-card class="card" *ngIf="orchestrationStatus">
+      <mat-card-header>
+        <mat-card-title>AI Orchestration Status</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="status-grid">
+          <div class="status-item">
+            <mat-icon [class.active]="orchestrationStatus.is_running">play_circle</mat-icon>
+            <span>{{ orchestrationStatus.is_running ? 'Running' : 'Stopped' }}</span>
+          </div>
+          <div class="status-item">
+            <mat-icon>groups</mat-icon>
+            <span>{{ orchestrationStatus.agents.active }}/{{ orchestrationStatus.agents.total }} Agents</span>
+          </div>
+          <div class="status-item">
+            <mat-icon>assignment</mat-icon>
+            <span>{{ orchestrationStatus.tasks.active }} Active Tasks</span>
+          </div>
+          <div class="status-item">
+            <mat-icon [class.active]="orchestrationStatus.governance_active">shield</mat-icon>
+            <span>Governance {{ orchestrationStatus.governance_active ? 'Active' : 'Inactive' }}</span>
+          </div>
+        </div>
+        <div class="metrics-row" *ngIf="orchestrationStatus.performance">
+          <div class="metric">
+            <span class="metric-label">Tokens Used:</span>
+            <span class="metric-value">{{ orchestrationStatus.performance.total_tokens_used }}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Avg Response:</span>
+            <span class="metric-value">{{ orchestrationStatus.performance.average_response_time }}ms</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Success Rate:</span>
+            <span class="metric-value">{{ (orchestrationStatus.performance.overall_success_rate * 100).toFixed(1) }}%</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    
+    <mat-card class="card" *ngIf="cacheMetrics">
+      <mat-card-header>
+        <mat-card-title>Cache Performance</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="cache-stats">
+          <div class="cache-stat">
+            <div class="stat-value">{{ (cacheMetrics.hit_rate * 100).toFixed(1) }}%</div>
+            <div class="stat-label">Hit Rate</div>
+          </div>
+          <div class="cache-stat">
+            <div class="stat-value">{{ cacheMetrics.tokens_saved }}</div>
+            <div class="stat-label">Tokens Saved</div>
+          </div>
+          <div class="cache-stat">
+            <div class="stat-value">{{ cacheMetrics.hot_cache_size_mb.toFixed(1) }} MB</div>
+            <div class="stat-label">Hot Cache</div>
+          </div>
+          <div class="cache-stat">
+            <div class="stat-value">{{ cacheMetrics.warm_cache_files }}</div>
+            <div class="stat-label">Warm Files</div>
+          </div>
+        </div>
+        <mat-progress-bar 
+          mode="determinate" 
+          [value]="cacheMetrics.hit_rate * 100"
+          class="cache-progress">
+        </mat-progress-bar>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-container" *ngIf="rulesStats || practicesStats || templatesStats">
+    <mat-card class="stat-card">
+      <mat-card-header>
+        <mat-card-title>Rules Engine</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stat-number">{{ rulesStats?.total || 0 }}</div>
+        <div class="stat-label">Active Rules</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-header>
+        <mat-card-title>Best Practices</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stat-number">{{ practicesStats?.total || 0 }}</div>
+        <div class="stat-label">Total Practices</div>
+        <div class="stat-sub" *ngIf="practicesStats?.required">
+          {{ practicesStats.required }} Required
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-header>
+        <mat-card-title>Templates</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stat-number">{{ templatesStats?.total || 0 }}</div>
+        <div class="stat-label">Total Templates</div>
+        <div class="stat-sub" *ngIf="templatesStats?.active">
+          {{ templatesStats.active }} Active
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

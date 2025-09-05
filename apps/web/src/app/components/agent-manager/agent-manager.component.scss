@@ -1,0 +1,324 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.agent-manager-container {
+  padding: $space-6;
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $space-6;
+    
+    h2 {
+      margin: 0;
+      color: $color-text-primary;
+    }
+    
+    .agent-counter {
+      background: $color-primary;
+      color: white;
+      padding: $space-2 $space-4;
+      border-radius: $radius-full;
+      font-weight: $font-weight-medium;
+    }
+  }
+  
+  .error-card {
+    background-color: rgba($color-error, 0.1);
+    margin-bottom: $space-4;
+    
+    mat-card-content {
+      display: flex;
+      align-items: center;
+      gap: $space-3;
+      
+      mat-icon {
+        color: $color-error;
+      }
+    }
+  }
+  
+  .spawn-controls {
+    margin-bottom: $space-6;
+    
+    .agent-types {
+      display: flex;
+      flex-wrap: wrap;
+      gap: $space-3;
+      
+      .spawn-button {
+        mat-icon {
+          margin-right: $space-2;
+        }
+      }
+    }
+  }
+  
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: $space-4;
+    margin-bottom: $space-6;
+    
+    .agent-card {
+      background: $color-surface;
+      
+      mat-card-header {
+        mat-card-title {
+          display: flex;
+          align-items: center;
+          gap: $space-2;
+          
+          mat-icon {
+            color: $color-primary;
+          }
+        }
+        
+        .status-badge {
+          display: inline-flex;
+          align-items: center;
+          padding: $space-1 $space-3;
+          border-radius: $radius-full;
+          font-size: $font-size-sm;
+          
+          &.status-ready {
+            background: rgba($color-success, 0.2);
+            color: $color-success;
+          }
+          
+          &.status-busy {
+            background: rgba($color-warning, 0.2);
+            color: $color-warning;
+          }
+          
+          &.status-idle {
+            background: rgba($color-info, 0.2);
+            color: $color-info;
+          }
+          
+          &.status-error {
+            background: rgba($color-error, 0.2);
+            color: $color-error;
+          }
+        }
+        
+        .status-icon {
+          font-size: 16px;
+          height: 16px;
+          width: 16px;
+          margin-right: $space-1;
+        }
+      }
+      
+      .agent-details {
+        .detail-row {
+          display: flex;
+          justify-content: space-between;
+          padding: $space-1 0;
+          border-bottom: 1px solid $color-border;
+          
+          &:last-child {
+            border-bottom: none;
+          }
+          
+          .label {
+            color: $color-text-secondary;
+            font-size: $font-size-sm;
+          }
+          
+          .value {
+            color: $color-text-primary;
+            font-weight: $font-weight-medium;
+          }
+        }
+      }
+      
+      mat-card-actions {
+        display: flex;
+        justify-content: space-between;
+        padding: $space-2 $space-4;
+      }
+    }
+  }
+  
+  .terminal-card {
+    margin-bottom: $space-6;
+    background: $color-background;
+    
+    mat-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid $color-border;
+    }
+    
+    .terminal-window {
+      .terminal-output {
+        background: rgba(0, 0, 0, 0.8);
+        color: #00ff00;
+        font-family: $font-family-mono;
+        font-size: $font-size-sm;
+        padding: $space-4;
+        height: 300px;
+        overflow-y: auto;
+        margin-bottom: $space-3;
+        border-radius: $radius-sm;
+        
+        .terminal-line {
+          margin-bottom: $space-1;
+          white-space: pre-wrap;
+          word-break: break-all;
+        }
+      }
+      
+      .terminal-input-row {
+        display: flex;
+        gap: $space-2;
+        
+        .terminal-input {
+          flex: 1;
+          padding: $space-3;
+          background: $color-surface;
+          border: 1px solid $color-border;
+          border-radius: $radius-sm;
+          color: $color-text-primary;
+          font-family: $font-family-mono;
+        }
+      }
+    }
+  }
+  
+  .claude-terminal-card {
+    background: $color-surface;
+    
+    mat-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid $color-border;
+      
+      mat-card-title {
+        display: flex;
+        align-items: center;
+        gap: $space-2;
+        
+        mat-icon {
+          color: $color-primary;
+        }
+      }
+      
+      .claude-actions {
+        display: flex;
+        align-items: center;
+        gap: $space-3;
+        
+        .connection-status {
+          padding: $space-2 $space-4;
+          border-radius: $radius-full;
+          background: rgba($color-error, 0.2);
+          color: $color-error;
+          font-size: $font-size-sm;
+          
+          &.connected {
+            background: rgba($color-success, 0.2);
+            color: $color-success;
+          }
+        }
+      }
+    }
+    
+    .claude-chat {
+      .chat-messages {
+        height: 400px;
+        overflow-y: auto;
+        padding: $space-4;
+        background: $color-background;
+        border-radius: $radius-sm;
+        margin-bottom: $space-4;
+        
+        .message {
+          margin-bottom: $space-4;
+          
+          &.message-user {
+            .message-header mat-icon {
+              color: $color-primary;
+            }
+            .message-content {
+              background: rgba($color-primary, 0.1);
+              margin-left: $space-8;
+            }
+          }
+          
+          &.message-claude {
+            .message-header mat-icon {
+              color: $color-success;
+            }
+            .message-content {
+              background: rgba($color-success, 0.1);
+              margin-right: $space-8;
+            }
+          }
+          
+          &.message-system {
+            .message-header mat-icon {
+              color: $color-info;
+            }
+            .message-content {
+              background: rgba($color-info, 0.1);
+              text-align: center;
+            }
+          }
+          
+          &.message-error {
+            .message-header mat-icon {
+              color: $color-error;
+            }
+            .message-content {
+              background: rgba($color-error, 0.1);
+            }
+          }
+          
+          .message-header {
+            display: flex;
+            align-items: center;
+            gap: $space-2;
+            margin-bottom: $space-2;
+            
+            .timestamp {
+              color: $color-text-secondary;
+              font-size: $font-size-xs;
+            }
+          }
+          
+          .message-content {
+            padding: $space-3;
+            border-radius: $radius-sm;
+            white-space: pre-wrap;
+            word-break: break-word;
+          }
+        }
+      }
+      
+      .chat-input {
+        display: flex;
+        gap: $space-3;
+        align-items: flex-end;
+        
+        .full-width {
+          flex: 1;
+        }
+      }
+      
+      .connect-prompt {
+        text-align: center;
+        padding: $space-8;
+        
+        p {
+          color: $color-text-secondary;
+          margin-top: $space-3;
+        }
+      }
+    }
+  }
+}

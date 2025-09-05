@@ -209,7 +209,7 @@ $RECYCLE.BIN/
 .env.production.local
 
 # Logs
-logs
+logs/
 *.log
 
 # Runtime data
@@ -247,6 +247,18 @@ node_modules/
 
 # Nuxt.js build output
 .nuxt
+
+# Application cache
+cache/
+.cache/
+
+# Benchmarks
+.benchmarks/
+benchmarks/
+
+# Test databases
+*.db
+test_*.db
 
 # Storybook build outputs
 .out

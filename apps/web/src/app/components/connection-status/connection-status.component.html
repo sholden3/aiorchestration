@@ -1,0 +1,52 @@
+<!-- Connection Status Indicator -->
+<div class="connection-status-container" 
+     *ngIf="showStatus" 
+     @slideIn
+     [ngClass]="statusClass"
+     [matTooltip]="getTooltip()"
+     matTooltipPosition="left">
+  
+  <div class="status-indicator" [@pulse]="connectionState">
+    <!-- Status Icon -->
+    <mat-icon class="status-icon" 
+              [class.rotating]="connectionState === ConnectionState.CONNECTING || 
+                               connectionState === ConnectionState.RECONNECTING">
+      {{ statusIcon }}
+    </mat-icon>
+    
+    <!-- Status Text -->
+    <span class="status-text">{{ statusMessage }}</span>
+    
+    <!-- Retry Button for Error State -->
+    <button mat-icon-button 
+            *ngIf="connectionState === ConnectionState.ERROR || 
+                   connectionState === ConnectionState.DISCONNECTED"
+            (click)="reconnect()"
+            class="retry-button"
+            matTooltip="Retry connection">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+  
+  <!-- Progress Bar for Connecting States -->
+  <mat-progress-bar 
+    *ngIf="connectionState === ConnectionState.CONNECTING || 
+           connectionState === ConnectionState.RECONNECTING"
+    mode="indeterminate"
+    class="connection-progress">
+  </mat-progress-bar>
+</div>
+
+<!-- Minimized Indicator (Always Visible When Disconnected) -->
+<div class="connection-dot"
+     *ngIf="!showStatus && connectionState !== ConnectionState.CONNECTED"
+     [ngClass]="{
+       'dot-disconnected': connectionState === ConnectionState.DISCONNECTED,
+       'dot-error': connectionState === ConnectionState.ERROR,
+       'dot-connecting': connectionState === ConnectionState.CONNECTING || 
+                        connectionState === ConnectionState.RECONNECTING
+     }"
+     [matTooltip]="getTooltip()"
+     matTooltipPosition="left"
+     (click)="showStatus = true">
+</div>

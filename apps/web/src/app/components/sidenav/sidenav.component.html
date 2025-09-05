@@ -1,0 +1,16 @@
+<div class="sidenav-container" [class.closed]="!isOpen">
+  <div class="sidenav-header">
+    <h2 class="sidenav-title">Navigation</h2>
+  </div>
+  
+  <mat-nav-list class="sidenav-menu">
+    <a mat-list-item 
+       *ngFor="let item of menuItems"
+       [class.active]="activeMenuItem === item.route"
+       (click)="selectMenuItem(item.route)"
+       class="nav-item">
+      <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+      <span matListItemTitle class="nav-label">{{ item.label }}</span>
+    </a>
+  </mat-nav-list>
+</div>

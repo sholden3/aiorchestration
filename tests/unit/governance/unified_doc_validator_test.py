@@ -14,7 +14,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch, mock_open
 import yaml
 
-from governance.validators.unified_doc_validator import (
+from libs.governance.validators.unified_doc_validator import (
     UnifiedDocumentValidator,
     ValidationResult,
     RobustExemptionMatcher,

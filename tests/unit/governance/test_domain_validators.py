@@ -33,7 +33,7 @@ import os
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from governance.validators.domain_validators import (
+from libs.governance.validators.domain_validators import (
     DatabaseValidator,
     CacheValidator,
     FrontendValidator,

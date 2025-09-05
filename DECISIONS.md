@@ -1,8 +1,8 @@
 # Technical & Architecture Decisions Log
 
 **Project:** AI Orchestration Platform  
-**Phase:** Phase 1.6 Documentation Updates  
-**Last Updated:** 2025-09-03  
+**Phase:** MCP Integration - PHOENIX_RISE_FOUNDATION  
+**Last Updated:** 2025-01-05  
 **Document Owner:** Alex Novak & Dr. Sarah Chen  
 
 ## Overview
@@ -19,6 +19,79 @@ This log tracks all technical and architectural decisions for the AI Orchestrati
 ---
 
 ## Recent Decisions (Last 30 Days)
+
+### DEC-2025-012: Data-Driven Persona System 🟢
+**Date:** 2025-01-05  
+**Decision Makers:** Alex Novak, Dr. Sarah Chen  
+**Status:** Approved & Implemented  
+
+**Decision:** Implement data-driven persona management system using YAML configuration instead of hardcoded persona logic
+
+**Context:** The MCP server needs to consult various personas for domain expertise. Hardcoding persona logic would be inflexible and difficult to maintain. A data-driven approach allows dynamic configuration and easier updates.
+
+**Implementation:**
+- Created `libs/governance/personas.yaml` with comprehensive persona definitions
+- Implemented `PersonaManager` class to load and manage personas dynamically
+- Integrated data-driven personas into MCP server
+
+**Benefits:**
+1. **Flexibility**: Personas can be added/modified without code changes
+2. **Maintainability**: All persona data in single YAML file
+3. **Extensibility**: Easy to add new trigger patterns and expertise areas
+4. **Testability**: Can use test configurations for unit tests
+
+**Configuration Structure:**
+- Core personas (always present): Alex Novak, Dr. Sarah Chen
+- Specialist personas (on-demand): 10 specialists with specific domains
+- Automatic invocation rules based on patterns
+- Crisis experience and decision frameworks per persona
+
+## Recent Decisions (Last 30 Days)
+
+### DEC-2025-011: MCP Integration Architecture 🔵
+**Date:** 2025-01-05  
+**Decision Makers:** Alex Novak, Dr. Sarah Chen  
+**Specialist Consultations:** Jordan Lee (Real-time Systems), Morgan Hayes (Security)  
+**Status:** Approved & Pending  
+
+**Decision:** Implement Model Context Protocol (MCP) server for proactive governance consultation, transforming from reactive validation to intelligent assistance
+
+**Context:** Current governance system only validates after actions are taken. Research shows MCP can enable Claude Code to consult governance during reasoning, dramatically improving developer experience and reducing errors.
+
+**Technical Architecture:**
+```python
+# Core MCP Server Structure
+class GovernanceMCPServer:
+    port = discover_backend_port("mcp-governance")  # Dynamic allocation
+    governance = RuntimeGovernanceSystem()          # Existing system
+    personas = PersonaManager()                     # Existing personas
+    database = DatabaseManager()                    # Existing DB
+    cache = IntelligentCache()                      # <100ms responses
+```
+
+**Alternatives Considered:**
+1. **Keep reactive validation only**
+   - Pros: Simpler, already working
+   - Cons: Poor developer experience, errors caught late
+2. **Build custom protocol**
+   - Pros: Tailored to our needs
+   - Cons: Reinventing wheel, no Claude Code support
+3. **MCP with phased implementation** (Selected)
+   - Pros: Industry standard, Claude Code native support, incremental risk
+   - Cons: 4-week implementation timeline
+
+**Implementation Approach:**
+- 20 phases over 4 weeks, each phase ≤1 day
+- Reuse existing infrastructure (port discovery, DB, cache)
+- Data-driven configuration via YAML
+- Full test coverage required per phase
+- No shortcuts in bug fixes
+
+**Success Criteria:**
+- <100ms response time for cached queries
+- >85% cache hit rate
+- 99.9% availability
+- Zero breaking changes to existing system
 
 ### DEC-2025-010: Emergency Dependency Recovery 🟢
 **Date:** 2025-09-03  

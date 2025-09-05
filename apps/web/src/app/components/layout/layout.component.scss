@@ -1,0 +1,194 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.layout-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: $terminal-background;
+}
+
+.layout-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.layout-left {
+  width: 240px;
+  background-color: darken($terminal-background, 3%);
+  border-right: 1px solid $color-dark-border;
+}
+
+.layout-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.layout-main {
+  flex: 1;
+  overflow: auto;
+  background-color: $terminal-background;
+  
+  &.with-bottom {
+    border-bottom: 1px solid $color-dark-border;
+  }
+}
+
+.layout-bottom {
+  background-color: $terminal-background;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  
+  .terminal-tabs {
+    height: 35px;
+    background-color: darken($terminal-background, 5%);
+    border-top: 1px solid $color-dark-border;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    
+    .tabs-list {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    
+    .tab-button {
+      background: transparent;
+      border: none;
+      color: $terminal-text;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      border-radius: 4px 4px 0 0;
+      
+      &:hover {
+        background-color: lighten($terminal-background, 10%);
+      }
+      
+      &.active {
+        background-color: $terminal-background;
+        border-top: 2px solid $color-primary;
+      }
+      
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+      
+      .tab-close {
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        margin-left: 4px;
+        
+        mat-icon {
+          font-size: 14px;
+          width: 14px;
+          height: 14px;
+        }
+      }
+    }
+    
+    .tab-add {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+  
+  .terminal-content {
+    flex: 1;
+    overflow: hidden;
+  }
+}
+
+.layout-right {
+  background-color: darken($terminal-background, 3%);
+  border-left: 1px solid $color-dark-border;
+  display: flex;
+  flex-direction: column;
+  
+  .panel-header {
+    height: 35px;
+    background-color: darken($terminal-background, 5%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    border-bottom: 1px solid $color-dark-border;
+    
+    h3 {
+      margin: 0;
+      font-size: 14px;
+      color: $terminal-text;
+    }
+  }
+  
+  .chat-container {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+  }
+  
+  .chat-placeholder {
+    color: $color-text-muted;
+    
+    p {
+      margin: 8px 0;
+    }
+  }
+}
+
+.resize-handle {
+  position: absolute;
+  background: transparent;
+  
+  &:hover {
+    background-color: $color-primary;
+  }
+  
+  &.horizontal {
+    left: 0;
+    right: 0;
+    height: 4px;
+    bottom: 30%; // Matches terminal size
+    cursor: ns-resize;
+    z-index: 10;
+  }
+  
+  &.vertical {
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    cursor: ew-resize;
+  }
+}
+
+.panel-container {
+  height: 100%;
+  display: none;
+  
+  &.active {
+    display: block;
+  }
+}
+
+.editor-placeholder {
+  padding: 20px;
+  color: #888;
+  text-align: center;
+}

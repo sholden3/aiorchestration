@@ -1,0 +1,39 @@
+<div class="terminal-wrapper">
+  <div class="terminal-header">
+    <div class="terminal-title">
+      <mat-icon>{{ getShellIcon() }}</mat-icon>
+      <span>{{ shell || 'Terminal' }}</span>
+      <span class="terminal-status" *ngIf="!isSessionActive">(Disconnected)</span>
+    </div>
+    <div class="terminal-actions">
+      <button mat-icon-button (click)="clear()" matTooltip="Clear terminal" [disabled]="!isSessionActive">
+        <mat-icon>clear_all</mat-icon>
+      </button>
+      <button mat-icon-button (click)="fit()" matTooltip="Fit to container" [disabled]="!isSessionActive">
+        <mat-icon>aspect_ratio</mat-icon>
+      </button>
+      <button mat-icon-button (click)="focus()" matTooltip="Focus terminal" [disabled]="!isSessionActive">
+        <mat-icon>keyboard</mat-icon>
+      </button>
+    </div>
+  </div>
+  <div #terminalContainer class="terminal-container">
+    <pre class="terminal-output">{{ terminalOutput }}</pre>
+    <div class="terminal-input-container" *ngIf="isSessionActive">
+      <span class="prompt">&gt; </span>
+      <input 
+        type="text" 
+        class="terminal-input"
+        [(ngModel)]="terminalInput"
+        (keydown)="onKeyPress($event)"
+        placeholder="Type command and press Enter"
+        [disabled]="!isSessionActive"
+        autocomplete="off"
+        spellcheck="false">
+    </div>
+    <div class="terminal-message" *ngIf="!isSessionActive">
+      <mat-icon>info</mat-icon>
+      <span>Terminal session not active. Please restart the application to reconnect.</span>
+    </div>
+  </div>
+</div>

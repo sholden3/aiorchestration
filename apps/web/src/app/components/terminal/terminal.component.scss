@@ -1,0 +1,210 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.terminal-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: $terminal-background;
+  color: $terminal-text;
+  font-family: $font-family-mono;
+}
+
+.terminal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-2 $space-4;
+  background: darken($terminal-background, 5%);
+  border-bottom: $border-width solid $color-dark-border;
+
+  .terminal-title {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+
+    mat-icon {
+      font-size: $icon-size-lg;
+      color: $terminal-prompt;
+    }
+
+    .terminal-status {
+      color: $color-warning;
+      font-size: $font-size-xs;
+      margin-left: $space-2;
+    }
+  }
+
+  .terminal-actions {
+    display: flex;
+    gap: $space-1;
+
+    button {
+      color: $terminal-text;
+
+      &:hover:not([disabled]) {
+        background: lighten($terminal-background, 10%);
+      }
+
+      &[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      mat-icon {
+        font-size: $icon-size-lg;
+      }
+    }
+  }
+}
+
+.terminal-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: $space-3;
+  position: relative;
+
+  // Custom scrollbar for terminal
+  &::-webkit-scrollbar {
+    width: 10px;
+    background: $terminal-background;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: lighten($terminal-background, 20%);
+    border-radius: $radius-sm;
+
+    &:hover {
+      background: lighten($terminal-background, 30%);
+    }
+  }
+
+  .terminal-output {
+    margin: 0;
+    font-family: $font-family-mono;
+    font-size: $font-size-sm;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: $terminal-text;
+  }
+
+  .terminal-input-container {
+    display: flex;
+    align-items: center;
+    margin-top: $space-1;
+
+    .prompt {
+      color: $terminal-prompt;
+      margin-right: $space-2;
+      font-weight: $font-weight-bold;
+    }
+
+    .terminal-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: $terminal-text;
+      font-family: $font-family-mono;
+      font-size: $font-size-sm;
+      padding: 0;
+      caret-color: $terminal-prompt;
+
+      &::placeholder {
+        color: lighten($terminal-background, 30%);
+        opacity: 0.5;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .terminal-message {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3;
+    margin-top: $space-3;
+    background: lighten($terminal-background, 5%);
+    border-radius: $radius-sm;
+    border: $border-width solid $color-warning;
+    color: $color-warning;
+
+    mat-icon {
+      font-size: $icon-size-lg;
+    }
+
+    span {
+      font-size: $font-size-sm;
+    }
+  }
+}
+
+// Terminal color theme enhancements
+.terminal-wrapper {
+  // Success output
+  .success {
+    color: $color-success;
+  }
+
+  // Error output
+  .error {
+    color: $color-error;
+  }
+
+  // Warning output
+  .warning {
+    color: $color-warning;
+  }
+
+  // Info output
+  .info {
+    color: $color-info;
+  }
+
+  // Command echo
+  .command-echo {
+    color: lighten($terminal-text, 20%);
+  }
+}
+
+// Animation for cursor blink
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+.terminal-input-container {
+  position: relative;
+
+  &::after {
+    content: '█';
+    position: absolute;
+    right: 0;
+    color: $terminal-prompt;
+    animation: blink 1s infinite;
+    pointer-events: none;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: #{$breakpoint-md}) {
+  .terminal-container {
+    padding: $space-2;
+
+    .terminal-output,
+    .terminal-input {
+      font-size: $font-size-xs;
+    }
+  }
+}

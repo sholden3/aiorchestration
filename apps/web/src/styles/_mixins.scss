@@ -1,0 +1,179 @@
+// ============================================
+// MIXINS - Reusable Style Patterns
+// ============================================
+
+@import 'variables';
+
+// Ensure readable text contrast
+@mixin ensure-contrast($background, $text: null) {
+  background: $background;
+  
+  @if $text {
+    color: $text;
+  } @else {
+    // Automatically choose text color based on background
+    @if lightness($background) > 50% {
+      color: $color-text-primary; // Dark text on light background
+    } @else {
+      color: $color-dark-text-primary; // Light text on dark background
+    }
+  }
+}
+
+// Focus ring for accessibility
+@mixin focus-ring($color: $color-primary) {
+  &:focus {
+    outline: 2px solid $color;
+    outline-offset: 2px;
+  }
+  
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
+  
+  &:focus-visible {
+    outline: 2px solid $color;
+    outline-offset: 2px;
+  }
+}
+
+// Interactive element states
+@mixin interactive-states($hover-bg: $color-hover, $active-bg: $color-active) {
+  transition: all $transition-base;
+  cursor: pointer;
+  
+  &:hover:not(:disabled) {
+    background: $hover-bg;
+  }
+  
+  &:active:not(:disabled) {
+    background: $active-bg;
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Navigation item styling
+@mixin nav-item {
+  @include ensure-contrast($nav-background, $nav-text);
+  @include interactive-states($nav-hover-background, $nav-active-background);
+  
+  display: flex;
+  align-items: center;
+  padding: $space-3 $space-4;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  
+  &:hover {
+    color: $nav-hover-text;
+  }
+  
+  &.active {
+    background: $nav-active-background;
+    color: $nav-active-text;
+    border-left-color: $nav-active-border;
+  }
+}
+
+// Card styling
+@mixin card {
+  @include ensure-contrast($color-surface);
+  border-radius: $radius-md;
+  box-shadow: $shadow-md;
+  padding: $space-4;
+  
+  &:hover {
+    box-shadow: $shadow-lg;
+  }
+}
+
+// Button base
+@mixin button-base {
+  @include focus-ring;
+  
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-3 $space-6;
+  border: none;
+  border-radius: $radius-md;
+  font-family: $font-family-sans;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  text-decoration: none;
+  transition: all $transition-base;
+  cursor: pointer;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Gradient backgrounds
+@mixin gradient-primary {
+  background: $toolbar-gradient;
+  color: $toolbar-text;
+}
+
+// Terminal/dark theme styling
+@mixin dark-theme {
+  @include ensure-contrast($color-dark-background, $color-dark-text-primary);
+  
+  * {
+    color: inherit;
+  }
+  
+  .prompt {
+    color: $terminal-prompt;
+  }
+}
+
+// Responsive breakpoint
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == sm {
+    @media (min-width: $breakpoint-sm) { @content; }
+  } @else if $breakpoint == md {
+    @media (min-width: $breakpoint-md) { @content; }
+  } @else if $breakpoint == lg {
+    @media (min-width: $breakpoint-lg) { @content; }
+  } @else if $breakpoint == xl {
+    @media (min-width: $breakpoint-xl) { @content; }
+  }
+}
+
+// Flexbox utilities
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// Text truncation
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Screen reader only
+@mixin sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -12,7 +12,7 @@ Unit tests for Code Documentation Validator
 import pytest
 from pathlib import Path
 from unittest.mock import Mock, patch, mock_open
-from governance.validators.code_doc_validator import CodeDocumentationValidator, CodeValidationResult
+from libs.governance.validators.code_doc_validator import CodeDocumentationValidator, CodeValidationResult
 import ast
 
 

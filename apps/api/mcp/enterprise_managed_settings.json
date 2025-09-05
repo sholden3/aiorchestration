@@ -1,0 +1,128 @@
+{
+  "version": "1.0.0",
+  "description": "Enterprise managed Claude Code settings for MCP governance integration",
+  "author": "Alex Novak",
+  "phase": "MCP-002 NEURAL_LINK_BRIDGE",
+  
+  "hooks": {
+    "PreToolUse": {
+      "enabled": true,
+      "command": "python",
+      "args": [
+        "-m", 
+        "apps.api.mcp.hook_handlers",
+        "PreToolUse"
+      ],
+      "timeout": 5000,
+      "blockOnFailure": false,
+      "description": "Primary governance gatekeeper - validates before tool execution"
+    },
+    
+    "UserPromptSubmit": {
+      "enabled": true,
+      "command": "python",
+      "args": [
+        "-m",
+        "apps.api.mcp.hook_handlers",
+        "UserPromptSubmit"
+      ],
+      "timeout": 2000,
+      "blockOnFailure": false,
+      "description": "Context injection for governance-aware reasoning"
+    },
+    
+    "PostToolUse": {
+      "enabled": true,
+      "command": "python",
+      "args": [
+        "-m",
+        "apps.api.mcp.hook_handlers",
+        "PostToolUse"
+      ],
+      "timeout": 3000,
+      "blockOnFailure": false,
+      "description": "Audit trail and learning feedback"
+    }
+  },
+  
+  "mcp": {
+    "servers": {
+      "governance-intelligence": {
+        "command": "python",
+        "args": [
+          "-m",
+          "apps.api.mcp.governance_server"
+        ],
+        "env": {
+          "MCP_ENV": "production",
+          "MCP_LOG_LEVEL": "INFO",
+          "MCP_DATABASE_TYPE": "sqlite",
+          "MCP_CACHE_TYPE": "memory"
+        },
+        "autoStart": true,
+        "restartOnFailure": true,
+        "maxRestarts": 3,
+        "description": "MCP governance server for proactive consultation"
+      }
+    }
+  },
+  
+  "governance": {
+    "mode": "enforcing",
+    "complianceLevel": 0.95,
+    "blockOnViolation": true,
+    "auditAll": true,
+    
+    "policies": {
+      "fileOperations": {
+        "requireApproval": ["delete", "move", "chmod"],
+        "blockedPaths": ["/etc", "/sys", "/proc", "~/.ssh"],
+        "sensitiveFileWarning": true
+      },
+      
+      "commandExecution": {
+        "requireApproval": ["sudo", "rm -rf", "format"],
+        "blockedCommands": [":(){ :|:& };:", "fork bomb"],
+        "maxExecutionTime": 30000
+      },
+      
+      "networkOperations": {
+        "requireApproval": ["production endpoints"],
+        "blockedHosts": ["malware.com"],
+        "requireHTTPS": true
+      }
+    },
+    
+    "personas": {
+      "autoConsult": true,
+      "corePersonas": ["Alex Novak", "Dr. Sarah Chen"],
+      "specialistTriggers": {
+        "security": ["auth", "crypto", "password", "secret"],
+        "performance": ["optimize", "slow", "benchmark"],
+        "architecture": ["design", "pattern", "structure"]
+      }
+    }
+  },
+  
+  "metrics": {
+    "collection": true,
+    "reportingInterval": 3600,
+    "metricsEndpoint": "http://localhost:8001/metrics",
+    
+    "track": [
+      "validations",
+      "blocks",
+      "allows",
+      "errors",
+      "responseTime",
+      "personaConsultations"
+    ]
+  },
+  
+  "deployment": {
+    "configLocation": "/etc/claude-code/managed-settings.json",
+    "updatePolicy": "automatic",
+    "updateCheckInterval": 86400,
+    "rollbackOnError": true
+  }
+}

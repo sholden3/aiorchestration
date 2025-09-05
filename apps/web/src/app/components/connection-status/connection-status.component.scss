@@ -1,0 +1,219 @@
+/**
+ * Connection Status Component Styles
+ * @author Alex Novak v2.0
+ * Using shared design system for consistency
+ */
+
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.connection-status-container {
+  position: fixed;
+  bottom: $space-6;
+  right: $space-6;
+  z-index: $z-sticky;
+  background: $color-surface;
+  border-radius: $radius-full;
+  box-shadow: $shadow-lg;
+  padding: $space-2 $space-4;
+  min-width: 140px;
+  transition: all $transition-base;
+  
+  @include respond-to(sm) {
+    bottom: $space-4;
+    right: $space-4;
+  }
+  
+  &.status-connected {
+    border: $border-width-thick solid $color-success;
+    background: linear-gradient(135deg, 
+      rgba($color-success, 0.05) 0%, 
+      $color-surface 100%);
+    
+    .status-icon {
+      color: $color-success;
+    }
+  }
+  
+  &.status-connecting,
+  &.status-reconnecting {
+    border: $border-width-thick solid $color-info;
+    background: linear-gradient(135deg, 
+      rgba($color-info, 0.05) 0%, 
+      $color-surface 100%);
+    
+    .status-icon {
+      color: $color-info;
+    }
+  }
+  
+  &.status-disconnected {
+    border: $border-width-thick solid $color-warning;
+    background: linear-gradient(135deg, 
+      rgba($color-warning, 0.05) 0%, 
+      $color-surface 100%);
+    
+    .status-icon {
+      color: $color-warning;
+    }
+  }
+  
+  &.status-error {
+    border: $border-width-thick solid $color-error;
+    background: linear-gradient(135deg, 
+      rgba($color-error, 0.05) 0%, 
+      $color-surface 100%);
+    
+    .status-icon {
+      color: $color-error;
+    }
+  }
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  
+  .status-icon {
+    font-size: $icon-size-lg;
+    width: $icon-size-lg;
+    height: $icon-size-lg;
+    
+    &.rotating {
+      animation: rotate 2s linear infinite;
+    }
+  }
+  
+  .status-text {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-text-primary;
+    @include truncate;
+  }
+  
+  .retry-button {
+    @include interactive-states;
+    @include focus-ring;
+    margin-left: auto;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    
+    .mat-icon {
+      font-size: $icon-size-md;
+      width: $icon-size-md;
+      height: $icon-size-md;
+    }
+  }
+}
+
+.connection-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 0 0 $radius-full $radius-full;
+  overflow: hidden;
+}
+
+// Minimized dot indicator
+.connection-dot {
+  position: fixed;
+  bottom: $space-6;
+  right: $space-6;
+  width: 12px;
+  height: 12px;
+  border-radius: $radius-full;
+  cursor: pointer;
+  transition: all $transition-base;
+  box-shadow: $shadow-md;
+  
+  @include respond-to(sm) {
+    bottom: $space-4;
+    right: $space-4;
+  }
+  
+  &:hover {
+    transform: scale(1.2);
+    box-shadow: $shadow-lg;
+  }
+  
+  &.dot-disconnected {
+    background: $color-warning;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  
+  &.dot-error {
+    background: $color-error;
+    animation: pulse 1s ease-in-out infinite;
+  }
+  
+  &.dot-connecting {
+    background: $color-info;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+}
+
+// Animations
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.9);
+  }
+}
+
+// Dark theme support
+@media (prefers-color-scheme: dark) {
+  .connection-status-container {
+    background: $color-dark-surface;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    
+    &.status-connected {
+      background: linear-gradient(135deg, 
+        rgba($color-success, 0.1) 0%, 
+        $color-dark-surface 100%);
+    }
+    
+    &.status-connecting,
+    &.status-reconnecting {
+      background: linear-gradient(135deg, 
+        rgba($color-info, 0.1) 0%, 
+        $color-dark-surface 100%);
+    }
+    
+    &.status-disconnected {
+      background: linear-gradient(135deg, 
+        rgba($color-warning, 0.1) 0%, 
+        $color-dark-surface 100%);
+    }
+    
+    &.status-error {
+      background: linear-gradient(135deg, 
+        rgba($color-error, 0.1) 0%, 
+        $color-dark-surface 100%);
+    }
+    
+    .status-text {
+      color: $color-dark-text-primary;
+    }
+  }
+  
+  .connection-dot {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  }
+}

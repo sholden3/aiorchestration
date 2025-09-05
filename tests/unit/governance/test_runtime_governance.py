@@ -37,13 +37,13 @@ import json
 # Add governance to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from governance.core.runtime_governance import (
+from libs.governance.core.runtime_governance import (
     RuntimeGovernanceSystem,
     HookType,
     GovernanceLevel,
     AgentContext
 )
-from governance.middleware.ai_decision_injector import (
+from libs.governance.middleware.ai_decision_injector import (
     AIDecisionInjector,
     DecisionType
 )

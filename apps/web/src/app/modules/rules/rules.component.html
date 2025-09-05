@@ -1,0 +1,162 @@
+<div class="rules-container">
+  <!-- Header -->
+  <div class="rules-header">
+    <div class="header-left">
+      <h2>Rules Engine</h2>
+      <p class="subtitle">Define and manage orchestration rules with evidence-based validation</p>
+    </div>
+    <div class="header-right">
+      <button mat-raised-button color="primary" (click)="addNewRule()">
+        <mat-icon>add</mat-icon>
+        New Rule
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <mat-card class="filters-card">
+    <div class="filters">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search rules</mat-label>
+        <input matInput [(ngModel)]="searchQuery" placeholder="Search by name or description">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="category-field">
+        <mat-label>Category</mat-label>
+        <mat-select [(ngModel)]="selectedCategory">
+          <mat-option value="">All Categories</mat-option>
+          <mat-option *ngFor="let cat of categories" [value]="cat">{{ cat }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </mat-card>
+
+  <!-- Rules List -->
+  <mat-card class="rules-list-card">
+    <mat-expansion-panel *ngFor="let rule of filteredRules" class="rule-panel">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="rule-header">
+            <mat-slide-toggle 
+              [checked]="isRuleActive(rule)" 
+              (click)="$event.stopPropagation()"
+              (change)="toggleRule(rule)">
+            </mat-slide-toggle>
+            <span class="rule-name">{{ rule.name }}</span>
+            <div class="rule-tags">
+              <mat-chip [color]="getSeverityColor(rule.severity)" selected>
+                {{ rule.severity }}
+              </mat-chip>
+              <mat-chip>{{ rule.category }}</mat-chip>
+            </div>
+          </div>
+        </mat-panel-title>
+        <mat-panel-description>
+          <div class="rule-stats">
+            <span class="stat">
+              <mat-icon>check_circle</mat-icon>
+              {{ rule.enforcement_count || 0 }} enforcements
+            </span>
+            <span class="stat">
+              <mat-icon>warning</mat-icon>
+              {{ rule.violation_count || 0 }} violations
+            </span>
+            <span class="stat">
+              <mat-icon>update</mat-icon>
+              {{ rule.updated_at | date:'short' }}
+            </span>
+          </div>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <div class="rule-content">
+        <p class="rule-description">{{ rule.description }}</p>
+        
+        <div class="rule-logic">
+          <div class="logic-section">
+            <h4>Condition</h4>
+            <code>{{ rule.condition }}</code>
+          </div>
+          <div class="logic-section">
+            <h4>Action</h4>
+            <code>{{ rule.action }}</code>
+          </div>
+        </div>
+
+        <div class="rule-tags-section" *ngIf="rule.tags.length > 0">
+          <div class="tags-container">
+            <mat-chip *ngFor="let tag of rule.tags" class="tag-chip">
+              {{ tag }}
+            </mat-chip>
+          </div>
+        </div>
+
+        <div class="rule-actions">
+          <button mat-button (click)="testRule(rule)">
+            <mat-icon>play_arrow</mat-icon>
+            Test Rule
+          </button>
+          <button mat-button (click)="editRule(rule)">
+            <mat-icon>edit</mat-icon>
+            Edit
+          </button>
+          <button mat-button color="warn" (click)="deleteRule(rule)">
+            <mat-icon>delete</mat-icon>
+            Delete
+          </button>
+        </div>
+      </div>
+    </mat-expansion-panel>
+  </mat-card>
+
+  <!-- Edit Dialog -->
+  <mat-card *ngIf="selectedRule" class="edit-card">
+    <mat-card-header>
+      <mat-card-title>Edit Rule</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="edit-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Rule Name</mat-label>
+          <input matInput [(ngModel)]="selectedRule.name">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Description</mat-label>
+          <textarea matInput [(ngModel)]="selectedRule.description" rows="3"></textarea>
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Category</mat-label>
+            <mat-select [(ngModel)]="selectedRule.category">
+              <mat-option *ngFor="let cat of categories" [value]="cat">{{ cat }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Severity</mat-label>
+            <mat-select [(ngModel)]="selectedRule.severity">
+              <mat-option *ngFor="let sev of severities" [value]="sev">{{ sev }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Condition</mat-label>
+          <textarea matInput [(ngModel)]="selectedRule.condition" rows="3"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Action</mat-label>
+          <textarea matInput [(ngModel)]="selectedRule.action" rows="3"></textarea>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-button (click)="cancelEdit()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="saveRule()">Save</button>
+    </mat-card-actions>
+  </mat-card>
+</div>

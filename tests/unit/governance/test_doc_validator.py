@@ -6,7 +6,7 @@ Created: 2025-09-03
 import pytest
 from pathlib import Path
 from unittest.mock import Mock, patch, mock_open
-from governance.validators.doc_validator import DocumentationValidator, ValidationResult
+from libs.governance.validators.doc_validator import DocumentationValidator, ValidationResult
 
 
 class TestDocumentationValidator:

@@ -1,0 +1,28 @@
+{
+  "name": "@aiorchestration/shared-utils",
+  "version": "1.0.0",
+  "description": "Shared utilities for AI Orchestration Platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "utils",
+    "utilities",
+    "shared",
+    "monorepo",
+    "logger",
+    "retry"
+  ],
+  "author": "Alex Novak & Dr. Sarah Chen",
+  "license": "MIT",
+  "dependencies": {
+    "@aiorchestration/shared-types": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

@@ -34,7 +34,7 @@ from unittest.mock import Mock, patch, MagicMock
 # Add governance module to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from governance.scripts.integrated_pre_commit_hook import (
+from libs.governance.scripts.integrated_pre_commit_hook import (
     ConfigLoader,
     PersonaInvoker,
     ConsensusAchiever,
@@ -507,7 +507,7 @@ class TestIntegratedGovernanceHook(unittest.TestCase):
         mock_loop.return_value.run_until_complete.return_value = 0
         
         # Should return 0 (success)
-        from governance.scripts.integrated_pre_commit_hook import main
+        from libs.governance.scripts.integrated_pre_commit_hook import main
         result = main()
         self.assertEqual(result, 0)
 
@@ -523,7 +523,7 @@ class TestGovernanceBypass(unittest.TestCase):
     @patch.dict('os.environ', {'GOVERNANCE_BYPASS': 'true'})
     def test_bypass_mode(self):
         """Test governance bypass mode"""
-        from governance.scripts.integrated_pre_commit_hook import main
+        from libs.governance.scripts.integrated_pre_commit_hook import main
         
         # Should return 0 immediately
         result = main()

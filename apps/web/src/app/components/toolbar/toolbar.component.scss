@@ -1,0 +1,19 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: $z-sticky;
+  @include gradient-primary;
+}
+
+.title {
+  margin-left: $space-2;
+  font-weight: $font-weight-medium;
+  color: $toolbar-text;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}

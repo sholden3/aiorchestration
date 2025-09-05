@@ -34,7 +34,7 @@ import shutil
 # Add governance module to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from governance.core.correlation_tracker import (
+from libs.governance.core.correlation_tracker import (
     CorrelationTracker, 
     CorrelationContext, 
     OperationStatus,

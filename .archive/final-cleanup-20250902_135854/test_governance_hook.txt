@@ -1,2 +1,0 @@
-This is a test file to trigger governance hooks.
-If hooks are working, you should see governance messages when this file is created.

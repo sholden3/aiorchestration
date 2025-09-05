@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "governance": {
+      "command": "python",
+      "args": [
+        "-m",
+        "apps.api.mcp.governance_server"
+      ],
+      "env": {
+        "GOVERNANCE_PORT": "8001",
+        "DATABASE_URL": "sqlite:///governance.db",
+        "REDIS_URL": "redis://localhost:6379",
+        "LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}

@@ -1,0 +1,137 @@
+<div class="templates-container">
+  <mat-card class="header-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>library_books</mat-icon>
+        {{ title }}
+      </mat-card-title>
+      <mat-card-subtitle>
+        Reusable code templates and patterns for AI orchestration
+      </mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+
+  <!-- Filters and Search -->
+  <div class="filters-section">
+    <mat-form-field appearance="outline" class="category-select">
+      <mat-label>Category</mat-label>
+      <mat-select [(ngModel)]="selectedCategory" (selectionChange)="onCategoryChange()">
+        <mat-option *ngFor="let category of categories" [value]="category">
+          {{ category | titlecase }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search templates</mat-label>
+      <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()" 
+             placeholder="Search by name, description, or tags">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading templates...</p>
+  </div>
+
+  <!-- Templates Grid -->
+  <div class="templates-grid" *ngIf="!isLoading">
+    <mat-card *ngFor="let template of filteredTemplates" class="template-card" 
+              (click)="selectTemplate(template)"
+              [class.selected]="selectedTemplate?.id === template.id">
+      <mat-card-header>
+        <mat-card-title>{{ template.name }}</mat-card-title>
+        <mat-card-subtitle>
+          <span class="category-badge">{{ template.category }}</span>
+          <span class="usage-count" *ngIf="template.usage_count">
+            <mat-icon inline>trending_up</mat-icon>
+            Used {{ template.usage_count }} times
+          </span>
+        </mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <p class="description">{{ template.description }}</p>
+        
+        <div class="tags">
+          <span class="tag" *ngFor="let tag of template.tags">
+            {{ tag }}
+          </span>
+        </div>
+
+        <div class="variables" *ngIf="template.variables && getVariableKeys(template.variables).length > 0">
+          <strong>Variables:</strong>
+          <span class="variable" *ngFor="let variable of getVariableKeys(template.variables)">
+            {{ variable }}
+          </span>
+        </div>
+      </mat-card-content>
+      
+      <mat-card-actions>
+        <button mat-button color="primary" (click)="useTemplate(template); $event.stopPropagation()">
+          <mat-icon>content_copy</mat-icon>
+          Use Template
+        </button>
+        <button mat-button (click)="selectTemplate(template); $event.stopPropagation()">
+          <mat-icon>visibility</mat-icon>
+          Preview
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- No Templates Message -->
+  <mat-card *ngIf="!isLoading && filteredTemplates.length === 0" class="no-results-card">
+    <mat-card-content>
+      <mat-icon>search_off</mat-icon>
+      <h3>No templates found</h3>
+      <p>Try adjusting your filters or search terms</p>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Template Preview -->
+  <mat-card *ngIf="selectedTemplate" class="preview-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>code</mat-icon>
+        {{ selectedTemplate.name }}
+      </mat-card-title>
+      <button mat-icon-button (click)="selectedTemplate = null">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <p class="template-description">{{ selectedTemplate.description }}</p>
+      
+      <div class="code-preview">
+        <pre><code>{{ selectedTemplate.template_content }}</code></pre>
+      </div>
+      
+      <div class="template-metadata">
+        <div class="metadata-item">
+          <strong>Category:</strong> {{ selectedTemplate.category }}
+        </div>
+        <div class="metadata-item">
+          <strong>Author:</strong> {{ selectedTemplate.author || 'Unknown' }}
+        </div>
+        <div class="metadata-item" *ngIf="selectedTemplate.variables && getVariableKeys(selectedTemplate.variables).length > 0">
+          <strong>Variables:</strong>
+          <span class="variable" *ngFor="let variable of getVariableKeys(selectedTemplate.variables)">
+            {{ '{' + '{' + variable + '}' + '}' }}
+          </span>
+        </div>
+      </div>
+    </mat-card-content>
+    
+    <mat-card-actions>
+      <button mat-raised-button color="primary" (click)="useTemplate(selectedTemplate)">
+        <mat-icon>content_copy</mat-icon>
+        Copy to Clipboard
+      </button>
+      <button mat-button (click)="selectedTemplate = null">Close</button>
+    </mat-card-actions>
+  </mat-card>
+</div>

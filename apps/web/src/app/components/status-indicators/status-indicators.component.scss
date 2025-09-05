@@ -1,0 +1,49 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.status-indicators {
+  display: flex;
+  gap: $space-3;
+  align-items: center;
+}
+
+mat-chip {
+  background-color: rgba($toolbar-text, 0.1) !important;
+  color: $toolbar-text !important;
+  border: 1px solid rgba($toolbar-text, 0.2);
+  transition: all $transition-base;
+
+  &.active {
+    background-color: rgba($color-success, 0.3) !important;
+    border-color: rgba($color-success, 0.5);
+
+    .status-icon {
+      color: $color-success;
+      animation: pulse 2s infinite;
+    }
+  }
+
+  &:hover {
+    background-color: rgba($toolbar-text, 0.2) !important;
+  }
+}
+
+.status-icon {
+  font-size: 12px;
+  width: 12px;
+  height: 12px;
+  margin-right: $space-1;
+  color: rgba($toolbar-text, 0.7);
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}

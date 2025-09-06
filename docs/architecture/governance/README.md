@@ -29,7 +29,17 @@ libs/governance/
 │   ├── doc_validator.py           # Markdown validation
 │   └── __init__.py
 ├── hooks/                         # Git integration
-│   ├── pre-commit.py             # Main pre-commit hook
+│   ├── pre-commit.py             # Main pre-commit hook (modular)
+│   ├── pre-commit-original.py    # Original monolithic backup
+│   ├── validators/               # Modular validator system
+│   │   ├── base.py              # Abstract interfaces
+│   │   ├── orchestrator.py      # Coordination layer
+│   │   ├── readme_validator.py  # README validation
+│   │   ├── code_doc_validator.py # Code documentation
+│   │   ├── naming_validator.py  # Naming standards
+│   │   ├── file_creation_validator.py # File creation rules
+│   │   ├── test_coverage_validator.py # Test coverage
+│   │   └── code_quality_validator.py # Code quality
 │   └── claude_code_hook.py       # Claude Code native hooks
 ├── config.yaml                   # Governance rules configuration
 ├── personas.yaml                  # Data-driven persona definitions
@@ -151,6 +161,54 @@ class PersonaManager:
 | Michael Foster | Data Architect | Database, Caching, Performance |
 | Lisa Wang | API Designer | Contracts, Standards, Integration |
 | James Mitchell | Cloud Architect | Scalability, Cloud Services |
+
+## Modular Validator System (v2.0)
+
+### Architecture Overview
+The pre-commit hook has been refactored from a monolithic 1,038-line file into a clean modular system with 100% backward compatibility.
+
+### Validator Components
+
+| Validator | Purpose | Lines | Complexity |
+|-----------|---------|-------|------------|
+| `base.py` | Abstract interfaces and base classes | 142 | Low |
+| `orchestrator.py` | Coordinates all validators | 350 | Medium |
+| `readme_validator.py` | Validates README presence and quality | 165 | Low |
+| `code_doc_validator.py` | Checks code documentation | 142 | Low |
+| `naming_validator.py` | Enforces naming conventions | 120 | Low |
+| `file_creation_validator.py` | Controls file creation | 180 | Medium |
+| `test_coverage_validator.py` | Ensures test coverage | 185 | Medium |
+| `code_quality_validator.py` | Checks code quality issues | 250 | Medium |
+
+### Modular Benefits
+- **Testability**: Each validator can be tested independently
+- **Maintainability**: Single responsibility per validator
+- **Extensibility**: Easy to add new validators
+- **Performance**: Can run validators in parallel (future)
+- **Debugging**: Issues traced to specific validators
+
+### Usage Examples
+
+#### Standard Pre-commit (Unchanged)
+```python
+# Works exactly as before - no changes needed
+from libs.governance.hooks.pre_commit import ExtremeGovernance
+governance = ExtremeGovernance()
+governance.enforce()
+```
+
+#### Advanced Modular Usage
+```python
+# Use individual validators
+from libs.governance.hooks.validators.readme_validator import ReadmeValidator
+validator = ReadmeValidator(repo_root, config, files)
+result = validator.validate()
+
+# Use orchestrator with options
+from libs.governance.hooks.validators.orchestrator import ValidatorOrchestrator
+orchestrator = ValidatorOrchestrator()
+results = orchestrator.run_all_validators(fail_fast=True)
+```
 
 ## Hook Integration
 
@@ -391,6 +449,7 @@ python -m cProfile -s time libs.governance.validators.documentation_validator
 
 | Date | Change | Author | Impact |
 |------|--------|--------|--------|
+| 2025-01-10 | Refactored to modular validator system | Governance Team | Major |
 | 2025-01-06 | Emergency documentation remediation | Alexandra Voss | Critical |
 | 2025-01-06 | Added documentation validator | Emergency Team | Major |
 | 2025-01-06 | Fixed path references globally | Emergency Team | Critical |

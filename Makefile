@@ -2,7 +2,7 @@
 # Authors: Dr. Sarah Chen & Alex Novak
 # Description: Common development operations for the monorepo
 
-.PHONY: help setup install test clean run-backend run-frontend run-all lint format
+.PHONY: help setup install install-hooks test clean run-backend run-frontend run-all lint format
 
 # Default target
 help:
@@ -12,6 +12,7 @@ help:
 	@echo "Setup & Installation:"
 	@echo "  make setup       - Complete development environment setup"
 	@echo "  make install     - Install all dependencies"
+	@echo "  make install-hooks - Install git pre-commit hooks"
 	@echo ""
 	@echo "Development:"
 	@echo "  make run-backend - Start FastAPI backend (port 8000)"
@@ -34,7 +35,14 @@ setup:
 	@.venv/Scripts/activate || source .venv/bin/activate
 	@pip install -e . -q
 	@cd apps/web && npm install
+	@python tools/scripts/install_git_hooks.py --force
 	@echo "✅ Setup complete!"
+
+# Install git hooks
+install-hooks:
+	@echo "🛡️ Installing git pre-commit hooks..."
+	@python tools/scripts/install_git_hooks.py
+	@echo "✅ Git hooks installed!"
 
 # Install dependencies
 install:

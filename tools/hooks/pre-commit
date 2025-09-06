@@ -1,0 +1,87 @@
+#!/usr/bin/env python
+"""
+Git Pre-commit Hook - Clean Delegation to Governance System
+Version: 2.0.0
+Updated: 2025-01-10
+
+This is the actual git hook that gets installed to .git/hooks/pre-commit.
+It provides clean separation between git integration and governance logic.
+
+Features:
+- Simple delegation to main governance system
+- Process isolation for stability
+- Path resolution for flexibility
+- Robust error handling
+- No bypass policy enforcement
+- Timeout protection
+- Clear user messaging
+"""
+
+import os
+import sys
+import subprocess
+from pathlib import Path
+
+def main():
+    """Main entry point for git pre-commit hook."""
+    
+    # Check for bypass attempts immediately
+    if os.environ.get('GOVERNANCE_BYPASS'):
+        print("\n" + "="*70)
+        print("[BLOCKED] BYPASS DETECTED AND BLOCKED")
+        print("EXTREME GOVERNANCE DOES NOT ALLOW BYPASS")
+        print("="*70)
+        return 1
+    
+    # Find repository root
+    try:
+        repo_root = subprocess.check_output(
+            ['git', 'rev-parse', '--show-toplevel'],
+            stderr=subprocess.DEVNULL,
+            text=True
+        ).strip()
+    except subprocess.CalledProcessError:
+        print("[ERROR] Not in a git repository")
+        return 1
+    
+    # Locate the governance hook
+    governance_hook = Path(repo_root) / 'libs' / 'governance' / 'hooks' / 'pre-commit.py'
+    
+    if not governance_hook.exists():
+        print(f"[ERROR] Governance hook not found at {governance_hook}")
+        print("Please ensure the governance system is properly installed.")
+        return 1
+    
+    # Print header
+    print("\n" + "="*70)
+    print("EXTREME GOVERNANCE PRE-COMMIT VALIDATION")
+    print("="*70)
+    
+    # Execute the governance hook as a subprocess
+    try:
+        # Run with timeout of 5 minutes
+        result = subprocess.run(
+            [sys.executable, str(governance_hook)],
+            capture_output=False,  # Allow real-time output
+            text=True,
+            timeout=300  # 5 minute timeout
+        )
+        return result.returncode
+        
+    except subprocess.TimeoutExpired:
+        print("\n[ERROR] Governance validation timed out after 5 minutes")
+        print("This may indicate an issue with the validation system.")
+        return 1
+        
+    except KeyboardInterrupt:
+        print("\n[WARNING] Validation interrupted by user")
+        print("Commit has been cancelled.")
+        return 1
+        
+    except Exception as e:
+        print(f"\n[ERROR] Unexpected error running governance validation: {e}")
+        print("Please check the governance system installation.")
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main())

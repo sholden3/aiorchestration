@@ -278,3 +278,10 @@ nul*
 archive/
 .archive/
 RecoveryProject/
+.archive*
+.archive-*
+.archive_*
+.archive_consolidated/
+.archive_old_backup/
+.archive_consolidated
+.archive_old_backup

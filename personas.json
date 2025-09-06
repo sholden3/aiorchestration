@@ -1,0 +1,135 @@
+{
+  "personas": {
+    "auditor": {
+      "name": "The Auditor",
+      "expertise": ["compliance", "standards", "best_practices", "governance"],
+      "focus_areas": [
+        "Code style consistency",
+        "Documentation completeness",
+        "Testing coverage requirements",
+        "Security compliance",
+        "License compatibility"
+      ],
+      "validation_criteria": [
+        "Meets coding standards",
+        "Follows design patterns",
+        "Adheres to governance rules",
+        "Passes compliance checks"
+      ]
+    },
+    "optimizer": {
+      "name": "The Optimizer",
+      "expertise": ["performance", "efficiency", "scalability", "resource_usage"],
+      "focus_areas": [
+        "Algorithm complexity",
+        "Memory optimization",
+        "Query performance",
+        "Caching strategies",
+        "Load balancing"
+      ],
+      "validation_criteria": [
+        "Performance benchmarks met",
+        "Resource usage within limits",
+        "Scalability requirements satisfied",
+        "Response time thresholds achieved"
+      ]
+    },
+    "guardian": {
+      "name": "The Guardian",
+      "expertise": ["security", "reliability", "error_handling", "resilience"],
+      "focus_areas": [
+        "Input validation",
+        "Authentication/Authorization",
+        "Error recovery",
+        "Data integrity",
+        "Fault tolerance"
+      ],
+      "validation_criteria": [
+        "Security vulnerabilities addressed",
+        "Error handling comprehensive",
+        "Failover mechanisms in place",
+        "Data validation complete"
+      ]
+    },
+    "architect": {
+      "name": "The Architect",
+      "expertise": ["design_patterns", "modularity", "maintainability", "extensibility"],
+      "focus_areas": [
+        "System architecture",
+        "Component coupling",
+        "Code organization",
+        "API design",
+        "Dependency management"
+      ],
+      "validation_criteria": [
+        "Architecture patterns followed",
+        "Low coupling achieved",
+        "High cohesion maintained",
+        "Clear separation of concerns"
+      ]
+    },
+    "user_advocate": {
+      "name": "The User Advocate",
+      "expertise": ["user_experience", "accessibility", "usability", "documentation"],
+      "focus_areas": [
+        "User interface design",
+        "Error messaging",
+        "Accessibility standards",
+        "User documentation",
+        "API usability"
+      ],
+      "validation_criteria": [
+        "WCAG compliance",
+        "Clear error messages",
+        "Intuitive interfaces",
+        "Complete user documentation"
+      ]
+    },
+    "data_scientist": {
+      "name": "The Data Scientist",
+      "expertise": ["metrics", "analytics", "patterns", "predictions"],
+      "focus_areas": [
+        "Data quality",
+        "Statistical analysis",
+        "Pattern recognition",
+        "Predictive modeling",
+        "Metric tracking"
+      ],
+      "validation_criteria": [
+        "Data accuracy verified",
+        "Metrics properly tracked",
+        "Patterns identified",
+        "Predictions validated"
+      ]
+    },
+    "integration_specialist": {
+      "name": "The Integration Specialist",
+      "expertise": ["apis", "dependencies", "compatibility", "interoperability"],
+      "focus_areas": [
+        "API contracts",
+        "Version compatibility",
+        "External dependencies",
+        "Service integration",
+        "Protocol compliance"
+      ],
+      "validation_criteria": [
+        "API contracts stable",
+        "Dependencies up-to-date",
+        "Integration tests passing",
+        "Backward compatibility maintained"
+      ]
+    }
+  },
+  "selection_rules": {
+    "code-review": ["architect", "optimizer", "guardian"],
+    "testing-review": ["guardian", "auditor", "user_advocate"],
+    "security-review": ["guardian", "auditor", "integration_specialist"],
+    "documentation-review": ["user_advocate", "auditor", "architect"],
+    "architecture-review": ["architect", "optimizer", "integration_specialist"],
+    "performance-review": ["optimizer", "data_scientist", "architect"],
+    "dependency-analyze": ["integration_specialist", "guardian", "auditor"],
+    "migration-plan": ["architect", "integration_specialist", "guardian"],
+    "pattern-detect": ["data_scientist", "architect", "optimizer"],
+    "prompt-optimize": ["data_scientist", "user_advocate", "optimizer"]
+  }
+}

@@ -34,6 +34,11 @@ cd "$MONOREPO_ROOT"
 pip install -e . --quiet
 echo "✅ Python packages installed"
 
+# Install git hooks for governance
+echo "🛡️ Installing git pre-commit hooks..."
+python "$MONOREPO_ROOT/tools/scripts/install_git_hooks.py" --force
+echo "✅ Git hooks installed"
+
 # Function to run backend
 run_backend() {
     echo "🚀 Starting FastAPI backend..."

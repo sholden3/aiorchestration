@@ -1,0 +1,42 @@
+{
+  "tracking": {
+    "resolution_time": true,
+    "prompt_success": true,
+    "quality_trends": true,
+    "pattern_detection": true,
+    "dependency_health": true
+  },
+  "thresholds": {
+    "critical_sla": "4 hours",
+    "high_sla": "2 days",
+    "medium_sla": "1 week",
+    "low_sla": "1 month",
+    "prompt_success_min": 0.75,
+    "test_coverage_min": 0.80,
+    "performance_degradation_max": 0.10
+  },
+  "scoring": {
+    "security_impact": {
+      "max": 40,
+      "factors": ["data_exposure", "authentication", "authorization", "injection", "cryptography"]
+    },
+    "user_impact": {
+      "max": 30,
+      "factors": ["availability", "data_integrity", "user_experience", "functionality"]
+    },
+    "technical_debt": {
+      "max": 20,
+      "factors": ["maintainability", "complexity", "duplication", "coupling"]
+    },
+    "maintenance_burden": {
+      "max": 10,
+      "factors": ["documentation", "test_coverage", "code_clarity"]
+    }
+  },
+  "roi_calculation": {
+    "immediate_threshold": 5.0,
+    "sprint_threshold": 2.0,
+    "quarter_threshold": 1.0,
+    "formula": "(risk_reduction + performance_gain) / implementation_effort"
+  }
+}

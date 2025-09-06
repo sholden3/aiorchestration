@@ -28,6 +28,9 @@ AI Development Assistant platform with MCP-based proactive governance intelligen
 git clone https://github.com/sholden3/aiorchestration.git
 cd aiorchestration
 
+# Install git hooks for governance (REQUIRED)
+python tools/scripts/install_git_hooks.py
+
 # Setup environment (Windows)
 tools\scripts\setup_env.bat
 
@@ -35,7 +38,8 @@ tools\scripts\setup_env.bat
 source tools/scripts/setup_env.sh
 
 # Or use Make commands
-make setup      # Complete setup
+make setup      # Complete setup (includes hooks)
+make install-hooks  # Just install git hooks
 make run-backend   # Start FastAPI on http://localhost:8000
 make run-frontend  # Start Angular on http://localhost:4200
 ```

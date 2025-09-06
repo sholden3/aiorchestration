@@ -1,0 +1,86 @@
+{
+  "intelligence_flow": {
+    "code-review": {
+      "produces": ["code_quality_issues", "refactoring_needs", "complexity_metrics"],
+      "consumes": ["architecture_decisions", "performance_bottlenecks"],
+      "feeds_into": ["testing-review", "documentation-review", "performance-review"]
+    },
+    "testing-review": {
+      "produces": ["coverage_gaps", "test_quality_issues", "missing_scenarios"],
+      "consumes": ["code_quality_issues", "security_vulnerabilities"],
+      "feeds_into": ["code-review", "bug-fix"]
+    },
+    "security-review": {
+      "produces": ["security_vulnerabilities", "compliance_gaps", "risk_assessment"],
+      "consumes": ["dependency_vulnerabilities", "code_quality_issues"],
+      "feeds_into": ["bug-fix", "migration-plan", "dependency-analyze"]
+    },
+    "architecture-review": {
+      "produces": ["architecture_decisions", "design_patterns", "coupling_metrics"],
+      "consumes": ["performance_bottlenecks", "code_quality_issues"],
+      "feeds_into": ["migration-plan", "code-review", "pattern-detect"]
+    },
+    "performance-review": {
+      "produces": ["performance_bottlenecks", "optimization_opportunities", "resource_metrics"],
+      "consumes": ["architecture_decisions", "code_quality_issues"],
+      "feeds_into": ["code-review", "architecture-review", "prompt-optimize"]
+    },
+    "dependency-analyze": {
+      "produces": ["dependency_vulnerabilities", "update_requirements", "license_issues"],
+      "consumes": ["security_vulnerabilities"],
+      "feeds_into": ["security-review", "migration-plan"]
+    },
+    "pattern-detect": {
+      "produces": ["recurring_patterns", "systemic_issues", "improvement_trends"],
+      "consumes": ["code_quality_issues", "architecture_decisions", "performance_bottlenecks"],
+      "feeds_into": ["all_commands"]
+    }
+  },
+  "shared_data": {
+    "issue_database": {
+      "location": "metrics/issues.json",
+      "schema": {
+        "id": "string",
+        "type": "string",
+        "severity": "number",
+        "file": "string",
+        "line": "number",
+        "description": "string",
+        "detected_by": "string",
+        "detected_at": "datetime",
+        "resolved": "boolean",
+        "resolution_time": "duration"
+      }
+    },
+    "pattern_database": {
+      "location": "metrics/patterns.json",
+      "schema": {
+        "pattern_id": "string",
+        "pattern_type": "string",
+        "occurrences": "array",
+        "frequency": "number",
+        "first_seen": "datetime",
+        "last_seen": "datetime",
+        "recommended_fix": "string"
+      }
+    },
+    "prompt_success_database": {
+      "location": "metrics/prompt_success.json",
+      "schema": {
+        "prompt_id": "string",
+        "command": "string",
+        "personas": "array",
+        "success": "boolean",
+        "execution_time": "duration",
+        "user_feedback": "string",
+        "refinements": "array"
+      }
+    }
+  },
+  "learning_rules": {
+    "pattern_threshold": 3,
+    "success_rate_adjustment": 0.05,
+    "persona_weight_adjustment": 0.1,
+    "feedback_incorporation_delay": "24h"
+  }
+}

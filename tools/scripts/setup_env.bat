@@ -35,6 +35,11 @@ cd /d "%MONOREPO_ROOT%"
 pip install -e . -q
 echo Python packages installed
 
+REM Install git hooks for governance
+echo Installing git pre-commit hooks...
+python "%MONOREPO_ROOT%\tools\scripts\install_git_hooks.py" --force
+echo Git hooks installed
+
 echo.
 echo Environment setup complete!
 echo.

@@ -14,7 +14,7 @@ Following the successful recovery from power outage and zip archive extraction, 
 
 ### Problems Identified
 1. **Broken Imports**: Governance system split between `./governance/` and `./.governance/`
-2. **Structural Fragmentation**: Applications nested under `ai-assistant/` instead of clear separation
+2. **Structural Fragmentation**: Applications nested under `apps/` instead of clear separation
 3. **Recovery Artifacts**: 16+ archive folders cluttering the repository
 4. **Missing Infrastructure**: No dedicated tools, libraries, or infrastructure directories
 5. **Naming Inconsistencies**: Mixed conventions across the codebase
@@ -94,15 +94,15 @@ aiorchestration/
   mkdir -p infrastructure/{terraform,kubernetes}
   ```
 - [ ] Move backend:
-  - `ai-assistant/backend/` → `apps/api/`
+  - `apps/api/` → `apps/api/`
   - Update all Python import paths
   - Update Docker build contexts
 - [ ] Move frontend:
-  - `ai-assistant/src/` → `apps/web/src/`
+  - `apps/web/src/` → `apps/web/src/`
   - Update angular.json workspace paths
   - Update tsconfig.json paths
 - [ ] Move electron:
-  - `ai-assistant/electron/` → `apps/desktop/`
+  - `apps/desktop/` → `apps/desktop/`
   - Update package.json paths
 
 #### Quality Gates:
@@ -168,7 +168,7 @@ aiorchestration/
 #### Tasks:
 - [ ] Backup critical files from `.archive/`
 - [ ] Remove `.archive/` directory
-- [ ] Remove old `ai-assistant/` directory structure
+- [ ] Remove old `apps/` directory structure
 - [ ] Clean up duplicate files
 - [ ] Remove zip archives after verification
 - [ ] Update .gitignore

@@ -5,7 +5,7 @@
 ## Test Discovery Results
 
 ### Tests Found in Zip1
-**Location:** `temp/zip1_ecca/*/ai-assistant/backend/tests/`
+**Location:** `temp/zip1_ecca/*/apps/api/tests/`
 
 **Test Files Recovered:**
 - Test configuration: `pytest.ini`, `conftest.py`
@@ -100,7 +100,7 @@ tests/test_cache_manager.py::TestCacheIntegration - 1 test PASSED
 ### Available Test Commands:
 ```bash
 # Run all tests
-cd ai-assistant/backend
+cd apps/api
 python -m pytest tests/ -v
 
 # Run specific test suites

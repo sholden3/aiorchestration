@@ -37,7 +37,7 @@ architecture/
 ### Installation
 ```bash
 # Setup backend
-cd ai-assistant/backend
+cd apps/api
 pip install -r requirements.txt
 
 # Setup frontend
@@ -65,7 +65,7 @@ npm run dev
 ### Testing
 ```bash
 # Backend tests
-cd ai-assistant/backend
+cd apps/api
 pytest
 
 # Frontend tests
@@ -99,9 +99,9 @@ npm run package
 | `AI_ANTHROPIC_API_KEY` | Anthropic API key (optional) | `None` |
 
 ### Configuration Files
-- `ai-assistant/backend/config.py` - Backend configuration with persona-based settings
-- `ai-assistant/src/environments/environment.ts` - Frontend environment configuration
-- `ai-assistant/package.json` - Application metadata and scripts
+- `apps/api/config.py` - Backend configuration with persona-based settings
+- `apps/web/apps/web/src/environments/environment.ts` - Frontend environment configuration
+- `apps/package.json` - Application metadata and scripts
 
 ## API/Interface
 
@@ -135,7 +135,7 @@ npm run package
 ### Debugging
 ```bash
 # Backend debug mode
-cd ai-assistant/backend
+cd apps/api
 python -m debugpy --wait-for-client --listen 5678 main.py
 
 # Frontend debug (Electron DevTools)

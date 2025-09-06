@@ -19,8 +19,8 @@ setup(
         "apps", "apps.*"
     ]),
     package_dir={
-        "libs.shared_types": "libs/shared-types",
-        "libs.shared_utils": "libs/shared-utils"
+        "libs.shared_types": "libs/shared_types",
+        "libs.shared_utils": "libs/shared_utils"
     },
     python_requires=">=3.10",
     install_requires=[

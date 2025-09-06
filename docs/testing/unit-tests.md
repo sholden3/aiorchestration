@@ -54,7 +54,7 @@ tests/
 ├── integration/
 │   └── governance/
 │       └── test_integrated_hook.py
-ai-assistant/backend/tests/
+apps/api/tests/
 ├── unit/
 ├── integration/
 └── fixtures/
@@ -62,7 +62,7 @@ ai-assistant/backend/tests/
 
 ### Frontend Unit Tests (TypeScript/Jest)
 ```
-ai-assistant/src/app/
+apps/web/apps/web/src/app/
 ├── services/
 │   ├── ipc.service.spec.ts (58% pass rate)
 │   ├── terminal.service.spec.ts (12% pass rate)
@@ -89,7 +89,7 @@ python_classes = Test*
 python_functions = test_*
 
 testpaths = 
-    ai-assistant/backend/tests
+    apps/api/tests
     governance/tests
     tests
 
@@ -120,7 +120,7 @@ module.exports = {
   testTimeout: 45000,
   detectOpenHandles: true,
   forceExit: true,
-  collectCoverageFrom: ['src/app/**/*.ts'],
+  collectCoverageFrom: ['apps/web/src/app/**/*.ts'],
   coverageThreshold: {
     global: {
       statements: 70, branches: 60,
@@ -160,7 +160,7 @@ class TestEnhancedGovernanceEngine:
 
 ### Frontend Unit Test Example
 ```typescript
-// src/app/services/ipc.service.spec.ts
+// apps/web/src/app/services/ipc.service.spec.ts
 import { TestBed } from '@angular/core/testing';
 import { IpcService } from './ipc.service';
 
@@ -340,6 +340,6 @@ def test_governance_scoring(input_score, expected_status):
 
 ## References
 - [Testing Strategy](./testing-strategy.md)
-- [Integration Tests](../architecture/integration-testing.md)
-- [CI/CD Pipeline](../processes/ci-cd-pipeline.md)
-- [Code Coverage Reports](../../coverage/index.html)
+- [Integration Tests](./testing-strategy.md)
+- [CI/CD Pipeline](#ci-cd-pipeline)
+- [Code Coverage Reports](#coverage-reports)

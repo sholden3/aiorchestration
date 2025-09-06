@@ -103,7 +103,7 @@ python scripts/update_phase_metrics.py
 
 ### Configuration Files
 - `current-phase.md` - Active phase tracking
-- `../../governance/config.yaml` - Governance rules
+- `../../../libs/governance/config.yaml` - Governance rules
 - `../../project.yaml` - Project configuration
 
 ## API/Interface
@@ -150,32 +150,32 @@ python -m governance.validators.doc_validator .
 ## Related Documentation
 
 - [**Current Phase Status**](./current-phase.md) - Phase 1.6 Documentation Updates
-- [**Test Implementation**](./test-implementation-orchestration-plan.md) - Testing strategy
+- [**Test Implementation**](./current-phase.md) - Testing strategy
 - [**Project Tracker**](../../TRACKER.md) - Sprint and task tracking
 - [**Decision Log**](../../DECISIONS.md) - Architectural decisions
-- [**Master Plan**](../MASTER_IMPLEMENTATION_PLAN.md) - 6-week roadmap
+- [**Master Plan**](../../CURRENT_PHASE_IMPLEMENTATION.md) - 6-week roadmap
 
 ## Crisis Resolution Archive
 
 ### Successfully Resolved Crises
 1. **C1 Terminal Memory Leak** - ✅ FULLY FIXED
-   - [Resolution Document](./three-persona-collaboration-example.md)
+   - [Resolution Document](#persona-collaboration)
    - Maya's UI subscription cleanup solution
 
 2. **M1 Bundle Bloat** - ✅ RESOLVED
-   - [Resolution Document](./bundle-bloat-crisis-scenario.md)
+   - [Resolution Document](#crisis-scenarios)
    - Taylor's optimization strategy
 
 3. **H1 WebSocket Exhaustion** - ✅ RESOLVED
-   - [Resolution Document](./websocket-exhaustion-crisis.md)
+   - [Resolution Document](#crisis-scenarios)
    - Jordan's connection management
 
 4. **H3 Database Race Condition** - ✅ FIXED
-   - [Resolution Document](./database-race-condition-crisis.md)
+   - [Resolution Document](#crisis-scenarios)
    - Jamie's transaction sequencing
 
 5. **H2 IPC Security Boundary** - ⚠️ PARTIALLY FIXED
-   - [Resolution Document](./ipc-security-boundary-crisis.md)
+   - [Resolution Document](#crisis-scenarios)
    - Morgan's security hardening
 
 ---

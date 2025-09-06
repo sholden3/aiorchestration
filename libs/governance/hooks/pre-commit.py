@@ -23,14 +23,22 @@ from datetime import datetime
 from typing import List, Dict, Tuple, Set
 
 # Import unified validator and exemption manager
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+repo_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(repo_root))
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from libs.governance.core.exemption_manager import ExemptionManager
+from core.exemption_manager import ExemptionManager
 try:
-    from libs.governance.validators.unified_doc_validator import UnifiedDocumentValidator
+    from validators.unified_doc_validator import UnifiedDocumentValidator
     UNIFIED_VALIDATOR_AVAILABLE = True
 except ImportError:
     UNIFIED_VALIDATOR_AVAILABLE = False
+
+# Import documentation health validator
+try:
+    from validators.documentation_validator import DocumentationValidator
+    DOCUMENTATION_VALIDATOR_AVAILABLE = True
+except ImportError:
+    DOCUMENTATION_VALIDATOR_AVAILABLE = False
 
 class ExtremeGovernance:
     """Zero-tolerance governance enforcement"""
@@ -47,14 +55,24 @@ class ExtremeGovernance:
         self.all_directories = self.get_all_directories()
         
         # Initialize exemption manager
-        config_path = self.repo_root / "governance" / "config.yaml"
+        # Check new location first, then fall back to old
+        config_path = self.repo_root / "config" / "governance" / "rules.yaml"
+        if not config_path.exists():
+            config_path = self.repo_root / "libs" / "governance" / "config.yaml"
+            if not config_path.exists():
+                config_path = self.repo_root / "governance" / "config.yaml"
         self.exemption_manager = ExemptionManager(config_path)
         
     def load_config(self) -> dict:
         """Load governance configuration"""
-        config_path = self.repo_root / "governance" / "config.yaml"
+        # Check new location first, then fall back to old
+        config_path = self.repo_root / "config" / "governance" / "rules.yaml"
         if not config_path.exists():
-            self.fatal_error("GOVERNANCE CONFIG MISSING - Cannot proceed")
+            config_path = self.repo_root / "libs" / "governance" / "config.yaml"
+            if not config_path.exists():
+                config_path = self.repo_root / "governance" / "config.yaml"
+                if not config_path.exists():
+                    self.fatal_error("GOVERNANCE CONFIG MISSING - Cannot proceed")
         
         with open(config_path, 'r') as f:
             return yaml.safe_load(f)
@@ -673,6 +691,57 @@ class ExtremeGovernance:
         else:
             print("[PASS] Documentation appears in sync")
     
+    def check_documentation_health(self):
+        """Check overall documentation health using DocumentationValidator"""
+        print("\n[CHECK] Documentation Health...")
+        print("-" * 40)
+        
+        # Check if documentation health validation is enabled
+        if not self.config.get('documentation_health', {}).get('enabled', True):
+            print("  [SKIP] Documentation health check disabled in config")
+            return
+        
+        if not DOCUMENTATION_VALIDATOR_AVAILABLE:
+            print("  [WARN] Documentation health validator not available")
+            return
+        
+        try:
+            # Run documentation health check
+            validator = DocumentationValidator(self.repo_root)
+            results = validator.validate_all()
+            
+            overall_score = results['overall_score']
+            min_score = self.config.get('documentation_health', {}).get('minimum_score', 85)
+            
+            print(f"  Overall Score: {overall_score:.1f}%")
+            print(f"  Required Score: {min_score}%")
+            print(f"  Checks Passed: {results['summary']['checks_passed']}")
+            
+            if overall_score < min_score:
+                # Show critical failures
+                critical = results['summary'].get('critical_checks_failed', [])
+                if critical:
+                    print(f"  Critical Failures: {', '.join(critical)}")
+                
+                # Add violation
+                self.add_violation(
+                    level="HIGH",
+                    message=f"Documentation health below {min_score}% (current: {overall_score:.1f}%)",
+                    penalty=self.config['penalties']['high']
+                )
+                
+                # Show recommendations
+                recommendations = results['summary'].get('recommendations', [])
+                if recommendations:
+                    print("\n  Recommendations:")
+                    for rec in recommendations[:3]:
+                        print(f"    - {rec}")
+            else:
+                print(f"  [PASS] Documentation health acceptable")
+                
+        except Exception as e:
+            print(f"  [WARN] Could not check documentation health: {e}")
+    
     def check_documentation_validation(self):
         """Validate staged documentation files against metadata"""
         print("\n[CHECK] Documentation Validation...")
@@ -911,6 +980,7 @@ class ExtremeGovernance:
         self.check_naming_standards()
         self.check_file_creation()
         self.check_temp_directory()  # Check temp is clean
+        self.check_documentation_health()  # Check overall documentation health
         self.check_documentation_validation()  # Validate markdown docs
         self.check_test_coverage()
         self.check_code_quality()

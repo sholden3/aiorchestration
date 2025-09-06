@@ -1,0 +1,107 @@
+# MCP Server Configuration
+# Version: 1.0.0
+# Purpose: Externalized configuration for MCP governance server
+
+version: 1.0.0
+
+server:
+  name: "governance-intelligence"
+  port:
+    discovery_name: "mcp-governance"
+    fallback: 8001
+  
+paths:
+  personas_config: "libs/governance/personas.yaml"
+  governance_config: "governance/config.yaml"
+  mcp_output: ".mcp.json"
+  
+security:
+  dangerous_patterns:
+    - "rm -rf /"
+    - ":(){ :|:& };:"  # Fork bomb
+    - "dd if=/dev/zero"
+    - "DROP TABLE"
+    - "DELETE FROM"
+    - "curl.*|.*sh"
+    - "wget.*|.*sh"
+    
+  sensitive_paths:
+    - ".env"
+    - "credentials"
+    - "password"
+    - "secret"
+    - "key"
+    - "token"
+    - ".pem"
+    - ".key"
+    - "id_rsa"
+    
+  rate_limiting:
+    max_requests_per_minute: 100
+    burst_size: 20
+    
+cache:
+  ttl: 300  # seconds
+  max_size: 1000  # entries
+  
+database:
+  connection_string_env: "DATABASE_URL"
+  fallback: "sqlite:///governance.db"
+  pool_size: 20
+  
+redis:
+  url_env: "REDIS_URL"
+  fallback: "redis://localhost:6379"
+  
+logging:
+  level_env: "LOG_LEVEL"
+  fallback: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+monitoring:
+  metrics_enabled: true
+  health_check_interval: 60  # seconds
+  
+performance:
+  max_response_time_ms: 500
+  target_cache_hit_rate: 0.85
+  consultation_timeout_ms: 500
+  
+recommendations:
+  max_per_response: 5
+  
+  templates:
+    file_operations:
+      - "Ensure file backup before modification"
+      - "Check file permissions and ownership"
+      - "Validate file path to prevent traversal"
+      - "Use atomic operations when possible"
+      - "Log all file operations for audit"
+      
+    command_execution:
+      - "Sanitize command inputs"
+      - "Use timeout for long-running commands"
+      - "Log command execution for audit"
+      - "Run in restricted environment when possible"
+      - "Validate command whitelist"
+      
+    database_operations:
+      - "Use parameterized queries"
+      - "Check connection pool status"
+      - "Monitor query performance"
+      - "Use transactions for consistency"
+      - "Implement retry logic with backoff"
+      
+    api_operations:
+      - "Implement rate limiting"
+      - "Add authentication checks"
+      - "Validate input schemas"
+      - "Use circuit breakers"
+      - "Monitor response times"
+      
+    security_operations:
+      - "Follow principle of least privilege"
+      - "Audit all security changes"
+      - "Use encryption for sensitive data"
+      - "Implement defense in depth"
+      - "Regular security reviews"

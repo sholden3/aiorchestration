@@ -37,47 +37,47 @@ These were found in RecoveryProject and recovered:
 These files were created during recovery because they weren't in RecoveryProject:
 
 ### Backend Core Infrastructure (Created Sept 3, 2025):
-1. **ai-assistant/backend/claude_integration.py** 
+1. **apps/api/claude_integration.py** 
    - Placeholder implementation for Claude API integration
    - Basic async methods for processing requests
    - Returns mock responses
 
-2. **ai-assistant/backend/cache_circuit_breaker.py**
+2. **apps/api/cache_circuit_breaker.py**
    - Wrapper around existing circuit_breaker.py
    - Adds cache-specific functionality (hit/miss tracking)
    - Extends CircuitBreaker class
 
-3. **ai-assistant/backend/ai_orchestration_engine.py**
+3. **apps/api/ai_orchestration_engine.py**
    - Placeholder task orchestration system
    - Implements task queue with workers
    - Basic task states (PENDING, RUNNING, COMPLETED, FAILED)
    - AITask model and AIOrchestrationEngine class
 
-4. **ai-assistant/backend/core/__init__.py**
+4. **apps/api/core/__init__.py**
    - Python package initialization
    - Exports: get_config, get_backend_url, is_development
 
-5. **ai-assistant/backend/core/auth.py**
+5. **apps/api/core/auth.py**
    - Basic authentication placeholder
    - AuthManager class with mock methods
    - verify_token, get_current_user stubs
 
-6. **ai-assistant/backend/core/port_discovery.py**
+6. **apps/api/core/port_discovery.py**
    - Complete port discovery implementation
    - PortDiscovery class
    - Finds available ports, checks port availability
    - Default ports: backend=8000, frontend=4200
 
 ### Files Moved/Modified:
-7. **ai-assistant/backend/core/config.py**
-   - MOVED from backend/config.py to core/config.py
+7. **apps/api/core/config.py**
+   - MOVED from apps/api/config.py to core/config.py
    - Added compatibility functions at end:
      - get_config()
      - get_backend_url()
      - is_development()
 
 ### Validation Scripts Created:
-8. **ai-assistant/validate_recovery.py**
+8. **apps/validate_recovery.py**
    - Recovery validation script
    - 30 validation checks
    - No Unicode characters (Windows compatible)
@@ -86,7 +86,7 @@ These files were created during recovery because they weren't in RecoveryProject
 Searched .archive folder for missing modules:
 
 ### Archives Checked:
-- `.archive/20250903_223224_dependency_recovery/` - Contains backup of ai-assistant
+- `.archive/20250903_223224_dependency_recovery/` - Contains backup of apps directory
 - `.archive/old-governance-modules-20250902_135819/` - Contains old governance structure
 - `.archive/governance-merge-20250902_213811/` - Contains governance merge files
 - All other archive folders from September 2, 2025
@@ -101,7 +101,7 @@ Searched .archive folder for missing modules:
   - claude_terminal.py (main.py imports it but file doesn't exist)
 
 ### Found in Current Project:
-- **updated_api_endpoints.py** - EXISTS in ai-assistant/backend/
+- **updated_api_endpoints.py** - EXISTS in apps/api/
   - Contains: rules_router, practices_router, templates_router, sessions_router
   - This file was successfully recovered and is working
 
@@ -121,8 +121,8 @@ from claude_terminal import claude_terminal  # Note: claude_terminal.py exists b
 
 ### Files That Exist But May Need Verification:
 - **websocket_manager.py** - Exists (recovered from RecoveryProject)
-- **database_service.py** - Exists (already in ai-assistant)
-- **circuit_breaker.py** - Exists (already in ai-assistant)
+- **database_service.py** - Exists (already in apps/api)
+- **circuit_breaker.py** - Exists (already in apps/api)
 - **config.py** - Exists (but also have core/config.py - may be duplicate)
 
 ## Import Structure Issues Found
@@ -142,7 +142,7 @@ except ImportError:
 
 ### Issue 2: Config Import Confusion
 - **Problem:** Two config files exist
-  - `backend/config.py` (original)
+  - `apps/api/config.py` (original)
   - `backend/core/config.py` (moved during recovery)
 - **main.py imports from both:**
   - Line 55: `from core.config import get_config, get_backend_url, is_development`
@@ -181,7 +181,7 @@ To find these in your repository, search for:
 ## RecoveryProject Paths
 All recovered files came from:
 ```
-RecoveryProject/aiorchestration-ecca6fd665b0a474369509cb29c4aeaed35c57aa/aiorchestration-ecca6fd665b0a474369509cb29c4aeaed35c57aa/ai-assistant/backend/
+RecoveryProject/aiorchestration-ecca6fd665b0a474369509cb29c4aeaed35c57aa/aiorchestration-ecca6fd665b0a474369509cb29c4aeaed35c57aa/apps/api/
 ```
 
 ## Analysis & Recommendations

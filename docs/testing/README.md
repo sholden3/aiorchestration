@@ -35,7 +35,7 @@ testing/
 ### Installation
 ```bash
 # Frontend test setup
-cd ai-assistant
+cd apps
 npm install
 npm run test:clear-cache
 
@@ -163,7 +163,7 @@ pytest -s                 # Show print statements and logs
 - [**Testing Strategy**](./testing-strategy.md) - Comprehensive 5-layer testing approach
 - [**Unit Tests**](./unit-tests.md) - Detailed unit test documentation and metrics  
 - [**Architecture**](../architecture/README.md) - System design and integration points
-- [**Critical Issues**](../../claude/claude-sections/critical-issues.md) - Issues requiring test validation
+- [**Critical Issues**](../debt/technical-debt.md) - Issues requiring test validation
 
 ---
 

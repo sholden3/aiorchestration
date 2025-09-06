@@ -17,9 +17,9 @@
 - **Created** enterprise monorepo directory structure:
   ```
   ├── apps/
-  │   ├── api/        # FastAPI backend (moved from ai-assistant/backend)
+  │   ├── api/        # FastAPI backend (moved from apps/api)
   │   ├── web/        # Angular frontend (config files moved)
-  │   └── desktop/    # Electron wrapper (moved from ai-assistant/electron)
+  │   └── desktop/    # Electron wrapper (moved from apps/desktop)
   ├── libs/
   │   ├── governance/ # Consolidated governance system
   │   ├── shared-types/
@@ -32,8 +32,8 @@
       ├── terraform/
       └── kubernetes/
   ```
-- **Moved** backend from `ai-assistant/backend/` → `apps/api/`
-- **Moved** electron from `ai-assistant/electron/` → `apps/desktop/`
+- **Moved** backend from `apps/api/` → `apps/api/`
+- **Moved** electron from `apps/desktop/` → `apps/desktop/`
 - **Copied** Angular config files to `apps/web/`
 
 ## Current Issues
@@ -44,7 +44,7 @@
 - **Solution Needed:** Update PYTHONPATH or create proper package structure
 
 ### 🟡 Angular Source Code
-- **Problem:** `ai-assistant/src` directory corrupted (contains "nul" device file)
+- **Problem:** `apps/web/src` directory corrupted (contains "nul" device file)
 - **Impact:** No Angular component files recovered
 - **Action:** May need to extract from zip archives
 

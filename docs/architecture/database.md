@@ -98,6 +98,114 @@ CREATE TABLE templates (
 - **Foreign Keys:** Indexed for join performance
 - **Unique Constraints:** On business identifiers and email fields
 
+### MCP Governance Tables
+```sql
+-- MCP Session Management
+CREATE TABLE mcp_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    correlation_ids JSONB DEFAULT '[]',
+    decisions JSONB DEFAULT '[]',
+    metrics JSONB DEFAULT '{}',
+    status VARCHAR(50) DEFAULT 'active',
+    expires_at TIMESTAMP
+);
+
+-- MCP Governance Decisions
+CREATE TABLE mcp_governance_decisions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id UUID REFERENCES mcp_sessions(id) ON DELETE CASCADE,
+    correlation_id UUID NOT NULL,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    operation VARCHAR(255) NOT NULL,
+    context JSONB NOT NULL,
+    decision JSONB NOT NULL,
+    personas_consulted JSONB,
+    approved BOOLEAN NOT NULL,
+    confidence DECIMAL(3,2) CHECK (confidence >= 0 AND confidence <= 1),
+    recommendations TEXT[],
+    warnings TEXT[],
+    block_reason TEXT,
+    response_time_ms INTEGER,
+    cache_hit BOOLEAN DEFAULT FALSE
+);
+
+-- MCP Audit Trail
+CREATE TABLE mcp_audit_log (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    correlation_id UUID NOT NULL,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    event_type VARCHAR(100) NOT NULL,
+    user_id VARCHAR(255),
+    operation VARCHAR(255),
+    context JSONB,
+    result VARCHAR(50),
+    error_details JSONB,
+    duration_ms INTEGER,
+    checksum VARCHAR(64) -- SHA-256 for integrity
+);
+
+-- MCP Cache Entries (for persistent cache option)
+CREATE TABLE mcp_cache (
+    cache_key VARCHAR(64) PRIMARY KEY, -- SHA-256 hash
+    operation VARCHAR(255) NOT NULL,
+    context_hash VARCHAR(64) NOT NULL,
+    response JSONB NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    hit_count INTEGER DEFAULT 0,
+    last_accessed TIMESTAMP
+);
+
+-- MCP Port Registry
+CREATE TABLE mcp_port_registry (
+    service_name VARCHAR(100) PRIMARY KEY,
+    port INTEGER NOT NULL,
+    pid INTEGER,
+    host VARCHAR(255) DEFAULT '127.0.0.1',
+    started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_heartbeat TIMESTAMP,
+    status VARCHAR(50) DEFAULT 'active'
+);
+
+-- MCP Metrics
+CREATE TABLE mcp_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    metric_type VARCHAR(100) NOT NULL,
+    metric_name VARCHAR(255) NOT NULL,
+    metric_value DECIMAL,
+    dimensions JSONB,
+    aggregation_period VARCHAR(20) -- '1m', '5m', '1h', '1d'
+);
+
+-- Indexes for MCP tables
+CREATE INDEX idx_mcp_decisions_session ON mcp_governance_decisions(session_id);
+CREATE INDEX idx_mcp_decisions_correlation ON mcp_governance_decisions(correlation_id);
+CREATE INDEX idx_mcp_decisions_timestamp ON mcp_governance_decisions(timestamp DESC);
+CREATE INDEX idx_mcp_decisions_operation ON mcp_governance_decisions(operation);
+CREATE INDEX idx_mcp_audit_correlation ON mcp_audit_log(correlation_id);
+CREATE INDEX idx_mcp_audit_timestamp ON mcp_audit_log(timestamp DESC);
+CREATE INDEX idx_mcp_cache_expires ON mcp_cache(expires_at);
+CREATE INDEX idx_mcp_metrics_type_time ON mcp_metrics(metric_type, timestamp DESC);
+
+-- Triggers for updated_at
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_mcp_sessions_updated_at 
+    BEFORE UPDATE ON mcp_sessions 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+```
+
 ### Performance Indexes
 ```sql
 -- Category-based queries (most common access pattern)
@@ -295,5 +403,5 @@ max_connections = 100
 - [Backend Architecture](./backend.md)
 - [API Contracts](./api-contracts.md)
 - [Security Architecture](./security.md)
-- [System Configuration](../../ai-assistant/backend/config.py)
-- [Database Service Implementation](../../ai-assistant/backend/database_service.py)
+- [System Configuration](../../apps/api/config.py)
+- [Database Service Implementation](../../apps/api/database_service.py)

@@ -5,7 +5,6 @@ Central repository for all project documentation, architecture decisions, and pr
 
 ## Contents
 - `architecture/` - System architecture and design documents
-- `claude-sections/` - Sections referenced by CLAUDE.md
 - `processes/` - Development and operational processes
 - `testing/` - Testing strategies and plans
 - `governance/` - Governance documentation

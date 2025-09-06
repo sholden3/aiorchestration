@@ -1,0 +1,98 @@
+api: {}
+database: {}
+cache: {}
+mcp:
+  server:
+    name: mcp-governance
+    version: 1.0.0
+    environment: ${MCP_ENV:development}
+    port:
+      preferred: 8001
+      range_start: 8001
+      range_end: 8100
+      fallback: 8001
+    host: 127.0.0.1
+    reload: true
+    log_level: ${MCP_LOG_LEVEL:INFO}
+  database:
+    type: ${MCP_DATABASE_TYPE:sqlite}
+    postgresql:
+      host: ${MCP_DB_HOST:localhost}
+      port: ${MCP_DB_PORT:5432}
+      database: ${MCP_DB_NAME:mcp_governance}
+      username: ${MCP_DB_USER:mcp_user}
+      password: ${MCP_DB_PASS:}
+      pool_size: 10
+      max_overflow: 20
+    sqlite:
+      path: ${MCP_SQLITE_PATH:./data/mcp_governance.db}
+      check_same_thread: false
+      timeout: 30
+  cache:
+    type: ${MCP_CACHE_TYPE:memory}
+    redis:
+      host: ${MCP_REDIS_HOST:localhost}
+      port: ${MCP_REDIS_PORT:6379}
+      db: ${MCP_REDIS_DB:0}
+      password: ${MCP_REDIS_PASS:}
+      max_connections: 50
+    memory:
+      max_size: 1000
+      ttl_seconds: 300
+      cleanup_interval: 60
+  governance:
+    personas_config: ./libs/governance/personas.yaml
+    rules_config: ./libs/governance/documentation_standards.yaml
+    consultation:
+      timeout_seconds: 30
+      max_retries: 3
+      cache_enabled: true
+      cache_ttl: 600
+    thresholds:
+      approval_confidence: 0.7
+      warning_confidence: 0.5
+      unanimous_required: false
+  monitoring:
+    metrics:
+      enabled: true
+      interval_seconds: 60
+      retention_days: 30
+    audit:
+      enabled: true
+      log_file: ${MCP_AUDIT_LOG:./logs/mcp_audit.log}
+      rotation: daily
+      retention_days: 90
+  security:
+    api_key: ${MCP_API_KEY:}
+    rate_limit:
+      enabled: true
+      requests_per_minute: 60
+      burst_size: 10
+    cors:
+      enabled: true
+      origins:
+      - http://localhost:4200
+      - http://localhost:3000
+      methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      headers:
+      - Content-Type
+      - Authorization
+  paths:
+    port_file: ~/.ai_assistant/mcp_governance_port.txt
+    session_state: ./data/mcp_sessions.json
+    decision_log: ./logs/mcp_decisions.jsonl
+  performance:
+    connection_pool:
+      min_size: 5
+      max_size: 20
+      timeout: 30
+    request:
+      timeout: 60
+      max_payload_size: 10485760
+    background:
+      workers: 4
+      queue_size: 100

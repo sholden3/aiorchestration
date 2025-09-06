@@ -35,7 +35,7 @@ from unittest.mock import Mock, patch
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from libs.governance.core.enhanced_governance_engine import (
+from libs.governance.core.governance_engine_v2 import (
     MagicVariableDetector,
     TestExecutionTracker,
     BoilerplateDetector,

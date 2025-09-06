@@ -161,11 +161,11 @@ npm run test:coverage -- --reporter=text-summary
 
 ## Related Documentation
 
-- [**Critical Issues**](../claude-sections/critical-issues.md) - Current system critical issues
-- [**Testing Strategy**](../claude-sections/testing-strategy.md) - Comprehensive testing approach
-- [**Quality Gates**](../claude-sections/quality-gates.md) - Pre-commit and validation requirements
-- [**Governance Protocol**](../claude-sections/governance-protocol.md) - Development governance framework
-- [**System Architecture**](../claude-sections/system-architecture.md) - Overall system design
+- [**Critical Issues**](#critical-issues) - Current system critical issues
+- [**Testing Strategy**](../testing/testing-strategy.md) - Comprehensive testing approach
+- [**Quality Gates**](#quality-gates) - Pre-commit and validation requirements
+- [**Governance Protocol**](../architecture/governance/README.md) - Development governance framework
+- [**System Architecture**](../architecture/) - Overall system design
 - [**Documentation Index**](../../DOCUMENTATION_INDEX.md) - Complete project navigation
 
 ---

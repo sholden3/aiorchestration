@@ -65,10 +65,10 @@ from config import Config
 # Import our orchestration systems
 from ai_orchestration_engine import AIOrchestrationEngine, AITask as OrchestratorTask, TaskPriority
 from unified_governance_orchestrator import UnifiedGovernanceOrchestrator
-from persona_orchestration_enhanced import PersonaOrchestrationEnhanced
+from persona_orchestrator import PersonaOrchestrationEnhanced
 from conversation_manager import ConversationManager
 from additional_api_endpoints import add_additional_routes
-from updated_api_endpoints import rules_router, practices_router, templates_router, sessions_router
+from api_endpoints_v2 import rules_router, practices_router, templates_router, sessions_router
 from database_service import db_service
 from websocket_manager import ws_manager, EventType
 from agent_terminal_manager import agent_terminal_manager, AgentType

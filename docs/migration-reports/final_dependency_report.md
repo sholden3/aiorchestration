@@ -134,7 +134,7 @@ When we recovered the 6 missing modules, they had their own dependencies:
 
 1. **Test Backend Startup:**
    ```bash
-   cd ai-assistant/backend
+   cd apps/api
    python main.py
    ```
 

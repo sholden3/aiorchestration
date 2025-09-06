@@ -54,9 +54,9 @@ TerminalService implemented as module singleton with global providers, preventin
 - Component lifecycle properly managed
 
 **Files Affected:**
-- `ai-assistant/src/app/modules/terminal/terminal.service.ts`
-- `ai-assistant/src/app/app.module.ts`
-- `ai-assistant/src/app/components/main-layout/main-layout.component.ts`
+- `apps/web/apps/web/src/app/modules/terminal/terminal.service.ts`
+- `apps/web/apps/web/src/app/app.module.ts`
+- `apps/web/apps/web/src/app/components/main-layout/main-layout.component.ts`
 
 ---
 
@@ -492,10 +492,10 @@ Extensive test coverage gaps across the application:
 | 2025-01-15 | H2 IPC error boundary partially implemented | Alex Novak | Improved error handling |
 
 ## References
-- [Critical Issues Status](../claude-sections/critical-issues.md)
-- [Testing Strategy](../claude-sections/testing-strategy.md)
-- [System Architecture](../claude-sections/system-architecture.md)
-- [Quality Gates](../claude-sections/quality-gates.md)
+- [Critical Issues Status](#critical-issues)
+- [Testing Strategy](../testing/testing-strategy.md)
+- [System Architecture](../architecture/)
+- [Quality Gates](#quality-enforcement)
 - [Documentation Index](../../DOCUMENTATION_INDEX.md)
-- [Master Implementation Plan](../MASTER_IMPLEMENTATION_PLAN.md)
-- [Governance Protocol](../claude-sections/governance-protocol.md)
+- [Master Implementation Plan](../../CURRENT_PHASE_IMPLEMENTATION.md)
+- [Governance Protocol](../architecture/governance/README.md)

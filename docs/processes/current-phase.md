@@ -193,7 +193,7 @@
 | Sept 2, 2025 | Created format templates | Both Architects | High - Foundation for standardization |
 
 ## References
-- [Master Implementation Plan](../MASTER_IMPLEMENTATION_PLAN.md)
-- [System Architecture](../docs/architecture/README.md)
-- [Testing Strategy](../docs/claude-sections/testing-strategy.md)
+- [Master Implementation Plan](../../CURRENT_PHASE_IMPLEMENTATION.md)
+- [System Architecture](../architecture/)
+- [Testing Strategy](../testing/testing-strategy.md)
 - [Project Tracker](../../TRACKER.md)

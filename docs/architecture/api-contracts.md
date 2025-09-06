@@ -283,4 +283,4 @@ The AI Orchestration Platform follows RESTful design principles with additional 
 - [OpenAPI Specification](https://swagger.io/specification/)
 - [REST API Best Practices](https://restfulapi.net/)
 - [JWT Standards](https://jwt.io/)
-- [Internal Governance Rules](../governance/config.yaml)
+- [Internal Governance Rules](../../libs/governance/config.yaml)

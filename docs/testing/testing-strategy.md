@@ -58,6 +58,101 @@ The AI Orchestration Platform follows a comprehensive 5-layer testing strategy e
 **Tools:** OWASP ZAP, Snyk, npm audit
 **Frequency:** Daily dependency scans, weekly security sweeps
 
+## MCP Testing Strategy
+
+### MCP Governance Server Testing
+**Purpose:** Validate MCP server functionality and governance decisions  
+**Scope:** Server initialization, persona consultation, decision caching  
+**Tools:** Pytest with async support, unittest.mock for personas  
+**Target Coverage:** 90% minimum (critical infrastructure)  
+
+#### Key Test Areas
+1. **Server Initialization**
+   - Port discovery and allocation
+   - Configuration loading and validation
+   - Database connection establishment
+   - Persona manager initialization
+
+2. **Governance Consultation**
+   - Single persona decisions
+   - Multi-persona consensus
+   - Context validation
+   - Decision caching and retrieval
+
+3. **Hook Bridge Integration**
+   - PreToolUse validation
+   - UserPromptSubmit checking
+   - PostToolUse verification
+   - Error handling and recovery
+
+#### Test Implementation
+```python
+# tests/unit/mcp/test_governance_server.py
+async def test_server_initialization():
+    """Test MCP server starts correctly."""
+    server = GovernanceMCPServer()
+    await server.initialize()
+    assert server.port in range(8001, 8101)
+    assert server.personas_loaded == 12
+
+async def test_persona_consultation():
+    """Test persona decision making."""
+    server = GovernanceMCPServer()
+    context = {"tool": "Write", "path": "critical.py"}
+    decision = await server.consult_governance(context)
+    assert decision.approved in [True, False]
+    assert decision.confidence > 0.0
+
+async def test_hook_validation():
+    """Test Claude Code hook integration."""
+    bridge = ClaudeCodeHookBridge()
+    hook_data = {"tool": "Edit", "params": {...}}
+    can_proceed, message = await bridge.pre_tool_validation(hook_data)
+    assert isinstance(can_proceed, bool)
+    assert isinstance(message, str)
+```
+
+### MCP Integration Testing
+**Purpose:** Validate end-to-end MCP workflows  
+**Scope:** Full request cycle from hook to decision  
+**Tools:** Pytest, httpx for HTTP testing, WebSocket test client  
+**Target Coverage:** All critical paths  
+
+#### Integration Test Scenarios
+1. **Happy Path Flow**
+   ```python
+   async def test_mcp_happy_path():
+       # 1. Hook receives request
+       # 2. Bridge forwards to MCP
+       # 3. MCP consults personas
+       # 4. Decision returned
+       # 5. Hook allows/blocks operation
+   ```
+
+2. **Circuit Breaker Testing**
+   ```python
+   async def test_circuit_breaker_resilience():
+       # 1. Simulate failures
+       # 2. Verify circuit opens
+       # 3. Test fail-open behavior
+       # 4. Verify recovery
+   ```
+
+3. **Performance Under Load**
+   ```python
+   async def test_concurrent_consultations():
+       # 1. Send 100 concurrent requests
+       # 2. Verify all complete < 5s
+       # 3. Check cache hit rate > 80%
+       # 4. Validate no data corruption
+   ```
+
+### MCP Test Data Management
+- **Mock Personas:** Use test personas with predictable behaviors
+- **Test Contexts:** Predefined contexts for consistent testing
+- **Cache Seeding:** Pre-populate cache for performance tests
+- **Database Fixtures:** Test database with known state
+
 ## Test Organization
 ### Directory Structure
 ```
@@ -66,18 +161,21 @@ project-root/
 │   ├── unit/                   # Unit tests
 │   │   ├── backend/           # Python unit tests
 │   │   ├── frontend/          # TypeScript unit tests
-│   │   └── governance/        # Validator tests
+│   │   ├── governance/        # Validator tests
+│   │   └── mcp/              # MCP server tests
 │   ├── integration/           # Integration tests
 │   │   ├── api/              # API integration tests
 │   │   ├── database/         # Database tests
-│   │   └── services/         # Service integration
+│   │   ├── services/         # Service integration
+│   │   └── mcp/              # MCP integration tests
 │   ├── e2e/                   # End-to-end tests
 │   ├── performance/           # Performance tests
 │   └── security/             # Security tests
-├── ai-assistant/
-│   ├── backend/tests/         # Backend-specific tests
-│   └── src/app/**/*.spec.ts   # Angular component tests
-└── governance/validators/tests/ # Validator-specific tests
+├── apps/
+│   ├── apps/api/tests/         # Backend-specific tests
+│   ├── apps/api/mcp/tests/     # MCP-specific tests
+│   └── apps/web/src/app/**/*.spec.ts   # Angular component tests
+└── libs/governance/tests/      # Governance-specific tests
 ```
 
 ### Test Naming Conventions
@@ -229,7 +327,7 @@ The following require explicit architect approval:
 | 2025-09-01 | Established coverage requirements | Sam Martinez | Medium |
 
 ## References
-- [Test Implementation Plan](../processes/test-implementation-orchestration-plan.md)
+- [Test Implementation Plan](#test-orchestration)
 - [Unit Test Guide](./unit-tests.md)
-- [Governance Testing](../../governance/validators/tests/)
+- [Governance Testing](../../tests/unit/governance/)
 - [Testing Decisions](../../DECISIONS.md)

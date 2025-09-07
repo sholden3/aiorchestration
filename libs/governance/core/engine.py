@@ -41,6 +41,7 @@ from .exceptions import GovernanceError, ValidationError
 
 # Configure logging
 import os
+import atexit
 from datetime import datetime
 
 # Create logs directory
@@ -51,14 +52,24 @@ log_dir.mkdir(parents=True, exist_ok=True)
 log_file = log_dir / f"governance_{datetime.now().strftime('%Y%m%d')}.log"
 
 # Configure both file and console logging
+file_handler = logging.FileHandler(log_file)
+console_handler = logging.StreamHandler()
+
+# Set up the basic configuration
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s - %(message)s',
-    handlers=[
-        logging.FileHandler(log_file),
-        logging.StreamHandler()
-    ]
+    handlers=[file_handler, console_handler]
 )
+
+# Register cleanup function to properly close handlers
+def _cleanup_logging_handlers():
+    """Clean up logging handlers to prevent ResourceWarning."""
+    for handler in [file_handler, console_handler]:
+        if hasattr(handler, 'close'):
+            handler.close()
+
+atexit.register(_cleanup_logging_handlers)
 logger = logging.getLogger(__name__)
 
 

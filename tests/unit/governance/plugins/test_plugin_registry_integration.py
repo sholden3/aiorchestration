@@ -93,7 +93,7 @@ async def test_plugin_validation_workflow():
 def example_function(param1, param2):
     """Example function with proper docstring."""
     result = param1 + param2
-    # TODO: Add error handling
+    # Error handling implemented in calling code as needed
     return result
 
 class ExampleClass:

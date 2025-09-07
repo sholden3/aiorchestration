@@ -6,6 +6,14 @@ This example demonstrates how to use the message bus for:
 2. Request/Response patterns
 3. Message filtering
 4. Monitoring and metrics
+
+@description: Demonstration of PluginMessageBus usage for inter-plugin communication
+@author: AI Assistant (GitHub Copilot generated)
+@version: 1.0.0
+@dependencies: asyncio, logging, libs.governance.plugins.messaging
+@exports: main, SecurityPlugin, QualityPlugin, run_example
+@testing: Manual execution - python examples/messaging_example.py
+@last_review: 2025-01-06
 """
 
 import asyncio

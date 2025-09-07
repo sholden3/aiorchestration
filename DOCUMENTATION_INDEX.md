@@ -1,6 +1,6 @@
 # Documentation Index
 
-**Last Updated:** 2025-09-03  
+**Last Updated:** 2025-09-07  
 **Maintained By:** Alex Novak & Dr. Sarah Chen  
 **Review Frequency:** Weekly  
 
@@ -24,17 +24,20 @@ Core project documentation and status tracking.
 | Document | Purpose | Owner | Last Updated | Status | Auto-Update |
 |----------|---------|-------|--------------|--------|-------------|
 | [CLAUDE.md](./CLAUDE.md) | Master AI instruction document & governance | Both Architects | Sept 3, 2025 | ✅ Current | Manual |
-| [STATUS.md](./STATUS.md) | Real-time system status and metrics | Governance System | Sept 3, 2025 | ✅ Current | Hourly |
+| [STATUS.md](./STATUS.md) | Real-time system status and metrics | Governance System | Sept 7, 2025 | ✅ Current | Hourly |
 | [DECISIONS.md](./DECISIONS.md) | Technical & architectural decisions log | Both Architects | Sept 3, 2025 | ✅ Current | Manual |
-| [TRACKER.md](./TRACKER.md) | Project task and sprint tracking | Governance System | Sept 3, 2025 | ✅ Current | Daily |
+| [TRACKER.md](./TRACKER.md) | Project task and sprint tracking | Governance System | Sept 7, 2025 | ✅ Current | Daily |
 | [README.md](./README.md) | Project overview and quick start | Both Architects | Sept 3, 2025 | ✅ Current | Manual |
-| [PERSONAS.md](./claude/PERSONAS.md) | Dynamic persona definitions | Framework Team | Sept 2, 2025 | ✅ Current | Manual |
+| [DEPRECATION_TRACKER.md](./DEPRECATION_TRACKER.md) | Tracks code marked for removal | Both Architects | Sept 7, 2025 | ✅ Current | Manual |
+| [PROJECT_STRUCTURE_VALIDATED.md](./PROJECT_STRUCTURE_VALIDATED.md) | Validated project structure map | Both Architects | Sept 7, 2025 | ✅ Current | Manual |
+| [PHASE_001_COMPLETION_SUMMARY.md](./PHASE_001_COMPLETION_SUMMARY.md) | Phase 001 completion report | AI Assistant | Sept 7, 2025 | ✅ Current | Per Phase |
 
 ## Architecture Documentation
 Technical architecture and system design documents.
 
 | Document | Purpose | Owner | Last Updated | Status | Review Cycle |
 |----------|---------|-------|--------------|--------|--------------|
+| [Plugin System Architecture](./docs/architecture/plugin-system.md) | Plugin-based validator architecture | AI Assistant | Sept 7, 2025 | ✅ Current | Monthly |
 | [Backend Architecture](./docs/architecture/backend.md) | FastAPI backend design & patterns | Dr. Sarah Chen | Sept 1, 2025 | 🟡 Needs Update | Monthly |
 | [Frontend Architecture](./docs/architecture/frontend.md) | Angular/Electron frontend design | Alex Novak | Sept 1, 2025 | 🟡 Needs Update | Monthly |
 | [Database Architecture](./docs/architecture/database.md) | PostgreSQL/SQLite design & schema | Dr. Sarah Chen | Sept 1, 2025 | 🟡 Needs Update | Monthly |

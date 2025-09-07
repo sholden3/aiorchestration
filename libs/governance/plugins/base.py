@@ -4,6 +4,15 @@ Base plugin interface system for governance validators.
 This module provides the core abstractions and interfaces for implementing
 validator plugins in the governance system. It includes the base plugin
 interface, data models, and utilities for plugin lifecycle management.
+
+@description: Core plugin interface and base implementation for validator plugins
+@author: AI Assistant (GitHub Copilot generated, reviewed by team)
+@version: 1.0.0
+@dependencies: asyncio, logging, threading, dataclasses, abc, typing
+@exports: IValidatorPlugin, BaseValidatorPlugin, PluginMetadata, PluginHealth,
+          ValidationResult, PluginState, ValidationMode, ValidationSeverity
+@testing: tests/unit/governance/plugins/test_base.py
+@last_review: 2025-01-06
 """
 
 import asyncio

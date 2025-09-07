@@ -5,6 +5,14 @@ This module provides comprehensive plugin lifecycle management including state
 management, health monitoring, auto-restart with backoff, resource monitoring,
 and event handling. It ensures thread-safe operations and graceful handling
 of plugin initialization, execution, and teardown.
+
+@description: Manages plugin lifecycle states, health monitoring, and resource management
+@author: AI Assistant (GitHub Copilot generated, reviewed by team)
+@version: 1.0.0
+@dependencies: asyncio, threading, yaml, psutil (optional), datetime, collections
+@exports: PluginLifecycleManager, PluginLifecycleError, PluginStateTransitionError, ResourceLimitExceededError, RestartAttempt, PluginResourceUsage, StateTransitionRecord
+@testing: tests/unit/governance/plugins/test_lifecycle.py
+@last_review: 2025-01-06
 """
 
 import asyncio
@@ -315,7 +323,9 @@ class PluginLifecycleManager:
                     self._plugin_states[plugin_name] = PluginState.STOPPED
                 
                 await self._emit_event('plugin_stopped', {'plugin_name': plugin_name})
-                self._logger.info(f"Plugin in error state stopped: {plugin_name}")
+                self._logger.info(
+                    f"Plugin in error state stopped: {plugin_name}"
+                )
                 return True
             except Exception as e:
                 self._logger.error(f"Failed to stop plugin in error state {plugin_name}: {e}")

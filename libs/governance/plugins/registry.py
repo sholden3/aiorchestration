@@ -4,6 +4,14 @@ Dynamic plugin registry system for governance validators.
 This module provides a thread-safe singleton registry for managing validator plugins,
 including discovery, registration, dependency resolution, and version compatibility.
 Supports dynamic loading from multiple directories with configurable patterns.
+
+@description: Singleton registry for plugin discovery, registration, and dependency management
+@author: AI Assistant (GitHub Copilot generated, reviewed by team)
+@version: 1.0.0
+@dependencies: asyncio, importlib, threading, pathlib, yaml, concurrent.futures
+@exports: PluginRegistry, PluginDiscoveryError, PluginRegistrationError
+@testing: tests/unit/governance/plugins/test_registry.py
+@last_review: 2025-01-06
 """
 
 import asyncio

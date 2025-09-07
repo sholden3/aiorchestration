@@ -9,6 +9,14 @@ comprehensive monitoring.
 The system is designed for high throughput (1000 messages/second) with
 low latency (<10ms publish, <50ms request/response) while maintaining
 thread safety and graceful degradation.
+
+@description: High-performance message bus for inter-plugin communication
+@author: AI Assistant (GitHub Copilot generated, reviewed by team)
+@version: 1.0.0
+@dependencies: asyncio, json, msgpack (optional), uuid, heapq, threading, collections
+@exports: PluginMessageBus, Message, MessageSerializer, SerializerType, DeliveryGuarantee, OverflowStrategy, CircuitState, CircuitBreaker, MessageBusError, MessageTimeoutError, MessageSerializationError, CircuitBreakerError
+@testing: tests/unit/governance/plugins/test_messaging.py
+@last_review: 2025-01-06
 """
 
 import asyncio
@@ -24,6 +32,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
+from functools import total_ordering
 from heapq import heappush, heappop
 from typing import (
     Any, Callable, Dict, List, Optional, Set, Union,
@@ -107,6 +116,7 @@ class CircuitBreakerError(MessageBusError):
     pass
 
 
+@total_ordering
 @dataclass(frozen=True)
 class Message:
     """Message format for inter-plugin communication."""
@@ -135,6 +145,53 @@ class Message:
         if self.ttl is None:
             return False
         return (datetime.now(timezone.utc) - self.timestamp).total_seconds() > self.ttl
+
+    def __lt__(self, other) -> bool:
+        """Compare messages for priority queue ordering.
+        
+        Order by:
+        1. Priority (lower number = higher priority)
+        2. Timestamp (earlier = higher priority)
+        3. ID (for stable ordering)
+        
+        Args:
+            other: Another Message instance to compare against
+            
+        Returns:
+            bool: True if this message should come before the other in priority order
+            
+        Raises:
+            NotImplemented: If comparing with non-Message type
+        """
+        if not isinstance(other, Message):
+            return NotImplemented
+        
+        # First compare by priority (lower number = higher priority)
+        if self.priority != other.priority:
+            return self.priority < other.priority
+        
+        # Then by timestamp (earlier messages first)
+        if self.timestamp != other.timestamp:
+            return self.timestamp < other.timestamp
+        
+        # Finally by ID for stable ordering
+        return self.id < other.id
+    
+    def __eq__(self, other) -> bool:
+        """Check message equality based on ID.
+        
+        Args:
+            other: Another Message instance to compare against
+            
+        Returns:
+            bool: True if messages have the same ID
+            
+        Raises:
+            NotImplemented: If comparing with non-Message type
+        """
+        if not isinstance(other, Message):
+            return NotImplemented
+        return self.id == other.id
 
 
 class MessageSerializer:

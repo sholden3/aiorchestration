@@ -1,0 +1,53 @@
+# Base Plugin Configuration
+plugin_name: "code_quality_plugin"
+version: "1.0.0"
+enabled: true
+
+# Plugin-specific configuration
+config:
+  # Validation settings
+  validation:
+    timeout: 30
+    max_errors: 10
+    fail_fast: false
+    
+  # File patterns
+  patterns:
+    include:
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+    exclude:
+      - "**/node_modules/**"
+      - "**/venv/**"
+      - "**/__pycache__/**"
+  
+  # Quality thresholds
+  thresholds:
+    complexity: 10
+    line_length: 100
+    function_length: 50
+  
+  # Integrations
+  integrations:
+    linting:
+      enabled: true
+      tools: ["pylint", "flake8", "black"]
+    testing:
+      enabled: true
+      coverage_threshold: 85
+    security:
+      enabled: false  # Disabled in base config
+
+# Dependencies
+dependencies:
+  - "base_validator"
+  - "file_watcher"
+
+# Security configuration
+security:
+  encryption_enabled: false
+  secret_keys: []
+
+# Debug mode (should generate warning)
+debug: false

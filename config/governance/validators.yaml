@@ -1,0 +1,594 @@
+# Comprehensive Validator Plugin Configuration
+# Generated for Claude Code Governance System
+# Schema: config/schemas/validators_schema.json
+#
+# This configuration defines all validator plugins for the governance system,
+# their hook mappings, dependencies, priorities, and testing configurations.
+
+# Global configuration settings
+global:
+  schema_version: "2.0"
+  last_updated: "2025-09-06"
+  environment: "development"
+  debug_mode: false
+  
+  # Plugin discovery settings
+  discovery:
+    plugin_directories:
+      - "libs/governance/plugins/validators"
+      - "libs/governance/validators"
+    auto_discovery: true
+    load_timeout: 30
+    
+  # Hook execution settings
+  hooks:
+    timeout_seconds: 60
+    parallel_execution: false
+    stop_on_error: true
+    retry_attempts: 2
+    
+  # Testing configuration
+  testing:
+    enabled: true
+    test_data_directory: "tests/fixtures/validators"
+    coverage_threshold: 80.0
+    parallel_test_execution: true
+
+# Validator plugin definitions
+validators:
+  # =============================================================================
+  # SECURITY VALIDATOR - Highest Priority Security Gatekeeper
+  # =============================================================================
+  security_validator:
+    enabled: true
+    plugin: "libs.governance.plugins.validators.security_plugin.SecurityValidatorPlugin"
+    version: "1.1.0"
+    priority: 95  # Highest priority - runs first
+    dependencies: []  # No dependencies - foundational validator
+    
+    # Configuration settings
+    config:
+      # Security pattern scanning
+      scan_patterns:
+        - 'eval\s*\('
+        - 'exec\s*\('
+        - '__import__\s*\('
+        - 'os\.system\s*\('
+        - 'subprocess\.(call|run|Popen)\s*\('
+        - 'pickle\.loads?\s*\('
+        - 'yaml\.load\s*\('
+        - 'input\s*\('  # Python 2 dangerous input()
+        - 'raw_input\s*\('
+        
+      # Secret detection patterns
+      secret_patterns:
+        - 'password\s*=\s*["\'][^"\']+["\']'
+        - 'api_key\s*=\s*["\'][^"\']+["\']'
+        - 'secret\s*=\s*["\'][^"\']+["\']'
+        - 'token\s*=\s*["\'][^"\']+["\']'
+        - 'BEGIN (RSA )?PRIVATE KEY'
+        - 'ssh-rsa AAAA[0-9A-Za-z+/]+[=]{0,3}'
+        
+      # File extensions to scan
+      file_extensions: [".py", ".js", ".ts", ".yaml", ".yml", ".json", ".sh", ".ps1"]
+      
+      # Excluded directories
+      exclude_paths: ["node_modules", ".git", "__pycache__", ".pytest_cache", "htmlcov"]
+      
+      # Severity thresholds
+      severity_levels:
+        secrets_found: "critical"
+        dangerous_functions: "error"
+        suspicious_imports: "warning"
+        
+      # External security tools integration
+      external_tools:
+        bandit:
+          enabled: true
+          config_file: ".bandit"
+        semgrep:
+          enabled: false  # Optional
+          rules: "auto"
+          
+    # Hook mappings
+    hooks:
+      git:
+        pre-commit:
+          enabled: true
+          blocking: true
+        pre-push:
+          enabled: true
+          blocking: true
+      claude_code:
+        PreToolUse:
+          enabled: true
+          blocking: true
+        PreFileWrite:
+          enabled: true
+          blocking: true
+        SessionStart:
+          enabled: true
+          blocking: false
+          
+    # Testing configuration
+    testing:
+      test_mode: false
+      test_data_path: "tests/fixtures/security"
+      mock_external_calls: true
+      test_timeout: 45
+      test_patterns: ["test_security_*.py"]
+
+  # =============================================================================
+  # CODE QUALITY VALIDATOR - Code Standards and Metrics
+  # =============================================================================
+  code_quality_validator:
+    enabled: true
+    plugin: "libs.governance.plugins.validators.code_quality_plugin.CodeQualityValidatorPlugin"
+    version: "1.2.0"
+    priority: 85
+    dependencies: ["security_validator"]  # Run after security
+    
+    config:
+      # Code style checking
+      style_checkers:
+        black:
+          enabled: true
+          line_length: 88
+          target_versions: ["py39", "py310", "py311"]
+        isort:
+          enabled: true
+          profile: "black"
+          line_length: 88
+        flake8:
+          enabled: true
+          max_line_length: 88
+          ignore: ["E203", "W503"]
+          
+      # Code complexity analysis
+      complexity:
+        max_cyclomatic_complexity: 10
+        max_function_length: 50
+        max_class_length: 500
+        
+      # Code coverage requirements
+      coverage:
+        minimum_threshold: 80.0
+        fail_under: 70.0
+        skip_covered: false
+        
+      # Type checking
+      type_checking:
+        mypy:
+          enabled: true
+          strict_mode: false
+          ignore_missing_imports: true
+          
+      # File patterns to check
+      file_patterns: ["**/*.py"]
+      exclude_patterns: ["tests/", "migrations/", "venv/"]
+      
+    hooks:
+      git:
+        pre-commit:
+          enabled: true
+          blocking: true
+        pre-push:
+          enabled: false  # Optional on push
+      claude_code:
+        PostToolUse:
+          enabled: true
+          blocking: false  # Provide feedback, don't block
+        PostFileWrite:
+          enabled: true
+          blocking: false
+        TaskCompletion:
+          enabled: true
+          blocking: false
+          
+    testing:
+      test_mode: false
+      test_data_path: "tests/fixtures/code_quality"
+      mock_external_calls: false
+      test_timeout: 60
+      relaxed_thresholds: true  # Relaxed for testing
+
+  # =============================================================================
+  # DOCUMENTATION VALIDATOR - Documentation Quality and Completeness
+  # =============================================================================
+  documentation_validator:
+    enabled: true
+    plugin: "libs.governance.validators.documentation_validator.DocumentationValidator"
+    version: "2.0.0"
+    priority: 75
+    dependencies: ["code_quality_validator"]
+    
+    config:
+      # Documentation requirements
+      requirements:
+        module_docstrings: true
+        class_docstrings: true
+        function_docstrings: true
+        public_api_docs: true
+        
+      # Documentation formats
+      formats:
+        docstring_style: "google"  # google, numpy, sphinx
+        markdown_lint: true
+        rst_validation: true
+        
+      # Content validation
+      content_validation:
+        check_examples: true
+        validate_code_blocks: true
+        check_links: true
+        spell_check: false  # Optional
+        
+      # Documentation coverage
+      coverage:
+        minimum_coverage: 70.0
+        public_api_coverage: 90.0
+        
+      # File patterns
+      documentation_files: ["**/*.md", "**/*.rst", "docs/**/*"]
+      code_files: ["**/*.py"]
+      
+    hooks:
+      git:
+        pre-commit:
+          enabled: true
+          blocking: false  # Warning only
+        pre-push:
+          enabled: true
+          blocking: true
+      claude_code:
+        PostFileWrite:
+          enabled: true
+          blocking: false
+        PostToolUse:
+          enabled: true
+          blocking: false
+        TaskCompletion:
+          enabled: true
+          blocking: true
+          
+    testing:
+      test_mode: true
+      test_data_path: "tests/fixtures/documentation"
+      mock_external_calls: true
+      test_timeout: 30
+      skip_link_validation: true  # Skip external links in tests
+
+  # =============================================================================
+  # GOVERNANCE VALIDATOR - CLAUDE.md Compliance
+  # =============================================================================
+  governance_validator:
+    enabled: true
+    plugin: "libs.governance.plugins.validators.governance_plugin.GovernanceValidatorPlugin"
+    version: "1.0.0"
+    priority: 90  # High priority - architectural compliance
+    dependencies: ["security_validator"]
+    
+    config:
+      # CLAUDE.md validation
+      claude_md_validation:
+        required_sections:
+          - "PURPOSE"
+          - "TECHNICAL IMPLEMENTATION"
+          - "CONSTRAINTS"
+          - "VALIDATION"
+        check_completeness: true
+        validate_format: true
+        
+      # Architecture compliance
+      architecture:
+        enforce_patterns: true
+        check_dependencies: true
+        validate_interfaces: true
+        
+      # Governance rules
+      rules:
+        max_file_size: 10485760  # 10MB
+        forbidden_patterns: ["TODO", "FIXME", "HACK"]
+        required_headers: ["COPYRIGHT", "LICENSE"]
+        
+    hooks:
+      git:
+        pre-commit:
+          enabled: true
+          blocking: true
+        post-merge:
+          enabled: true
+          blocking: false
+      claude_code:
+        PreToolUse:
+          enabled: true
+          blocking: true
+        SessionStart:
+          enabled: true
+          blocking: false
+        TaskCompletion:
+          enabled: true
+          blocking: true
+          
+    testing:
+      test_mode: false
+      test_data_path: "tests/fixtures/governance"
+      mock_external_calls: false
+      test_timeout: 20
+
+  # =============================================================================
+  # SCHEMA VALIDATOR - Configuration and Data File Validation
+  # =============================================================================
+  schema_validator:
+    enabled: true
+    plugin: "libs.governance.plugins.validators.schema_plugin.SchemaValidatorPlugin"
+    version: "1.0.0"
+    priority: 80
+    dependencies: []
+    
+    config:
+      # Schema validation settings
+      validation:
+        strict_mode: true
+        allow_additional_properties: false
+        validate_formats: true
+        
+      # Schema files and their targets
+      schema_mappings:
+        "config/schemas/plugin.json": ["config/**/*.yaml", "config/**/*.json"]
+        "config/schemas/validators_schema.json": ["config/governance/validators.yaml"]
+        
+      # File type handling
+      file_formats:
+        yaml: ["*.yaml", "*.yml"]
+        json: ["*.json"]
+        toml: ["*.toml"]
+        
+    hooks:
+      git:
+        pre-commit:
+          enabled: true
+          blocking: true
+      claude_code:
+        PreFileWrite:
+          enabled: true
+          blocking: true
+        PostFileWrite:
+          enabled: true
+          blocking: false
+          
+    testing:
+      test_mode: false
+      test_data_path: "tests/fixtures/schemas"
+      mock_external_calls: false
+      test_timeout: 15
+
+  # =============================================================================
+  # TEST VALIDATOR - Test Coverage and Quality
+  # =============================================================================
+  test_validator:
+    enabled: true
+    plugin: "libs.governance.plugins.validators.test_plugin.TestValidatorPlugin"
+    version: "1.0.0"
+    priority: 70
+    dependencies: ["code_quality_validator"]
+    
+    config:
+      # Test requirements
+      requirements:
+        minimum_coverage: 80.0
+        test_file_pattern: "test_*.py"
+        test_directory: "tests/"
+        
+      # Test quality checks
+      quality:
+        check_assertions: true
+        validate_fixtures: true
+        check_mocking: true
+        
+      # Test execution
+      execution:
+        run_tests: true
+        parallel_execution: true
+        timeout_per_test: 30
+        
+    hooks:
+      git:
+        pre-commit:
+          enabled: true
+          blocking: true
+        pre-push:
+          enabled: true
+          blocking: true
+      claude_code:
+        PostFileWrite:
+          enabled: true
+          blocking: false
+        TaskCompletion:
+          enabled: true
+          blocking: true
+          
+    testing:
+      test_mode: true
+      test_data_path: "tests/fixtures/testing"
+      mock_external_calls: true
+      test_timeout: 45
+      skip_actual_tests: true  # Don't run tests when testing the validator
+
+  # =============================================================================
+  # LICENSE VALIDATOR - Dependency License Compliance
+  # =============================================================================
+  license_validator:
+    enabled: true
+    plugin: "libs.governance.plugins.validators.license_plugin.LicenseValidatorPlugin"
+    version: "1.0.0"
+    priority: 60
+    dependencies: []
+    
+    config:
+      # License compliance
+      allowed_licenses:
+        - "MIT"
+        - "Apache-2.0"
+        - "BSD-3-Clause"
+        - "BSD-2-Clause"
+        - "ISC"
+        - "GPL-3.0+"  # If GPL is acceptable
+        
+      # Forbidden licenses
+      forbidden_licenses:
+        - "GPL-2.0"  # Example if GPL v2 is not acceptable
+        - "AGPL-3.0"
+        - "Unlicense"
+        
+      # Package files to check
+      package_files:
+        - "requirements.txt"
+        - "pyproject.toml"
+        - "package.json"
+        - "Pipfile"
+        
+    hooks:
+      git:
+        pre-push:
+          enabled: true
+          blocking: true
+        post-merge:
+          enabled: true
+          blocking: false
+      claude_code:
+        SessionStart:
+          enabled: true
+          blocking: false
+        TaskCompletion:
+          enabled: true
+          blocking: false
+          
+    testing:
+      test_mode: true
+      test_data_path: "tests/fixtures/licenses"
+      mock_external_calls: true
+      test_timeout: 25
+
+  # =============================================================================
+  # PERFORMANCE VALIDATOR - Resource Usage and Performance Monitoring
+  # =============================================================================
+  performance_validator:
+    enabled: false  # Optional - enable for performance-critical projects
+    plugin: "libs.governance.plugins.validators.performance_plugin.PerformanceValidatorPlugin"
+    version: "1.0.0"
+    priority: 50
+    dependencies: []
+    
+    config:
+      # Performance thresholds
+      thresholds:
+        max_memory_usage: 1073741824  # 1GB
+        max_cpu_percentage: 80.0
+        max_execution_time: 30.0
+        
+      # Monitoring settings
+      monitoring:
+        profile_code: true
+        track_memory: true
+        measure_complexity: true
+        
+    hooks:
+      git:
+        pre-push:
+          enabled: true
+          blocking: false
+      claude_code:
+        PostToolUse:
+          enabled: true
+          blocking: false
+        TaskCompletion:
+          enabled: true
+          blocking: false
+          
+    testing:
+      test_mode: true
+      test_data_path: "tests/fixtures/performance"
+      mock_external_calls: true
+      test_timeout: 60
+      relaxed_thresholds: true
+
+# Hook execution order configuration
+hook_execution_order:
+  PreToolUse:
+    - security_validator
+    - governance_validator
+    - schema_validator
+    
+  PreFileWrite:
+    - security_validator
+    - schema_validator
+    
+  PostFileWrite:
+    - code_quality_validator
+    - documentation_validator
+    - test_validator
+    
+  PostToolUse:
+    - code_quality_validator
+    - documentation_validator
+    - performance_validator
+    
+  SessionStart:
+    - security_validator
+    - governance_validator
+    - license_validator
+    
+  SessionEnd:
+    - performance_validator
+    
+  TaskCompletion:
+    - documentation_validator
+    - governance_validator
+    - test_validator
+    - license_validator
+
+# Plugin communication configuration
+messaging:
+  enabled: true
+  bus_type: "async"
+  timeout: 10
+  retry_attempts: 3
+  
+  # Inter-plugin communication channels
+  channels:
+    security_alerts: ["security_validator", "governance_validator"]
+    quality_metrics: ["code_quality_validator", "test_validator"]
+    documentation_updates: ["documentation_validator", "governance_validator"]
+
+# Environment-specific overrides
+environments:
+  development:
+    global:
+      debug_mode: true
+    validators:
+      code_quality_validator:
+        config:
+          coverage:
+            minimum_threshold: 70.0  # Relaxed for development
+      performance_validator:
+        enabled: false  # Disable in development
+        
+  testing:
+    global:
+      debug_mode: true
+    validators:
+      security_validator:
+        testing:
+          test_mode: true
+      license_validator:
+        enabled: false  # Skip license checks in testing
+        
+  production:
+    global:
+      debug_mode: false
+    validators:
+      security_validator:
+        priority: 100  # Maximum priority in production
+      performance_validator:
+        enabled: true  # Enable performance monitoring in production

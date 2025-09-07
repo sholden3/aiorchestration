@@ -1,0 +1,37 @@
+# Development Environment Overrides
+plugin_name: "code_quality_plugin"
+version: "1.0.0-dev"
+
+# Development-specific configuration
+config:
+  validation:
+    timeout: 60  # Longer timeout for debugging
+    fail_fast: true  # Fail fast in development
+  
+  thresholds:
+    complexity: 15  # More lenient in development
+    
+  integrations:
+    linting:
+      tools: ["pylint", "flake8"]  # Fewer tools for speed
+    testing:
+      coverage_threshold: 70  # Lower threshold in dev
+    security:
+      enabled: true  # Enable security checks in dev
+
+# Enable debug mode in development
+debug: true
+
+# Development dependencies
+dependencies:
+  - "base_validator"
+  - "file_watcher"
+  - "dev_tools"
+  - "hot_reload"
+
+# Development database URL with environment substitution
+config:
+  database:
+    url: "${DATABASE_URL:sqlite:///./dev.db}"
+    pool_size: 5
+    echo: true  # SQL logging in dev

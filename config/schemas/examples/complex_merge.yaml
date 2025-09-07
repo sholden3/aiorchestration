@@ -1,0 +1,63 @@
+# Complex Configuration Merge Example
+# Demonstrates array merge strategies and deep merging
+
+plugin_name: "advanced_plugin"
+version: "2.0.0"
+
+# Complex nested configuration
+config:
+  # Arrays that will be merged
+  middleware_stack:
+    - "auth_middleware"
+    - "logging_middleware"
+    - "cors_middleware"
+  
+  # Nested objects for deep merging
+  services:
+    database:
+      primary:
+        host: "db-primary.example.com"
+        port: 5432
+        ssl: true
+      replica:
+        host: "db-replica.example.com"
+        port: 5432
+        ssl: true
+    
+    cache:
+      redis:
+        host: "redis.example.com"
+        port: 6379
+        db: 0
+      
+    queue:
+      rabbitmq:
+        host: "queue.example.com"
+        port: 5672
+        vhost: "/app"
+  
+  # Feature flags
+  features:
+    new_ui: false
+    advanced_analytics: true
+    beta_features: false
+  
+  # Resource limits
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+    concurrent_jobs: 10
+    
+  # Monitoring configuration
+  monitoring:
+    metrics:
+      - "request_count"
+      - "error_rate"
+      - "response_time"
+    alerts:
+      - type: "error_rate"
+        threshold: 0.05
+      - type: "response_time"
+        threshold: 1000
+
+# Environment-specific overrides will merge with this base

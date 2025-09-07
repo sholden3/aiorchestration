@@ -1,0 +1,16 @@
+plugin_directories:
+  - libs/governance/plugins/validators
+  - libs/governance/plugins/custom
+discovery:
+  recursive: true
+  file_pattern: "*_plugin.py"
+  exclude_patterns: ["test_*.py", "__pycache__"]
+validation:
+  strict_mode: true
+  require_metadata: true
+timeout:
+  discovery_seconds: 5
+  initialization_seconds: 10
+logging:
+  level: INFO
+  plugin_events: true

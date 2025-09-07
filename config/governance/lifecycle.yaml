@@ -1,0 +1,17 @@
+health_check:
+  interval_seconds: 60
+  timeout_seconds: 5
+restart_policy:
+  max_attempts: 3
+  backoff_multiplier: 2
+  initial_delay_seconds: 1
+resource_limits:
+  max_memory_mb: 100
+  max_cpu_percent: 50
+state_transitions:
+  timeout_seconds: 30
+logging:
+  level: INFO
+  log_state_transitions: true
+  log_health_checks: true
+  log_resource_usage: true

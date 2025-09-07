@@ -1,0 +1,57 @@
+{
+  "plugin_name": "code_quality_plugin",
+  "version": "1.0.0",
+  "enabled": true,
+  "config": {
+    "validation": {
+      "timeout": 15,
+      "max_errors": 5,
+      "fail_fast": true
+    },
+    "thresholds": {
+      "complexity": 8,
+      "line_length": 88,
+      "function_length": 30
+    },
+    "integrations": {
+      "linting": {
+        "enabled": true,
+        "tools": ["pylint", "flake8", "black", "isort", "mypy"]
+      },
+      "testing": {
+        "enabled": true,
+        "coverage_threshold": 95
+      },
+      "security": {
+        "enabled": true,
+        "strict_mode": true
+      }
+    },
+    "database": {
+      "url": "${DATABASE_URL}",
+      "pool_size": 20,
+      "echo": false,
+      "ssl": true
+    },
+    "monitoring": {
+      "enabled": true,
+      "metrics_endpoint": "${METRICS_ENDPOINT}",
+      "alert_threshold": 0.99
+    }
+  },
+  "dependencies": [
+    "base_validator",
+    "file_watcher",
+    "prod_monitoring",
+    "security_scanner"
+  ],
+  "security": {
+    "encryption_enabled": true,
+    "secret_keys": [
+      "${SECRET_KEY_1}",
+      "${SECRET_KEY_2}"
+    ],
+    "audit_logging": true
+  },
+  "debug": false
+}
